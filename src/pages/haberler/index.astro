@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getNews } from '../../lib/content';
+
+const news = await getNews();
+---
+
+<BaseLayout
+  title="Haberler"
+  description="Sizi doğrudan etkileyebilecek sızıntılar, saldırılar ve platform güvenlik değişiklikleri."
+>
+  <div class="container page">
+    <header class="page-head">
+      <h1>Haberler</h1>
+      <p>
+        Genel teknoloji haberleri yayınlamıyoruz. Burada yalnızca hesaplarınızı veya cihazlarınızı
+        doğrudan ilgilendiren gelişmeler yer alır.
+      </p>
+    </header>
+
+    {
+      news.length > 0 ? (
+        <div class="grid">
+          {news.map((entry) => (
+            <ArticleCard entry={entry} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">Henüz haber yayınlanmadı.</p>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    max-width: var(--measure);
+    margin-bottom: var(--sp-6);
+  }
+  .page-head p {
+    margin-top: var(--sp-3);
+    color: var(--text-muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-4);
+  }
+  .empty {
+    color: var(--text-muted);
+  }
+</style>

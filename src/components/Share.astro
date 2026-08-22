@@ -1,0 +1,115 @@
+---
+/**
+ * Share controls.
+ *
+ * Plain share URLs plus the native Web Share API where available. No
+ * third-party SDK is loaded — every button here is a link or a one-line
+ * handler, so sharing costs the visitor no tracking.
+ */
+interface Props {
+  title: string;
+  url: string;
+}
+
+const { title, url } = Astro.props;
+const encodedUrl = encodeURIComponent(url);
+const encodedTitle = encodeURIComponent(title);
+---
+
+<div class="share" data-share-url={url} data-share-title={title}>
+  <span class="eyebrow">Paylaş</span>
+  <div class="share-buttons">
+    <button type="button" class="share-btn" data-share-copy>
+      <span data-copy-label>Bağlantıyı kopyala</span>
+    </button>
+    <a
+      class="share-btn"
+      href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
+      target="_blank"
+      rel="noopener noreferrer">WhatsApp</a
+    >
+    <a
+      class="share-btn"
+      href={`https://x.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`}
+      target="_blank"
+      rel="noopener noreferrer">X</a
+    >
+    <a
+      class="share-btn"
+      href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
+      target="_blank"
+      rel="noopener noreferrer">Facebook</a
+    >
+    <button type="button" class="share-btn" data-share-native hidden>Diğer</button>
+  </div>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.share');
+  if (root) {
+    const url = root.dataset.shareUrl ?? location.href;
+    const title = root.dataset.shareTitle ?? document.title;
+
+    const copyButton = root.querySelector<HTMLButtonElement>('[data-share-copy]');
+    const copyLabel = root.querySelector<HTMLElement>('[data-copy-label]');
+    copyButton?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+        if (copyLabel) {
+          copyLabel.textContent = 'Kopyalandı';
+          setTimeout(() => {
+            copyLabel.textContent = 'Bağlantıyı kopyala';
+          }, 2000);
+        }
+      } catch {
+        if (copyLabel) copyLabel.textContent = 'Kopyalanamadı';
+      }
+    });
+
+    const nativeButton = root.querySelector<HTMLButtonElement>('[data-share-native]');
+    if (nativeButton && typeof navigator.share === 'function') {
+      nativeButton.hidden = false;
+      nativeButton.addEventListener('click', () => {
+        navigator.share({ title, url }).catch(() => {
+          /* the visitor dismissed the sheet — not an error */
+        });
+      });
+    }
+  }
+</script>
+
+<style>
+  .share {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding-block: var(--sp-5);
+    border-top: 1px solid var(--border);
+  }
+
+  .share-buttons {
+    display: flex;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+  }
+
+  .share-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 var(--sp-4);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .share-btn:hover {
+    color: var(--cyan);
+    border-color: var(--border-strong);
+  }
+</style>

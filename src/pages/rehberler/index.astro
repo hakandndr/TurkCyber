@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { CATEGORIES } from '../../config/site';
+import { getGuides } from '../../lib/content';
+
+const guides = await getGuides();
+const used = new Set(guides.map((g) => g.data.category));
+const categories = CATEGORIES.filter((c) => used.has(c.id));
+---
+
+<BaseLayout
+  title="Rehberler"
+  description="Hesap güvenliği, şifreler, iki aşamalı doğrulama ve dolandırıcılık konularında adım adım Türkçe rehberler."
+>
+  <div class="container page">
+    <header class="page-head">
+      <h1>Rehberler</h1>
+      <p>
+        Her rehber tek bir gerçek güvenlik problemini ele alır ve ne yapmanız gerektiğini adım adım
+        anlatır.
+      </p>
+    </header>
+
+    {
+      categories.map((category) => (
+        <section class="cat-section">
+          <h2 id={category.id}>
+            <a href={`/konular/${category.id}/`}>{category.name}</a>
+          </h2>
+          <div class="grid">
+            {guides
+              .filter((g) => g.data.category === category.id)
+              .map((entry) => (
+                <ArticleCard entry={entry} headingLevel={3} />
+              ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    max-width: var(--measure);
+    margin-bottom: var(--sp-7);
+  }
+  .page-head p {
+    margin-top: var(--sp-3);
+    color: var(--text-muted);
+  }
+  .cat-section {
+    margin-bottom: var(--sp-7);
+  }
+  .cat-section h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-4);
+  }
+  .cat-section h2 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  .cat-section h2 a:hover {
+    color: var(--cyan);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-4);
+  }
+</style>

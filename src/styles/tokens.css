@@ -1,0 +1,70 @@
+/* ==========================================================================
+   TurkCyber design tokens
+   Dark, technical, calm. Colour is used to carry meaning, never decoration.
+   ========================================================================== */
+
+:root {
+  /* --- surfaces: three-step depth stack --- */
+  --surface-0: #090b0c; /* page background */
+  --surface-1: #0c0f10; /* cards, panels */
+  --surface-2: #101415; /* raised elements, code blocks, table headers */
+  --surface-3: #161b1c; /* hover states on raised elements */
+
+  /* --- text --- */
+  --text: #f1f5f4;
+  --text-muted: #8e9995;
+  --text-faint: #6b7572;
+
+  /* --- accents --- */
+  --green: #21e67a; /* recommended / safe / verified */
+  --cyan: #00c8ff; /* information / technical detail */
+  --amber: #ffb54a; /* caution */
+  --red: #ff6a5e; /* danger — used sparingly */
+
+  /* Dimmed accent fills for callout backgrounds. */
+  --green-wash: rgba(33, 230, 122, 0.07);
+  --cyan-wash: rgba(0, 200, 255, 0.07);
+  --amber-wash: rgba(255, 181, 74, 0.07);
+  --red-wash: rgba(255, 106, 94, 0.07);
+
+  /* --- lines --- */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* --- typography --- */
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'DejaVu Sans Mono', ui-monospace, 'Courier New', monospace;
+
+  --step--1: 0.875rem;
+  --step-0: 1rem;
+  --step-1: 1.125rem;
+  --step-2: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-3: clamp(1.5rem, 1.25rem + 1.1vw, 2rem);
+  --step-4: clamp(1.9rem, 1.4rem + 2.2vw, 2.9rem);
+
+  /* --- spacing --- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+
+  /* --- layout --- */
+  --measure: 68ch; /* readable line length for Turkish body copy */
+  --container: 1120px;
+  --container-narrow: 760px;
+  --radius: 4px;
+  --radius-lg: 6px;
+
+  --focus-ring: 2px solid var(--cyan);
+}
+
+/* The site is dark by design; we still declare the scheme so form controls,
+   scrollbars and the browser UI match rather than flashing white. */
+:root {
+  color-scheme: dark;
+}

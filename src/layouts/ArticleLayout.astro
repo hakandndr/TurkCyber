@@ -1,0 +1,325 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import Share from '../components/Share.astro';
+import Comments from '../components/Comments.astro';
+import { SITE, getCategory, DIFFICULTY_LABELS } from '../config/site';
+import { articlePath, formatTurkishDate, type Article, type Guide } from '../lib/content';
+
+interface Props {
+  entry: Article;
+  related: Guide[];
+}
+
+const { entry, related } = Astro.props;
+const { data } = entry;
+const category = getCategory(data.category);
+const url = new URL(articlePath(entry), SITE.url).href;
+const isGuide = entry.collection === 'guides';
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': isGuide ? 'TechArticle' : 'NewsArticle',
+  headline: data.title,
+  description: data.description,
+  inLanguage: 'tr-TR',
+  datePublished: data.publishedAt.toISOString(),
+  dateModified: (data.updatedAt ?? data.publishedAt).toISOString(),
+  author: { '@type': 'Organization', name: data.author, url: SITE.url },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.name,
+    url: SITE.url,
+  },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+  articleSection: category?.name,
+  keywords: data.tags.join(', '),
+};
+---
+
+<BaseLayout
+  title={data.seoTitle ?? data.title}
+  description={data.seoDescription ?? data.description}
+  ogType="article"
+  publishedAt={data.publishedAt}
+  updatedAt={data.updatedAt}
+  structuredData={structuredData}
+  noindex={data.status !== 'published'}
+>
+  <article class="container-narrow article">
+    <nav aria-label="Konum" class="breadcrumb">
+      <a href="/">Ana sayfa</a>
+      <span aria-hidden="true">/</span>
+      <a href={isGuide ? '/rehberler/' : '/haberler/'}>{isGuide ? 'Rehberler' : 'Haberler'}</a>
+      {
+        category && (
+          <>
+            <span aria-hidden="true">/</span>
+            <a href={`/konular/${category.id}/`}>{category.name}</a>
+          </>
+        )
+      }
+    </nav>
+
+    <header class="article-head">
+      <h1>{data.title}</h1>
+      <p class="article-lede">{data.description}</p>
+
+      <div class="article-meta">
+        <time datetime={data.publishedAt.toISOString()}>
+          {formatTurkishDate(data.publishedAt)}
+        </time>
+        {
+          data.updatedAt && (
+            <span class="updated">Güncellendi: {formatTurkishDate(data.updatedAt)}</span>
+          )
+        }
+        {isGuide && <span>{(data as { readingTime: number }).readingTime} dk okuma</span>}
+        {
+          isGuide && (
+            <span>
+              {
+                DIFFICULTY_LABELS[
+                  (data as { difficulty: keyof typeof DIFFICULTY_LABELS }).difficulty
+                ]
+              }
+            </span>
+          )
+        }
+        {data.status !== 'published' && <span class="draft-badge">{data.status}</span>}
+      </div>
+    </header>
+
+    {
+      data.summary && (
+        <aside class="summary">
+          <p class="eyebrow">Kısaca</p>
+          <p>{data.summary}</p>
+        </aside>
+      )
+    }
+
+    {
+      data.uiVerifiedAt && (
+        <p class="ui-verified">
+          Bu rehberdeki adımlar {formatTurkishDate(data.uiVerifiedAt)} tarihinde kontrol edildi.
+          Uygulama arayüzleri değişebilir; bir adım eşleşmiyorsa yorumlarda bildirin.
+        </p>
+      )
+    }
+
+    <div class="prose">
+      <slot />
+    </div>
+
+    {
+      !isGuide && (
+        <p class="source-line">
+          Kaynak:{' '}
+          <a
+            href={(data as { sourceUrl: string }).sourceUrl}
+            rel="noopener nofollow"
+            target="_blank"
+          >
+            {(data as { sourceName: string }).sourceName}
+          </a>
+        </p>
+      )
+    }
+
+    <Share title={data.title} url={url} />
+
+    {
+      related.length > 0 && (
+        <section class="related">
+          <h2>İlgili rehberler</h2>
+          <div class="related-grid">
+            {related.map((item) => (
+              <ArticleCard entry={item} headingLevel={3} />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <Comments slug={entry.id} />
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+
+  .breadcrumb {
+    display: flex;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-bottom: var(--sp-5);
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--cyan);
+  }
+
+  .article-head h1 {
+    margin-bottom: var(--sp-4);
+  }
+
+  .article-lede {
+    font-size: var(--step-1);
+    color: var(--text-muted);
+    max-width: var(--measure);
+  }
+
+  .article-meta {
+    display: flex;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+    margin-top: var(--sp-4);
+    padding-bottom: var(--sp-5);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+
+  .article-meta .updated {
+    color: var(--green);
+  }
+
+  .draft-badge {
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .summary {
+    margin-top: var(--sp-5);
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: var(--radius);
+  }
+
+  .summary p:last-child {
+    margin-top: var(--sp-2);
+  }
+
+  .ui-verified {
+    margin-top: var(--sp-4);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  /* --- article body --- */
+
+  .prose {
+    margin-top: var(--sp-6);
+    max-width: var(--measure);
+  }
+
+  .prose :global(h2) {
+    font-size: var(--step-2);
+    margin-top: var(--sp-7);
+    margin-bottom: var(--sp-3);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border);
+  }
+
+  .prose :global(h3) {
+    font-size: var(--step-1);
+    margin-top: var(--sp-5);
+    margin-bottom: var(--sp-2);
+  }
+
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin-bottom: var(--sp-4);
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: var(--sp-5);
+  }
+
+  .prose :global(li) {
+    margin-bottom: var(--sp-2);
+  }
+
+  .prose :global(ol) {
+    counter-reset: step;
+  }
+
+  .prose :global(strong) {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--border-strong);
+    padding-left: var(--sp-4);
+    color: var(--text-muted);
+    margin-bottom: var(--sp-4);
+  }
+
+  .prose :global(img) {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-block: var(--sp-5);
+  }
+
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step--1);
+    margin-bottom: var(--sp-5);
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    text-align: left;
+    padding: var(--sp-3);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .prose :global(th) {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .source-line {
+    margin-top: var(--sp-5);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .related {
+    margin-top: var(--sp-7);
+  }
+
+  .related h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-4);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-4);
+  }
+</style>

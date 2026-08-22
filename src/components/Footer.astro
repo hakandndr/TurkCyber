@@ -1,0 +1,91 @@
+---
+import { FOOTER_LINKS, SITE } from '../config/site';
+import Logo from './Logo.astro';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <Logo variant="compact" />
+      <p class="footer-note">Türkçe dijital güvenlik rehberleri. Bağımsız bir yayın projesi.</p>
+    </div>
+
+    <nav aria-label="Alt menü">
+      <ul class="footer-nav">
+        {
+          FOOTER_LINKS.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="footer-meta">
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      <a href={SITE.owner.url} rel="noopener">A DNDR Labs Project</a>
+      <span>&copy; {year}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    background: var(--surface-1);
+    padding-block: var(--sp-6);
+    font-size: var(--step--1);
+  }
+
+  .footer-inner {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto auto;
+    gap: var(--sp-6);
+    align-items: start;
+  }
+
+  .footer-note {
+    color: var(--text-muted);
+    margin-top: var(--sp-3);
+    max-width: 34ch;
+  }
+
+  .footer-nav,
+  .footer-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-nav a,
+  .footer-meta a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .footer-nav a:hover,
+  .footer-meta a:hover {
+    color: var(--cyan);
+  }
+
+  .footer-meta span {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 780px) {
+    .footer-inner {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

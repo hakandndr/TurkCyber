@@ -1,0 +1,112 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "turkcyber",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-01-15",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // The Astro static build is served through this binding. A Worker or D1
+  // outage therefore cannot stop an article from rendering.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+  },
+
+  "observability": { "enabled": true },
+
+  "vars": {
+    "ENVIRONMENT": "development",
+    "ANALYTICS_TIMEZONE": "America/Los_Angeles",
+  },
+
+  // Local development identifiers only. Staging and production ids are filled
+  // in during their own provisioning phases — see PRODUCTION_CUTOVER.md.
+  "d1_databases": [
+    {
+      "binding": "APP_DB",
+      "database_name": "turkcyber-app-dev",
+      "database_id": "REPLACE_WITH_DEV_APP_DB_ID",
+      "migrations_dir": "migrations/app",
+      "migrations_table": "app_migrations",
+    },
+    {
+      "binding": "ANALYTICS_DB",
+      "database_name": "turkcyber-analytics-dev",
+      "database_id": "REPLACE_WITH_DEV_ANALYTICS_DB_ID",
+      "migrations_dir": "migrations/analytics",
+      "migrations_table": "analytics_migrations",
+    },
+  ],
+
+  "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "REPLACE_WITH_DEV_THROTTLE_KV_ID" }],
+
+  "env": {
+    "staging": {
+      "name": "turkcyber-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "ANALYTICS_TIMEZONE": "America/Los_Angeles",
+      },
+      // Route pattern MUST carry the trailing wildcard. Cloudflare matches the
+      // pattern against the whole URL including the query string, and the
+      // beacon always sends ?path=…&referrer=…&t=…. A bare "/collect" never
+      // matches a real request. The wildcard also catches unrelated paths such
+      // as /collections/*, so worker/index.ts re-checks the exact pathname and
+      // falls through to static assets for anything else.
+      "routes": [
+        { "pattern": "turkcyber-staging.dndr.net/collect*", "zone_name": "dndr.net" },
+        { "pattern": "turkcyber-staging.dndr.net/api/*", "zone_name": "dndr.net" },
+        { "pattern": "turkcyber-staging.dndr.net/boss*", "zone_name": "dndr.net" },
+      ],
+      "d1_databases": [
+        {
+          "binding": "APP_DB",
+          "database_name": "turkcyber-app-staging",
+          "database_id": "REPLACE_WITH_STAGING_APP_DB_ID",
+          "migrations_dir": "migrations/app",
+          "migrations_table": "app_migrations",
+        },
+        {
+          "binding": "ANALYTICS_DB",
+          "database_name": "turkcyber-analytics-staging",
+          "database_id": "REPLACE_WITH_STAGING_ANALYTICS_DB_ID",
+          "migrations_dir": "migrations/analytics",
+          "migrations_table": "analytics_migrations",
+        },
+      ],
+      "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "REPLACE_WITH_STAGING_THROTTLE_KV_ID" }],
+    },
+
+    // Production is defined but deliberately NOT routed. Adding the routes
+    // below replaces the legacy Hostinger site and requires explicit owner
+    // authorization — see PRODUCTION_CUTOVER.md phase D.
+    "production": {
+      "name": "turkcyber-production",
+      "vars": {
+        "ENVIRONMENT": "production",
+        "ANALYTICS_TIMEZONE": "America/Los_Angeles",
+      },
+      "routes": [],
+      "d1_databases": [
+        {
+          "binding": "APP_DB",
+          "database_name": "turkcyber-app-production",
+          "database_id": "REPLACE_WITH_PRODUCTION_APP_DB_ID",
+          "migrations_dir": "migrations/app",
+          "migrations_table": "app_migrations",
+        },
+        {
+          "binding": "ANALYTICS_DB",
+          "database_name": "turkcyber-analytics-production",
+          "database_id": "REPLACE_WITH_PRODUCTION_ANALYTICS_DB_ID",
+          "migrations_dir": "migrations/analytics",
+          "migrations_table": "analytics_migrations",
+        },
+      ],
+      "kv_namespaces": [
+        { "binding": "THROTTLE_KV", "id": "REPLACE_WITH_PRODUCTION_THROTTLE_KV_ID" },
+      ],
+    },
+  },
+}

@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { CATEGORIES, SITE } from '../config/site';
+import { getFeaturedGuides, getGuides, getNews } from '../lib/content';
+
+const [featured, guides, news] = await Promise.all([getFeaturedGuides(3), getGuides(), getNews()]);
+
+const featuredIds = new Set(featured.map((g) => g.id));
+const latest = guides.filter((g) => !featuredIds.has(g.id)).slice(0, 6);
+const latestNews = news.slice(0, 3);
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: SITE.url,
+  inLanguage: 'tr-TR',
+  description: SITE.description,
+  publisher: { '@type': 'Organization', name: SITE.owner.name, url: SITE.owner.url },
+};
+---
+
+<BaseLayout title={SITE.name} description={SITE.description} structuredData={structuredData}>
+  <section class="hero">
+    <div class="container hero-inner">
+      <p class="eyebrow">Türkçe dijital güvenlik rehberleri</p>
+      <h1>{SITE.tagline}</h1>
+      <p class="hero-text">{SITE.description}</p>
+      <div class="hero-actions">
+        <a href="/rehberler/" class="button button-primary">Rehberlere göz at</a>
+        <a href="#son-icerikler" class="button">En son içerikler</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section">
+    <h2>Öne Çıkan Rehberler</h2>
+    <div class="grid">
+      {featured.map((entry) => <ArticleCard entry={entry} />)}
+    </div>
+  </section>
+
+  <section class="container section" id="son-icerikler">
+    <h2>Yeni Rehberler</h2>
+    <div class="grid">
+      {latest.map((entry) => <ArticleCard entry={entry} />)}
+    </div>
+  </section>
+
+  <section class="container section">
+    <h2>Popüler Konular</h2>
+    <ul class="topics">
+      {
+        CATEGORIES.map((category) => (
+          <li>
+            <a href={`/konular/${category.id}/`} class:list={['topic', `topic-${category.accent}`]}>
+              <span class="topic-name">{category.name}</span>
+              <span class="topic-desc">{category.description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    latestNews.length > 0 && (
+      <section class="container section">
+        <h2>Güncel Güvenlik Haberleri</h2>
+        <div class="grid">
+          {latestNews.map((entry) => (
+            <ArticleCard entry={entry} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .hero {
+    border-bottom: 1px solid var(--border);
+    /* Depth without a gradient wash: one soft radial pinned behind the text. */
+    background:
+      radial-gradient(60ch 40ch at 12% -10%, rgba(33, 230, 122, 0.07), transparent 70%),
+      radial-gradient(50ch 34ch at 88% 0%, rgba(0, 200, 255, 0.05), transparent 70%);
+  }
+
+  .hero-inner {
+    padding-block: var(--sp-8);
+    max-width: 62ch;
+  }
+
+  .hero h1 {
+    margin-top: var(--sp-3);
+  }
+
+  .hero-text {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    margin-top: var(--sp-6);
+  }
+
+  .section {
+    padding-block: var(--sp-7);
+  }
+
+  .section h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-5);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-4);
+  }
+
+  .topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-3);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .topic {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    height: 100%;
+    padding: var(--sp-4);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+
+  .topic-green {
+    border-left-color: var(--green);
+  }
+  .topic-cyan {
+    border-left-color: var(--cyan);
+  }
+
+  .topic:hover {
+    background: var(--surface-2);
+  }
+
+  .topic-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .topic-desc {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+</style>

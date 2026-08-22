@@ -1,0 +1,44 @@
+{
+  "name": "turkcyber",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TurkCyber — Turkish digital security publishing platform. A DNDR Labs project.",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "check": "astro check && tsc --noEmit -p tsconfig.worker.json",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "db:app:local": "wrangler d1 migrations apply APP_DB --local",
+    "db:analytics:local": "wrangler d1 migrations apply ANALYTICS_DB --local",
+    "import:legacy": "node scripts/import-legacy-analytics.mjs"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.14",
+    "astro": "^5.2.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@cloudflare/workers-types": "^4.20250204.0",
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^26.2.0",
+    "eslint": "^9.19.0",
+    "eslint-plugin-astro": "^1.3.1",
+    "globals": "^17.11.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.23.0",
+    "vitest": "^3.0.5",
+    "wrangler": "^3.107.2"
+  }
+}

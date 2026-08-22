@@ -1,0 +1,346 @@
+---
+/**
+ * Comments.
+ *
+ * The article is static HTML; comments load afterwards from the Worker. When
+ * that call fails the article stays fully readable and a Turkish notice
+ * appears in place of the thread — an API outage must never break content.
+ *
+ * There is no separate comment-rules page. The expectations live as ghost text
+ * in the box itself, where someone about to write will actually read them.
+ */
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+---
+
+<section class="comments" id="yorumlar" data-slug={slug} data-turnstile-key={turnstileSiteKey}>
+  <h2>Yorumlar</h2>
+
+  <div class="comments-list" data-comments-list aria-live="polite">
+    <p class="comments-status" data-comments-status>Yorumlar yükleniyor…</p>
+  </div>
+
+  <form class="comment-form" data-comment-form novalidate>
+    <h3>Yorum yazın</h3>
+
+    <label for="comment-name">Adınız</label>
+    <input
+      id="comment-name"
+      name="name"
+      type="text"
+      required
+      minlength="2"
+      maxlength="40"
+      autocomplete="nickname"
+    />
+
+    <label for="comment-body">Yorumunuz</label>
+    <textarea
+      id="comment-body"
+      name="body"
+      required
+      minlength="3"
+      maxlength="2000"
+      rows="5"
+      placeholder="Yorumunuzu yazın — kişisel bilgi, spam ve hakaret içermesin."></textarea>
+
+    <input type="hidden" name="parentId" value="" data-parent-id />
+
+    {
+      turnstileSiteKey && (
+        <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" />
+      )
+    }
+
+    <div class="comment-actions">
+      <button type="submit" class="button button-primary">Gönder</button>
+      <button type="button" class="button" data-cancel-reply hidden>Yanıtı iptal et</button>
+      <p class="comment-feedback" data-feedback role="status"></p>
+    </div>
+  </form>
+</section>
+
+{
+  turnstileSiteKey && (
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer is:inline />
+  )
+}
+
+<script>
+  const root = document.querySelector<HTMLElement>('.comments');
+  if (root) {
+    const slug = root.dataset.slug ?? '';
+    const list = root.querySelector<HTMLElement>('[data-comments-list]')!;
+    const status = root.querySelector<HTMLElement>('[data-comments-status]');
+    const form = root.querySelector<HTMLFormElement>('[data-comment-form]')!;
+    const feedback = root.querySelector<HTMLElement>('[data-feedback]')!;
+    const parentInput = root.querySelector<HTMLInputElement>('[data-parent-id]')!;
+    const cancelReply = root.querySelector<HTMLButtonElement>('[data-cancel-reply]')!;
+
+    const escapeText = (value: string): string => {
+      const div = document.createElement('div');
+      div.textContent = value;
+      return div.innerHTML;
+    };
+
+    const formatDate = (iso: string): string => {
+      try {
+        return new Intl.DateTimeFormat('tr-TR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(new Date(iso));
+      } catch {
+        return '';
+      }
+    };
+
+    interface CommentNode {
+      id: number;
+      displayName: string;
+      body: string;
+      createdAt: string;
+      replies?: CommentNode[];
+    }
+
+    const renderComment = (c: CommentNode, isReply = false): string => `
+      <article class="comment${isReply ? ' comment-reply' : ''}">
+        <p class="comment-meta">
+          <strong>${escapeText(c.displayName)}</strong>
+          <time datetime="${escapeText(c.createdAt)}">${escapeText(formatDate(c.createdAt))}</time>
+        </p>
+        <div class="comment-body">${escapeText(c.body)}</div>
+        ${
+          isReply
+            ? ''
+            : `<button type="button" class="comment-reply-btn" data-reply-to="${c.id}"
+                 data-reply-name="${escapeText(c.displayName)}">Yanıtla</button>`
+        }
+        ${(c.replies ?? []).map((r) => renderComment(r, true)).join('')}
+      </article>`;
+
+    const load = async (): Promise<void> => {
+      try {
+        const response = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`, {
+          headers: { accept: 'application/json' },
+        });
+        if (!response.ok) throw new Error(`http ${response.status}`);
+        const data = (await response.json()) as { comments: CommentNode[]; count: number };
+        if (!data.comments?.length) {
+          list.innerHTML = '<p class="comments-status">Henüz yorum yok. İlk yorumu siz yazın.</p>';
+          return;
+        }
+        list.innerHTML = data.comments.map((c) => renderComment(c)).join('');
+      } catch {
+        list.innerHTML =
+          '<p class="comments-status">Yorumlar şu anda yüklenemiyor. ' +
+          'İçeriği okumaya devam edebilirsiniz.</p>';
+      }
+    };
+
+    list.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLElement>('[data-reply-to]');
+      if (!button) return;
+      parentInput.value = button.dataset.replyTo ?? '';
+      cancelReply.hidden = false;
+      feedback.textContent = `${button.dataset.replyName ?? ''} adlı yoruma yanıt yazıyorsunuz.`;
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    cancelReply.addEventListener('click', () => {
+      parentInput.value = '';
+      cancelReply.hidden = true;
+      feedback.textContent = '';
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      const data = new FormData(form);
+
+      const name = String(data.get('name') ?? '').trim();
+      const body = String(data.get('body') ?? '').trim();
+      if (name.length < 2) {
+        feedback.textContent = 'Lütfen en az 2 karakterlik bir isim yazın.';
+        return;
+      }
+      if (body.length < 3) {
+        feedback.textContent = 'Yorumunuz çok kısa.';
+        return;
+      }
+
+      submit.disabled = true;
+      feedback.textContent = 'Gönderiliyor…';
+
+      try {
+        const response = await fetch('/api/comments', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            slug,
+            name,
+            body,
+            parentId: data.get('parentId') || null,
+            turnstileToken: String(data.get('cf-turnstile-response') ?? ''),
+          }),
+        });
+        const result = (await response.json()) as { message?: string };
+        feedback.textContent =
+          result.message ??
+          (response.ok
+            ? 'Yorumunuz inceleme için gönderildi.'
+            : 'Yorumunuz gönderilemedi. Daha sonra tekrar deneyin.');
+        if (response.ok) {
+          form.reset();
+          parentInput.value = '';
+          cancelReply.hidden = true;
+        }
+      } catch {
+        feedback.textContent = 'Yorumunuz gönderilemedi. Bağlantınızı kontrol edin.';
+      } finally {
+        submit.disabled = false;
+        if (
+          typeof (window as { turnstile?: { reset: () => void } }).turnstile?.reset === 'function'
+        ) {
+          (window as { turnstile?: { reset: () => void } }).turnstile!.reset();
+        }
+      }
+    });
+
+    void load();
+    if (status) status.textContent = 'Yorumlar yükleniyor…';
+  }
+</script>
+
+<style>
+  .comments {
+    margin-top: var(--sp-7);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--border);
+  }
+
+  .comments h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-5);
+  }
+
+  .comments-status {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .comments-list :global(.comment) {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+    padding: var(--sp-4);
+    margin-bottom: var(--sp-3);
+  }
+
+  .comments-list :global(.comment-reply) {
+    margin-left: var(--sp-5);
+    margin-top: var(--sp-3);
+    border-left: 2px solid var(--border-strong);
+    background: var(--surface-2);
+  }
+
+  .comments-list :global(.comment-meta) {
+    display: flex;
+    gap: var(--sp-3);
+    align-items: baseline;
+    flex-wrap: wrap;
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    margin-bottom: var(--sp-2);
+  }
+
+  .comments-list :global(.comment-meta strong) {
+    color: var(--text);
+  }
+
+  .comments-list :global(.comment-body) {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .comments-list :global(.comment-reply-btn) {
+    margin-top: var(--sp-3);
+    background: none;
+    border: 0;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: var(--sp-2) 0;
+    min-height: 44px;
+  }
+
+  .comments-list :global(.comment-reply-btn):hover {
+    color: var(--cyan);
+  }
+
+  .comment-form {
+    margin-top: var(--sp-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    max-width: 46rem;
+  }
+
+  .comment-form h3 {
+    font-size: var(--step-1);
+    margin-bottom: var(--sp-2);
+  }
+
+  .comment-form label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: var(--sp-3);
+  }
+
+  .comment-form input[type='text'],
+  .comment-form textarea {
+    font: inherit;
+    background: var(--surface-1);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.7em 0.8em;
+    width: 100%;
+  }
+
+  .comment-form textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+
+  .comment-form ::placeholder {
+    color: var(--text-faint);
+    opacity: 1;
+  }
+
+  .comment-actions {
+    display: flex;
+    gap: var(--sp-3);
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: var(--sp-4);
+  }
+
+  .comment-feedback {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .cf-turnstile {
+    margin-top: var(--sp-4);
+  }
+</style>

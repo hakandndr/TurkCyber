@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { CATEGORIES } from '../../config/site';
+import { getAllArticles } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const articles = await getAllArticles();
+  return CATEGORIES.map((category) => ({
+    params: { category: category.id },
+    props: {
+      category,
+      entries: articles.filter((a) => a.data.category === category.id),
+    },
+  }));
+}
+
+const { category, entries } = Astro.props;
+---
+
+<BaseLayout title={category.name} description={category.description}>
+  <div class="container page">
+    <header class="page-head">
+      <p class="eyebrow">Konu</p>
+      <h1>{category.name}</h1>
+      <p>{category.description}</p>
+    </header>
+
+    {
+      entries.length > 0 ? (
+        <div class="grid">
+          {entries.map((entry) => (
+            <ArticleCard entry={entry} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">Bu konuda henüz içerik yayınlanmadı.</p>
+      )
+    }
+
+    <p class="back"><a href="/konular/">← Tüm konular</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    max-width: var(--measure);
+    margin-bottom: var(--sp-6);
+  }
+  .page-head h1 {
+    margin-top: var(--sp-2);
+  }
+  .page-head p:last-child {
+    margin-top: var(--sp-3);
+    color: var(--text-muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-4);
+  }
+  .empty {
+    color: var(--text-muted);
+  }
+  .back {
+    margin-top: var(--sp-6);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+</style>

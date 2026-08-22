@@ -1,0 +1,102 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CATEGORIES } from '../../config/site';
+import { getAllArticles } from '../../lib/content';
+
+const articles = await getAllArticles();
+const counts = new Map<string, number>();
+for (const article of articles) {
+  counts.set(article.data.category, (counts.get(article.data.category) ?? 0) + 1);
+}
+---
+
+<BaseLayout
+  title="Konular"
+  description="TurkCyber içeriklerinin konu başlıkları: hesap güvenliği, şifreler, 2FA, dolandırıcılık, gizlilik ve daha fazlası."
+>
+  <div class="container page">
+    <header class="page-head">
+      <h1>Konular</h1>
+      <p>İçerikler dokuz başlık altında toplanır.</p>
+    </header>
+
+    <ul class="topics">
+      {
+        CATEGORIES.map((category) => (
+          <li>
+            <a href={`/konular/${category.id}/`} class:list={['topic', `topic-${category.accent}`]}>
+              <span class="topic-head">
+                <span class="topic-name">{category.name}</span>
+                <span class="topic-count">{counts.get(category.id) ?? 0}</span>
+              </span>
+              <span class="topic-desc">{category.description}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    max-width: var(--measure);
+    margin-bottom: var(--sp-6);
+  }
+  .page-head p {
+    margin-top: var(--sp-3);
+    color: var(--text-muted);
+  }
+  .topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-3);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .topic {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    height: 100%;
+    padding: var(--sp-4);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+  .topic-green {
+    border-left-color: var(--green);
+  }
+  .topic-cyan {
+    border-left-color: var(--cyan);
+  }
+  .topic:hover {
+    background: var(--surface-2);
+  }
+  .topic-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    align-items: baseline;
+  }
+  .topic-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .topic-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+  .topic-desc {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+</style>

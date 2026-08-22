@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<BaseLayout
+  title="İletişim"
+  description="TurkCyber ile iletişime geçin: düzeltmeler, öneriler ve içerik talepleri."
+>
+  <div class="container-narrow page">
+    <h1>İletişim</h1>
+
+    <p class="lede">Soru, düzeltme veya rehber önerisi için doğrudan e-posta yazabilirsiniz.</p>
+
+    <p class="mail">
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </p>
+
+    <h2>Ne yazabilirsiniz</h2>
+    <ul>
+      <li>Bir rehberdeki adım artık eşleşmiyorsa — hangi rehber, hangi adım.</li>
+      <li>Yayınlamamızı istediğiniz bir konu varsa.</li>
+      <li>Bir yazıda hata veya eksik gördüyseniz.</li>
+    </ul>
+
+    <h2>Ne yapamayız</h2>
+    <p>
+      Kişisel hesap kurtarma desteği veremiyoruz. Hesabınız ele geçirildiyse ilgili platformun kendi
+      kurtarma akışını kullanmanız gerekir; bu konudaki rehberlerimiz
+      <a href="/konular/hesap-guvenligi/">Hesap Güvenliği</a> başlığı altında.
+    </p>
+    <p>
+      Acil bir güvenlik olayı yaşıyorsanız bize yazmak yerine önce hesabınızın şifresini değiştirin
+      ve oturumları kapatın.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+    max-width: var(--measure);
+  }
+  .lede {
+    font-size: var(--step-1);
+    color: var(--text-muted);
+    margin-block: var(--sp-4);
+  }
+  .mail {
+    font-family: var(--font-mono);
+    font-size: var(--step-1);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    margin-block: var(--sp-5);
+  }
+  .page h2 {
+    font-size: var(--step-2);
+    margin-top: var(--sp-6);
+    margin-bottom: var(--sp-3);
+  }
+  .page p,
+  .page ul {
+    margin-bottom: var(--sp-4);
+  }
+  .page ul {
+    padding-left: var(--sp-5);
+  }
+  .page li {
+    margin-bottom: var(--sp-2);
+  }
+</style>

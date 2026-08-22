@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# No deployment happens here. Staging deployment is added only after the
+# deployment model is explicitly approved — see PRODUCTION_CUTOVER.md.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck · lint · test · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Secret scan
+        run: pnpm scan:secrets
+
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Lint and format check
+        run: pnpm lint
+
+      # The build runs before the tests: tests/content.test.ts asserts against
+      # dist/, so it verifies what actually ships rather than what the source
+      # intends.
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Verify private routes are absent from the build
+        run: |
+          set -euo pipefail
+          test ! -d dist/boss
+          grep -q 'Disallow: /boss' dist/robots.txt
+          ! grep -q '/boss' dist/sitemap.xml
+          echo "private routes absent from the static build"

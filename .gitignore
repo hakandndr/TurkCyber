@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# pnpm is the package manager for this project (see packageManager in
+# package.json). An npm lockfile alongside pnpm-lock.yaml causes divergent
+# installs between contributors and CI.
+package-lock.json
+yarn.lock
+
+# build output
+dist/
+.astro/
+.wrangler/
+
+# secrets — never commit
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.pem
+*.key
+
+# private data — never commit
+# Internal DNDR planning documents supplied as background. They contain
+# operational detail from other projects and must never reach this PUBLIC repo.
+/reference/
+/private/
+/data/legacy-analytics/
+*.analytics.json
+*.analytics.csv
+comments-export*.json
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+*.log
+npm-debug.log*

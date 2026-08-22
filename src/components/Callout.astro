@@ -1,0 +1,95 @@
+---
+/**
+ * Semantic callout.
+ *
+ * Each type carries an icon and a written label, so the meaning never depends
+ * on colour alone — a requirement for the accessibility target and for anyone
+ * printing a guide in greyscale.
+ */
+type CalloutType = 'bilgi' | 'dikkat' | 'onemli' | 'ornek' | 'kontrol';
+
+interface Props {
+  type?: CalloutType;
+  /** Overrides the default Turkish label. */
+  label?: string;
+}
+
+const { type = 'bilgi', label } = Astro.props;
+
+const LABELS: Record<CalloutType, string> = {
+  bilgi: 'Bilgi',
+  dikkat: 'Dikkat',
+  onemli: 'Önemli',
+  ornek: 'Örnek',
+  kontrol: 'Kontrol et',
+};
+---
+
+<aside class:list={['callout', `callout-${type}`]}>
+  <p class="callout-label">
+    <svg
+      viewBox="0 0 20 20"
+      width="15"
+      height="15"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      {
+        type === 'bilgi' && (
+          <>
+            <>
+              <circle cx="10" cy="10" r="7.5" />
+              <path d="M10 9v5M10 6.2v.1" />
+            </>
+          </>
+        )
+      }
+      {
+        type === 'dikkat' && (
+          <>
+            <>
+              <path d="M10 2.8 18 16.5H2z" />
+              <path d="M10 8v3.6M10 14v.1" />
+            </>
+          </>
+        )
+      }
+      {
+        type === 'onemli' && (
+          <>
+            <>
+              <circle cx="10" cy="10" r="7.5" />
+              <path d="M10 6v4.6M10 13.6v.1" />
+            </>
+          </>
+        )
+      }
+      {
+        type === 'ornek' && (
+          <>
+            <>
+              <rect x="3" y="3.5" width="14" height="13" rx="2" />
+              <path d="M6.5 8h7M6.5 11.5h4.5" />
+            </>
+          </>
+        )
+      }
+      {
+        type === 'kontrol' && (
+          <>
+            <>
+              <circle cx="10" cy="10" r="7.5" />
+              <path d="m6.6 10.2 2.4 2.4 4.4-4.8" />
+            </>
+          </>
+        )
+      }
+    </svg>
+    {label ?? LABELS[type]}
+  </p>
+  <slot />
+</aside>

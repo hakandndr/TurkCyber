@@ -1,0 +1,102 @@
+---
+title: 'Şifre Yöneticisi Kullanmak Güvenli mi?'
+description: '"Bütün şifrelerimi tek yere koymak riskli değil mi?" sorusunun dürüst cevabı: risk var, ama alternatifin riski daha büyük.'
+category: sifreler-passkeys
+publishedAt: 2026-08-14
+status: published
+difficulty: baslangic
+readingTime: 6
+summary: 'Şifre yöneticisi tek bir hedef yaratır — bu doğru. Ama kasa cihazınızda şifrelenir ve ana şifreniz sağlayıcıya gitmez. Asıl kazanç: her siteye farklı şifre ve sahte sitelerde otomatik doldurmama.'
+tags: ['şifre yöneticisi', 'şifre', 'kasa']
+---
+
+En sık duyduğumuz itiraz şu: "Bütün şifrelerimi tek bir yere koyarsam, orası
+ele geçtiğinde her şeyimi kaybederim."
+
+Bu itiraz mantıklı ve tamamen yok sayılamaz. Ama karşılaştırma yanlış yapılıyor.
+Doğru soru "tek yer mi, çok yer mi" değil; **"tek şifreyi her yerde kullanmak mı,
+her yere farklı şifre mi"**.
+
+## Alternatif gerçekte ne?
+
+Şifre yöneticisi kullanmayan insanların büyük çoğunluğu şunlardan birini yapıyor:
+
+- birkaç şifreyi onlarca sitede tekrar kullanmak,
+- aynı şifreye sonuna rakam ekleyerek varyasyon üretmek,
+- tarayıcıya kaydedip hiç düşünmemek,
+- bir deftere yazmak.
+
+İlk ikisi, tek bir sızıntının bütün hesaplarınızı açması demektir. Bu teorik bir
+risk değil — saldırganların en çok kullandığı yöntem tam olarak budur.
+
+<Callout type="bilgi">
+  Defter aslında sanıldığı kadar kötü değil. Evinizdeki bir kâğıt, uzaktaki bir saldırgana karşı
+  gayet dayanıklıdır. Zayıflığı taşınabilirlik ve otomatik doldurmanın olmaması — yani sahte site
+  koruması vermez.
+</Callout>
+
+## Kasa nasıl korunuyor?
+
+Ciddi şifre yöneticilerinde kasa **cihazınızda** şifrelenir ve şifrelenmiş hâlde
+sunucuya gider. Ana şifreniz sağlayıcıya gönderilmez.
+
+Bunun iki sonucu var:
+
+- Sağlayıcının sunucuları ele geçse bile saldırganın elinde şifreli bir blok olur.
+  Bunu açmak için sizin ana şifrenizi kırması gerekir.
+- **Ana şifrenizi unutursanız sağlayıcı da açamaz.** Kurtarma yoktur. Bu bir
+  eksiklik değil, aynı tasarımın diğer yüzü.
+
+<Callout type="onemli">
+  Ana şifrenizi unutmanız, saldırıya uğramanızdan daha olası bir senaryo. Kurtarma seçeneğini
+  (kurtarma kodu, acil erişim kişisi) kurulum sırasında mutlaka ayarlayın ve çıktısını fiziksel
+  olarak saklayın.
+</Callout>
+
+## Asıl kazanç: farklı şifre + otomatik doldurma
+
+Şifre yöneticisinin değeri iki yerde:
+
+**1. Her siteye gerçekten farklı şifre.** Elle yapması imkânsız olan şey bu.
+Bir sitedeki sızıntı, diğer hesaplarınızı etkilemez hâle gelir.
+
+**2. Sahte sitelerde doldurmaması.** Yönetici şifreyi yalnızca kayıtlı alan adında
+doldurur. Sahte bir sayfada alan boş kalır — bu, size ücretsiz gelen bir oltalama
+uyarısıdır.
+
+İkincisi çoğu zaman gözden kaçıyor ama pratikte belki de en değerli özelliği.
+
+## Neye dikkat etmeli?
+
+- **Ana şifre uzun olsun.** Karmaşık olmasından çok uzun olması önemli. Birbiriyle
+  ilgisiz dört beş kelime, kısa ve simgeli bir şifreden daha iyidir.
+- **Kasanın kendisine 2FA ekleyin.** Yönetici hesabınız, koruduğu hesaplardan daha
+  değerlidir.
+- **Tarayıcının kendi kaydetme özelliğiyle karıştırmayın.** Tarayıcıya kaydetmek
+  hiç yoktan iyidir, ama cihazınıza fiziksel erişimi olan biri için genelde daha
+  kolay lokmadır ve platformlar arası taşınmaz.
+- **Kurtarma yöntemini kurun ve test edin.**
+
+<Callout type="kontrol">
+  Kurulumdan sonra ana şifrenizi ve kurtarma kodunuzu kâğıda yazıp evde güvenli bir yere koyun.
+  Kasanın içine koyamazsınız — bu, anahtarı kilitli kutunun içinde bırakmaktır.
+</Callout>
+
+## Hangisini seçmeli?
+
+Bu rehberde belirli bir ürün önermiyoruz. Seçerken bakılacak şeyler:
+
+- kasanın cihazda şifrelenip şifrelenmediği (uçtan uca),
+- bağımsız güvenlik denetimlerinin yayınlanıp yayınlanmadığı,
+- kullandığınız bütün cihazlarda çalışıp çalışmadığı,
+- verilerinizi dışa aktarabilme imkânı — sonradan taşınamamak gerçek bir risk.
+
+Son madde önemli: bir gün vazgeçmek istediğinizde şifrelerinizi çıkarabilmelisiniz.
+
+## Sonuç
+
+Şifre yöneticisi riski sıfırlamaz. Tek bir kritik noktaya bağımlılık yaratır ve
+o noktayı iyi korumanız gerekir. Buna karşılık, şifre tekrarı problemini —
+hesapların ele geçirilmesindeki en yaygın nedeni — tek hamlede ortadan kaldırır.
+
+Bu takas, çoğu insan için açık ara olumlu.

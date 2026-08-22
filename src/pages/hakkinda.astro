@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<BaseLayout
+  title="Hakkında"
+  description="TurkCyber, bağımsız bir Türkçe dijital güvenlik yayın projesidir."
+>
+  <div class="container-narrow page prose">
+    <h1>Hakkında</h1>
+
+    <p class="lede">
+      TurkCyber, günlük hayatta karşılaşılan dijital güvenlik problemlerini Türkçe olarak, sade ve
+      uygulanabilir biçimde anlatan bağımsız bir yayın projesidir.
+    </p>
+
+    <h2>Ne yapıyoruz</h2>
+    <p>
+      Her rehber tek bir somut soruyu ele alır: hesabınız nasıl korunur, sahte bir giriş sayfası
+      nasıl anlaşılır, telefonunuz kaybolduğunda ilk 15 dakikada ne yapılır. “Siber güvenlik nedir”
+      türü genel yazılar yayınlamıyoruz; bunlar kimsenin işine yaramıyor.
+    </p>
+    <p>
+      İçeriklerin çoğu rehberlerden oluşur. Haberler ikincil önceliktedir ve yalnızca hesaplarınızı
+      veya cihazlarınızı doğrudan ilgilendiren gelişmeleri kapsar.
+    </p>
+
+    <h2>Ne değiliz</h2>
+    <p>
+      TurkCyber bir güvenlik şirketi değildir. Bir SOC ekibimiz, danışmanlık hizmetimiz veya
+      kurumsal bir yapımız yok. Sızma testi yapmıyor, olay müdahalesi sunmuyor ve kimseye hizmet
+      satmıyoruz.
+    </p>
+    <p>
+      Kimseden reklam almıyoruz ve içeriklerde ürün tavsiyesi karşılığı ödeme kabul etmiyoruz. Bir
+      araç öneriyorsak, önerme nedenini yazının içinde açıkça belirtiriz.
+    </p>
+
+    <h2>Editoryal yaklaşım</h2>
+    <ul>
+      <li>
+        Hiçbir önlem “tamamen güvende olursunuz” anlamına gelmez. Aldığınız her önlem riski azaltır;
+        bunu abartmadan yazarız.
+      </li>
+      <li>Tavsiye, platform davranışı ve kişisel görüş birbirinden ayrılır.</li>
+      <li>
+        Uygulama arayüzleri sık değişir. Adım adım anlatımların kontrol tarihi yazının başında
+        görünür; eskiyen bir rehber sessizce yanlış kalmaz.
+      </li>
+      <li>Korku pazarlamıyoruz. Riski olduğu kadar anlatırız.</li>
+    </ul>
+
+    <h2>Kim yayınlıyor</h2>
+    <p>
+      TurkCyber bir <a href={SITE.owner.url} rel="noopener">DNDR Labs</a> projesidir. Görüş, düzeltme
+      ve hata bildirimleri için
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a> adresine yazabilir veya yazıların altındaki yorum
+      alanını kullanabilirsiniz.
+    </p>
+    <p>
+      Bir rehberde hatalı veya güncelliğini yitirmiş bir adım görürseniz bildirin — düzeltme
+      yayınlarız.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+    max-width: var(--measure);
+  }
+  .lede {
+    font-size: var(--step-1);
+    color: var(--text-muted);
+    margin-block: var(--sp-4) var(--sp-6);
+  }
+  .page h2 {
+    font-size: var(--step-2);
+    margin-top: var(--sp-7);
+    margin-bottom: var(--sp-3);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border);
+  }
+  .page p,
+  .page ul {
+    margin-bottom: var(--sp-4);
+  }
+  .page ul {
+    padding-left: var(--sp-5);
+  }
+  .page li {
+    margin-bottom: var(--sp-2);
+  }
+</style>

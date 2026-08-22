@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Private console and dynamic endpoints. Never indexed, never linked publicly.
+Disallow: /boss
+Disallow: /api/
+Disallow: /collect
+
+Sitemap: https://turkcyber.com/sitemap.xml

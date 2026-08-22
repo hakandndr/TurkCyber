@@ -1,0 +1,118 @@
+---
+title: 'Güçlü Şifre Yetmez: Hesabınızı Gerçekten Nasıl Korursunuz?'
+description: 'Şifrenizin uzunluğu, hesabınızın ele geçirilmesini engelleyen tek şey değil. Asıl farkı yaratan üç ayarı sırayla anlatıyoruz.'
+category: hesap-guvenligi
+publishedAt: 2026-08-04
+status: published
+featured: true
+difficulty: baslangic
+readingTime: 7
+summary: 'Şifre gücü, hesap güvenliğinin sadece bir parçası. Sızıntılarda şifreniz zaten ele geçmiş olabilir. Sırasıyla: ikinci bir doğrulama katmanı ekleyin, kurtarma bilgilerinizi güncelleyin, açık oturumları kontrol edin.'
+tags: ['şifre', 'hesap güvenliği', '2fa', 'kurtarma']
+---
+
+Hesap güvenliği denince akla ilk gelen şey şifre uzunluğu oluyor. Oysa hesapların
+ele geçirilme biçimlerine bakıldığında, saldırganın şifrenizi _tahmin ettiği_
+durumlar azınlıkta kalıyor. Çok daha yaygın olan üç senaryo var:
+
+- şifreniz başka bir sitedeki sızıntıdan ele geçti ve aynısını burada da kullanıyorsunuz,
+- sahte bir giriş sayfasına kendi elinizle yazdınız,
+- telefonunuza gelen doğrulama kodunu birine okudunuz.
+
+Bu üçünün hiçbirinde şifrenin uzun olması sizi kurtarmaz.
+
+<Callout type="bilgi">
+  Bu yazıdaki adımlar hiçbir hesabı "tamamen güvenli" hâle getirmez. Amaç, hesabınızı ele geçirmeyi
+  ölçülebilir biçimde zorlaştırmak ve bir şey ters gittiğinde geri alabilmenizi sağlamak.
+</Callout>
+
+## 1. Şifre tekrarını bitirin
+
+Tek bir hesabın şifresini güçlendirmek yerine, önce **aynı şifreyi kaç yerde
+kullandığınızı** azaltın. Sızan bir şifre, saldırgan için bir anahtar değil, bir
+anahtar destesidir: aynı e-posta ve şifre ikilisini onlarca sitede otomatik olarak
+dener. Buna kimlik bilgisi doldurma (credential stuffing) deniyor.
+
+En kritik hesaplarınızdan başlayın:
+
+1. **E-posta hesabınız.** Diğer bütün hesapların kurtarma adresi burası olduğu için
+   en değerli hedef budur.
+2. **Telefonunuzun bağlı olduğu hesap** (Google veya Apple).
+3. **Bankacılık ve ödeme uygulamaları.**
+4. Sonra geri kalanlar.
+
+Her birine farklı şifre üretmenin pratik tek yolu bir şifre yöneticisi kullanmaktır.
+Bunu ayrıntısıyla ayrı bir rehberde anlattık:
+[Şifre Yöneticisi Kullanmak Güvenli mi?](/rehberler/sifre-yoneticisi-guvenli-mi/)
+
+## 2. İkinci bir doğrulama katmanı ekleyin
+
+Şifre "bildiğiniz" bir şeydir. İkinci katman, "sahip olduğunuz" bir şey ekler:
+telefonunuzdaki bir uygulama veya fiziksel bir güvenlik anahtarı. Şifreniz sızsa
+bile, saldırganın elinde bu ikinci parça olmaz.
+
+Bütün ikinci katmanlar aynı değil. Kabaca en zayıftan en güçlüye:
+
+| Yöntem                      | Zayıf noktası                                         |
+| --------------------------- | ----------------------------------------------------- |
+| SMS ile kod                 | SIM kart taşıma (SIM swap) ve yönlendirme saldırıları |
+| Authenticator uygulaması    | Kodu sahte bir siteye yazmanız hâlâ mümkün            |
+| Passkey / güvenlik anahtarı | Sahte siteye karşı da korur                           |
+
+<Callout type="dikkat">
+  SMS doğrulama, hiç yoktan iyidir. Ama tek seçeneğiniz SMS ise, bunu geçici bir çözüm olarak görün.
+  Nedenini [2FA Nedir?](/rehberler/2fa-nedir-sms-authenticator-guvenlik-anahtari/) rehberinde
+  anlattık.
+</Callout>
+
+Hesabın güvenlik ayarlarında iki aşamalı doğrulamayı açarken, size **yedek kodlar**
+verilir. Bunları telefonunuzun içinde bir not olarak değil, şifre yöneticinizde veya
+basılı olarak saklayın. Telefonunuzu kaybettiğinizde işinize yarayacak tek şey
+bunlar olabilir.
+
+## 3. Kurtarma bilgilerini gerçekten güncelleyin
+
+Bu, en çok atlanan adım. Hesap kurtarma bilgileri genellikle hesabı ilk açtığınız
+gün girilir ve bir daha bakılmaz. Yıllar sonra:
+
+- kurtarma e-postası artık kullanmadığınız bir adres olur,
+- kurtarma telefonu eski numaranız olur,
+- o numara operatör tarafından bir başkasına verilmiş olabilir.
+
+Bu durumda hesabınızı kaybettiğinizde geri alamazsınız — ve daha kötüsü, o eski
+numaraya sahip olan kişi hesabınızı kurtarabilir hâle gelebilir.
+
+<Callout type="kontrol">
+  Bugün yapın: en önemli üç hesabınızın güvenlik ayarlarını açın ve kurtarma e-postası ile kurtarma
+  telefonunun **hâlâ size ait olduğunu** doğrulayın.
+</Callout>
+
+## 4. Açık oturumlara bakın
+
+Çoğu büyük platform, hesabınızın hangi cihazlarda açık olduğunu listeler. Bu liste,
+"birisi hesabıma girmiş olabilir mi?" sorusunun en doğrudan cevabıdır.
+
+Listede tanımadığınız bir cihaz veya beklemediğiniz bir konum görürseniz sırasıyla:
+
+1. o oturumu kapatın,
+2. şifrenizi değiştirin,
+3. iki aşamalı doğrulamayı açın (veya kapalıysa yeniden kurun),
+4. yedek kodları yeniden üretin — eskileri geçersiz olsun.
+
+Sıra önemli: önce şifreyi değiştirip oturumları kapatmazsanız, saldırganın açık
+oturumu çalışmaya devam edebilir.
+
+<Callout type="onemli">
+  Konum bilgisi yanıltıcı olabilir. Operatörünüzün ağ çıkışı farklı bir şehirde görünebilir.
+  Tanımadığınız bir **cihaz** görmek, tanımadığınız bir **şehir** görmekten daha güçlü bir
+  sinyaldir.
+</Callout>
+
+## Sırayı neden bu şekilde kurduk?
+
+Çünkü ilk üç adım, saldırganın en çok kullandığı üç yolu kapatıyor: sızmış şifreyi
+tekrar kullanmak, tek katmanlı hesaba girmek ve kurtarma akışını ele geçirmek.
+Dördüncü adım ise "zaten girmiş mi?" sorusunu cevaplıyor.
+
+Hepsini bir günde yapmanız gerekmiyor. En önemli hesabınızla başlayıp haftaya
+yayabilirsiniz. Yarım bırakılmış bir liste, hiç başlanmamış bir listeden iyidir.

@@ -1,0 +1,191 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Ara"
+  description="TurkCyber rehberleri ve haberleri içinde arama yapın."
+  noindex={true}
+>
+  <div class="container-narrow page">
+    <h1>Ara</h1>
+
+    <form class="search-form" data-search-form role="search">
+      <label for="q" class="visually-hidden">Arama terimi</label>
+      <input
+        id="q"
+        name="q"
+        type="search"
+        placeholder="şifre, 2FA, phishing…"
+        autocomplete="off"
+        autofocus
+      />
+      <button type="submit" class="button">Ara</button>
+    </form>
+
+    <p class="hint" data-search-hint>En az iki karakter yazın.</p>
+
+    <ul class="results" data-results></ul>
+  </div>
+</BaseLayout>
+
+<script>
+  import { searchDocuments, type SearchDocument } from '../lib/search';
+
+  const form = document.querySelector<HTMLFormElement>('[data-search-form]');
+  const input = document.querySelector<HTMLInputElement>('#q');
+  const results = document.querySelector<HTMLUListElement>('[data-results]');
+  const hint = document.querySelector<HTMLElement>('[data-search-hint]');
+
+  if (form && input && results && hint) {
+    let documents: SearchDocument[] | null = null;
+    let loading: Promise<SearchDocument[]> | null = null;
+
+    const loadIndex = (): Promise<SearchDocument[]> => {
+      if (documents) return Promise.resolve(documents);
+      if (!loading) {
+        loading = fetch('/search-index.json')
+          .then((r) => {
+            if (!r.ok) throw new Error(`http ${r.status}`);
+            return r.json() as Promise<SearchDocument[]>;
+          })
+          .then((data) => {
+            documents = data;
+            return data;
+          });
+      }
+      return loading;
+    };
+
+    const escapeText = (value: string): string => {
+      const div = document.createElement('div');
+      div.textContent = value;
+      return div.innerHTML;
+    };
+
+    const run = async (): Promise<void> => {
+      const query = input.value.trim();
+      if (query.length < 2) {
+        results.innerHTML = '';
+        hint.textContent = 'En az iki karakter yazın.';
+        return;
+      }
+
+      let docs: SearchDocument[];
+      try {
+        docs = await loadIndex();
+      } catch {
+        hint.textContent = 'Arama dizini yüklenemedi. Sayfayı yenileyip tekrar deneyin.';
+        return;
+      }
+
+      const hits = searchDocuments(docs, query);
+      hint.textContent = hits.length
+        ? `${hits.length} sonuç bulundu.`
+        : 'Sonuç bulunamadı. Farklı bir kelime deneyin.';
+
+      results.innerHTML = hits
+        .map(
+          (hit) => `
+          <li class="result">
+            <a href="${escapeText(hit.url)}">
+              <span class="result-kind">${escapeText(hit.kind)}</span>
+              <span class="result-title">${escapeText(hit.title)}</span>
+              <span class="result-desc">${escapeText(hit.description)}</span>
+              <span class="result-cat">${escapeText(hit.categoryName)}</span>
+            </a>
+          </li>`,
+        )
+        .join('');
+
+      const url = new URL(location.href);
+      url.searchParams.set('q', query);
+      history.replaceState(null, '', url);
+    };
+
+    let timer: number | undefined;
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void run(), 180);
+    });
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      void run();
+    });
+
+    // Deep link: /ara/?q=passkey
+    const initial = new URL(location.href).searchParams.get('q');
+    if (initial) {
+      input.value = initial;
+      void run();
+    }
+  }
+</script>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .search-form {
+    display: flex;
+    gap: var(--sp-3);
+    margin-top: var(--sp-5);
+  }
+  .search-form input {
+    flex: 1;
+    font: inherit;
+    background: var(--surface-1);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75em 0.9em;
+    min-height: 44px;
+  }
+  .hint {
+    margin-top: var(--sp-3);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+  .results {
+    list-style: none;
+    padding: 0;
+    margin: var(--sp-5) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .results :global(.result a) {
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+  .results :global(.result a:hover) {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+  .results :global(.result-kind) {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .results :global(.result-title) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .results :global(.result-desc) {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+  .results :global(.result-cat) {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-faint);
+  }
+</style>

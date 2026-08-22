@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Sayfa bulunamadı" description="Aradığınız sayfa bulunamadı." noindex={true}>
+  <div class="container-narrow page">
+    <!-- A small nod to the terminal page this site grew out of. Decorative
+         only: the message below it says what happened in plain Turkish. -->
+    <pre
+      class="terminal"
+      aria-hidden="true">$ tc resolve <span class="dim">/aradiginiz-sayfa</span>
+<span class="warn">not found</span> — 404
+$ _</pre>
+
+    <h1>Bu sayfa yok</h1>
+    <p>
+      Aradığınız sayfa taşınmış, adı değişmiş veya hiç var olmamış olabilir. Endişelenecek bir durum
+      değil.
+    </p>
+
+    <div class="actions">
+      <a href="/rehberler/" class="button button-primary">Rehberlere göz at</a>
+      <a href="/ara/" class="button">Sitede ara</a>
+      <a href="/" class="button">Ana sayfa</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-8);
+  }
+  .terminal {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    margin-bottom: var(--sp-6);
+    font-size: var(--step--1);
+    color: var(--green);
+  }
+  .terminal .dim {
+    color: var(--text-muted);
+  }
+  .terminal .warn {
+    color: var(--amber);
+  }
+  .page p {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    max-width: var(--measure);
+  }
+  .actions {
+    display: flex;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    margin-top: var(--sp-6);
+  }
+</style>

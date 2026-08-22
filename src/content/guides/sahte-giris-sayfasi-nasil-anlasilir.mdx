@@ -1,0 +1,117 @@
+---
+title: 'Sahte Giriş Sayfasını Nasıl Anlarsınız?'
+description: 'Sahte giriş sayfaları artık bozuk Türkçeyle yazılmıyor. Gözle ayırt etmenin sınırları ve gerçekten işe yarayan iki alışkanlık.'
+category: dolandiricilik-phishing
+publishedAt: 2026-08-10
+status: published
+featured: true
+difficulty: baslangic
+readingTime: 7
+summary: 'Görsel ipuçları artık güvenilir değil — sahte sayfalar birebir kopyalanabiliyor ve kilit simgesi hiçbir şey kanıtlamıyor. İşe yarayan iki alışkanlık: adrese kendiniz gidin ve şifre yöneticinizin otomatik doldurmadığı yere şifre yazmayın.'
+tags: ['phishing', 'oltalama', 'sahte site', 'giriş sayfası']
+---
+
+Bir zamanlar sahte giriş sayfalarını bozuk yazımından ve çarpık logosundan
+anlayabiliyordunuz. Artık öyle değil. Gerçek sayfanın HTML'ini kopyalamak birkaç
+saniye sürüyor, dolayısıyla sahte sayfa **piksel piksel aynı** olabiliyor.
+
+Bu yazının iddiası şu: gözle ayırt etmeye çalışmak yanlış strateji. Bunun yerine,
+sahte sayfaya hiç ulaşmamanızı sağlayan alışkanlıklar kurun.
+
+## Önce: hangi ipuçları artık işe yaramıyor
+
+<Callout type="dikkat">Aşağıdakilerin hiçbiri bir sayfanın gerçek olduğunu kanıtlamaz.</Callout>
+
+- **Kilit simgesi.** Adres çubuğundaki kilit yalnızca bağlantının şifrelendiğini
+  gösterir. Sahte siteler de ücretsiz sertifika alıp kilit gösterebilir. Kilit,
+  "bu site sizinle konuşurken dinlenmiyor" der; "bu site kim olduğunu söylediği
+  kişidir" demez.
+- **Tasarımın doğru görünmesi.** Kopyalanabilir.
+- **Türkçenin düzgün olması.** Artık düzgün.
+- **Sayfanın arama sonucunda çıkması.** Reklam alanlarına sahte site verilebiliyor.
+
+## Gerçekten işe yarayan: adrese kendiniz gidin
+
+En güçlü savunma, sayfaya **nasıl geldiğinizi** değiştirmek.
+
+Bir e-postadaki, SMS'teki veya mesajdaki bağlantıya tıklayarak giriş sayfasına
+gitmeyin. Bunun yerine:
+
+- adresi doğrudan tarayıcıya yazın, veya
+- daha önce kaydettiğiniz yer imini kullanın, veya
+- uygulamayı telefonunuzdan açın.
+
+Bu tek alışkanlık, oltalama saldırılarının büyük kısmını daha başlamadan bitirir.
+Çünkü saldırganın elindeki tek kanal, sizi kendi bağlantısına tıklatmaktır.
+
+<Callout type="ornek">
+  "Hesabınız askıya alındı, 24 saat içinde doğrulayın" mesajı aldınız. Bağlantıya tıklamak yerine
+  uygulamayı açın. Gerçekten bir sorun varsa, uygulamanın içinde de görürsünüz. Görmüyorsanız, mesaj
+  sahteydi.
+</Callout>
+
+## Gerçekten işe yarayan: şifre yöneticisine güvenin
+
+Şifre yöneticisi kullanıyorsanız, elinizde otomatik bir sahtelik testi var demektir.
+
+Şifre yöneticisi, kaydettiğiniz şifreyi **yalnızca kayıtlı adreste** doldurur.
+Sahte sayfa `instagram-guvenlik-dogrulama.com` gibi bir adreste olduğu için
+yönetici orayı tanımaz ve alan boş kalır.
+
+<Callout type="onemli">
+  Şifre yöneticiniz bir sayfada şifreyi otomatik doldurmuyorsa, "herhalde bir hata var" deyip elle
+  kopyalamayın. Bu, sistemin size verdiği en net uyarıdır.
+</Callout>
+
+Bu yüzden şifre yöneticisi, sadece şifre saklama aracı değil, aynı zamanda bir
+oltalama savunmasıdır.
+
+## Yine de adrese bakacaksanız
+
+Bazı durumlarda adresi kontrol etmek zorunda kalırsınız. O zaman doğru yere bakın:
+**alan adının sonuna**, yani ilk tek eğik çizgiden hemen önceki kısma.
+
+```
+https://giris.instagram.com.dogrulama-tr.net/login
+                            ^^^^^^^^^^^^^^^^^^
+                            gerçek alan adı burası
+```
+
+Yukarıdaki adres `instagram.com` değil, `dogrulama-tr.net` sitesidir.
+`instagram.com` sadece bir alt alan adı olarak yazılmış.
+
+Dikkat edilecek kalıplar:
+
+- gerçek markanın adının **soluna** eklenmiş kelimeler: `guvenlik-instagram.com`
+- araya tire konması: `instagram-destek.com`
+- benzer harfler: `paypaI.com` (büyük I), `rnicrosoft.com` (r + n)
+- uzantı değişikliği: tanıdığınız site `.com` iken karşınızdakinin `.info` olması
+
+<Callout type="bilgi">
+  Telefon tarayıcılarında adres çubuğu kısaltılarak gösterilir ve alan adının sonu görünmeyebilir.
+  Adres çubuğuna dokunup tam adresi açmadan karar vermeyin.
+</Callout>
+
+## Kodu asla "iletmeyin"
+
+Sahte sayfa şifrenizi aldıktan sonra çoğu zaman doğrulama kodu da ister. O anda
+gerçek siteye sizin adınıza giriş yapmaya çalışıyordur ve size gelen kodu ondan
+öğrenmek ister.
+
+Şu kural istisnasızdır: **doğrulama kodunu kimseye söylemeyin, hiçbir sayfaya
+"tekrar" girmeyin.** Kod yalnızca kendi başlattığınız girişte, kendi açtığınız
+uygulamada kullanılır.
+
+## Yanlışlıkla girdiyseniz
+
+Panik gerekmiyor, ama hızlı olun:
+
+1. O hesabın şifresini **başka bir cihazdan** değiştirin.
+2. Açık oturumların hepsini kapatın.
+3. İki aşamalı doğrulamayı açın veya yeniden kurun; yedek kodları yenileyin.
+4. Aynı şifreyi kullandığınız diğer hesapları da değiştirin.
+5. E-posta hesabınızın yönlendirme kurallarına bakın — saldırganlar sık sık
+   gelen postaları kendilerine yönlendiren bir kural bırakır.
+
+Beşinci madde en çok atlananı. Şifreyi değiştirseniz bile, arkada bırakılmış bir
+yönlendirme kuralı sessizce çalışmaya devam eder.

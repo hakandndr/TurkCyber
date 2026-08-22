@@ -1,0 +1,102 @@
+---
+title: 'Passkey Nedir ve Kullanmalı mısınız?'
+description: 'Passkey (geçiş anahtarı), şifrenin yerine geçen bir giriş yöntemi. Neden sahte sitelere karşı da koruduğunu ve pratikte nelere dikkat etmeniz gerektiğini anlatıyoruz.'
+category: sifreler-passkeys
+publishedAt: 2026-08-12
+status: published
+featured: true
+difficulty: orta
+readingTime: 7
+summary: 'Passkey, cihazınızda kalan bir özel anahtar ile sitede duran bir açık anahtardan oluşur. Sızacak bir şifre olmadığı için sızıntılarda ele geçmez; site adresini kontrol ettiği için sahte sayfalarda çalışmaz. Yedek erişim planı şart.'
+tags: ['passkey', 'geçiş anahtarı', 'şifre', 'webauthn']
+---
+
+Passkey (geçiş anahtarı), şifrenin yerini almak üzere tasarlanmış bir giriş
+yöntemi. Kullanırken fark ettiğiniz şey genellikle şu: giriş ekranında şifre
+yazmak yerine parmak izinizi, yüzünüzü veya cihaz PIN'inizi onaylıyorsunuz.
+
+Ama asıl fark, arkada olan biten.
+
+## Şifreden farkı ne?
+
+Şifre **paylaşılan bir sır**dır. Siz bilirsiniz, site de bilir (ya da doğrulamak
+için yeterli bir izini tutar). Bu paylaşım iki zayıflık yaratır: sitedeki kayıt
+sızabilir, ve sizden bir kopyası istenebilir.
+
+Passkey ise bir **anahtar çifti**dir:
+
+- **Özel anahtar** cihazınızda kalır ve oradan çıkmaz.
+- **Açık anahtar** sitede saklanır ve tek başına işe yaramaz.
+
+Giriş yaparken site bir soru gönderir, cihazınız özel anahtarla imzalar, site açık
+anahtarla imzayı doğrular. Sır hiçbir zaman gidip gelmez.
+
+<Callout type="bilgi">
+  Bunun pratik sonucu: sitenin veritabanı sızsa bile, sızan şey sizin giriş yapmanızı sağlamaz. Açık
+  anahtarla giriş yapılamaz.
+</Callout>
+
+## Sahte sitelere karşı neden çalışıyor?
+
+Passkey oluşturulurken hangi alan adına ait olduğu kaydedilir. Giriş anında
+cihazınız, bulunduğunuz sayfanın adresini kontrol eder.
+
+Sahte bir sayfadaysanız adres eşleşmez ve cihazınız imzayı **üretmez**. Ekranda
+passkey seçeneği görünmez veya çalışmaz.
+
+Bu, önceki yöntemlerden nitel bir fark: SMS kodunu da, authenticator kodunu da
+sahte bir sayfaya yazabilirsiniz. Passkey'de yazacak bir şey yok, ve karar sizin
+dikkatinize bırakılmıyor.
+
+## Parmak iziniz siteye gidiyor mu?
+
+Hayır. Parmak izi veya yüz taraması cihazınızın içinde kalır ve yalnızca özel
+anahtarın kullanımını açmak için kullanılır. Siteye gönderilen tek şey imzadır.
+
+Bu, sık sorulan ve haklı bir endişe — ama bu yöntemde biyometrik veriniz siteye
+aktarılmaz.
+
+## Nerede saklanıyor?
+
+Passkey'ler genellikle şu üç yerden birinde durur:
+
+- **İşletim sistemi hesabınızda** (Apple veya Google hesabınıza senkronlanır),
+- **Şifre yöneticinizde**,
+- **Fiziksel bir güvenlik anahtarında** (senkronlanmaz, cihazda kalır).
+
+İlk ikisi cihazlarınız arasında senkronlanır. Bu kolaylık sağlar ama şunu da
+söyler: **o hesabın güvenliği artık passkey'lerinizin de güvenliğidir.**
+
+<Callout type="dikkat">
+  Passkey'lerinizi Google veya Apple hesabınıza senkronluyorsanız, o hesabı en güçlü şekilde
+  korumanız gerekir. Bütün yumurtalar orada.
+</Callout>
+
+## Kullanmalı mısınız?
+
+Kısa cevap: destekleniyorsa evet, ama şifreyi hemen silmeden.
+
+Mantıklı bir geçiş sırası:
+
+1. Passkey'i **ek bir giriş yöntemi** olarak ekleyin.
+2. Birkaç hafta kullanın — özellikle farklı cihazlardan girmeyi deneyin.
+3. Yedek erişiminizin çalıştığından emin olun.
+4. Ancak ondan sonra şifreyi kaldırmayı (destekleniyorsa) düşünün.
+
+<Callout type="kontrol">
+  Passkey eklemeden önce şu soruyu cevaplayın: telefonum bugün kaybolsa, bu hesaba nasıl girerim?
+  Cevabınız yoksa önce yedek yöntemi kurun.
+</Callout>
+
+## Bilinen sınırlar
+
+Dürüst olmak gerekirse passkey henüz her yerde pürüzsüz değil:
+
+- Her site desteklemiyor; destekleyenlerin bir kısmında akış karışık.
+- Farklı ekosistemler arasında geçiş (Android'den iPhone'a) her zaman kolay değil.
+- Bir siteye passkey ekleyip diğer giriş yöntemlerini kapatırsanız, cihaz
+  kaybında kurtarma tamamen platformun kurtarma akışına bağlı kalır.
+- Ortak kullanılan bir bilgisayarda passkey oluşturmak istemezsiniz.
+
+Bunlar passkey'i kötü yapmıyor; sadece "şifreyi bugün tamamen bırakın" demeyi
+erken kılıyor. Ekleyin, alışın, yedeğinizi kurun.

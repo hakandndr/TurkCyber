@@ -1,0 +1,113 @@
+---
+title: '2FA Nedir? SMS, Authenticator ve Güvenlik Anahtarı Arasındaki Farklar'
+description: 'İki aşamalı doğrulamanın üç yaygın yöntemi aynı korumayı sağlamıyor. Hangisi neye karşı koruyor, hangisi hangi durumda çuvallıyor?'
+category: iki-faktorlu-dogrulama
+publishedAt: 2026-08-07
+status: published
+featured: true
+difficulty: baslangic
+readingTime: 8
+summary: 'SMS kodu, authenticator uygulaması ve güvenlik anahtarı arasındaki fark, saldırganın nerede durduğuna bağlı. SMS SIM swap ile, authenticator sahte sitelerle atlatılabilir. Passkey ve güvenlik anahtarı ikisine karşı da çalışır.'
+tags: ['2fa', 'authenticator', 'sms', 'güvenlik anahtarı', 'passkey']
+---
+
+İki aşamalı doğrulama (2FA), giriş yaparken şifreye ek olarak ikinci bir kanıt
+istenmesidir. Fikir basit: şifreniz sızsa bile, saldırganın elinde ikinci parça
+olmaz.
+
+Ancak "2FA açtım" cümlesi, hangi yöntemi kullandığınıza göre çok farklı seviyelerde
+koruma anlamına geliyor. Farkı görmek için tek bir soru yeterli:
+
+> Saldırgan nerede duruyor?
+
+## Yöntem 1 — SMS ile gelen kod
+
+Telefon numaranıza altı haneli bir kod gelir, siz de bunu girersiniz.
+
+**Neye karşı korur:** Sadece şifrenizi bilen, uzaktaki bir saldırgana karşı korur.
+Bu gerçek bir kazanç — şifre sızıntılarının büyük kısmını tek başına etkisiz kılar.
+
+**Nerede çuvallar:**
+
+- **SIM swap.** Saldırgan operatörü ikna ederek numaranızı kendi SIM kartına
+  taşıtır. O andan itibaren kodlar ona gider. Bu, kişiye özel hedeflenmiş bir
+  saldırıdır ve genelde önce sizin hakkınızda bilgi toplamayı gerektirir.
+- **Sahte site.** Sahte bir giriş sayfasına şifrenizi yazarsınız, sayfa kodu da
+  ister, siz onu da yazarsınız. Saldırgan ikisini gerçek siteye aynı anda iletir.
+- **Yönlendirme ve şebeke sorunları.** Kod başka bir yere düşebilir veya hiç
+  gelmeyebilir.
+
+<Callout type="bilgi">
+  SMS'i kapatmanız gerektiğini söylemiyoruz. Tek seçeneğiniz SMS ise, açık olması kapalı olmasından
+  iyidir. Daha iyi bir seçenek sunulduğunda geçin.
+</Callout>
+
+## Yöntem 2 — Authenticator uygulaması
+
+Telefonunuzdaki bir uygulama, 30 saniyede bir değişen altı haneli kod üretir.
+Bu kodlar internet üzerinden gelmez; uygulama ile hesap arasında kurulum sırasında
+paylaşılan bir gizli anahtardan hesaplanır.
+
+**Neye karşı korur:** SMS'in korduğu her şeye, artı SIM swap'a. Numaranızı çalmak
+işe yaramaz, çünkü kod telefon numarasıyla ilgisizdir.
+
+**Nerede çuvallar:**
+
+- **Sahte site.** Burada da aynı açık var. Kodu sahte sayfaya yazarsanız, saldırgan
+  onu 30 saniye içinde gerçek siteye iletir.
+- **Telefonu kaybetmek.** Yedek kodlarınız yoksa hesabınıza siz de giremezsiniz.
+
+<Callout type="dikkat">
+  Authenticator kurarken çıkan yedek kodları mutlaka kaydedin. Telefonunu kaybedip hesabına
+  giremeyen insanların çoğu, bu adımı atlamış oluyor.
+</Callout>
+
+## Yöntem 3 — Passkey ve fiziksel güvenlik anahtarı
+
+Passkey (geçiş anahtarı) ve USB/NFC güvenlik anahtarları farklı bir prensiple
+çalışır: kod okumazsınız. Cihazınız, girmeye çalıştığınız sitenin **adresini**
+kontrol eder ve kriptografik bir imza üretir.
+
+**Neye karşı korur:** Yukarıdakilerin hepsine, artı sahte sitelere.
+
+Kritik nokta bu: sahte bir sitedeyseniz, adres eşleşmediği için cihazınız imzayı
+**üretmez**. Sizin dikkatinize bağlı değildir. Yorgun olmanız, acele etmeniz veya
+adres çubuğuna bakmamış olmanız sonucu değiştirmez.
+
+**Nerede zorlanır:**
+
+- Her platform henüz desteklemiyor.
+- Fiziksel anahtar satın almak gerekir (passkey için gerekmez — telefonunuz yeter).
+- Cihazınızı kaybederseniz yedek bir yönteme ihtiyacınız olur.
+
+Passkey'in ne olduğunu ve şifreden farkını
+[ayrı bir rehberde](/rehberler/passkey-nedir/) anlattık.
+
+## Karşılaştırma
+
+|                             | Şifre sızıntısı | SIM swap | Sahte giriş sayfası |
+| --------------------------- | --------------- | -------- | ------------------- |
+| Sadece şifre                | ✗               | ✗        | ✗                   |
+| SMS kodu                    | ✓               | ✗        | ✗                   |
+| Authenticator               | ✓               | ✓        | ✗                   |
+| Passkey / güvenlik anahtarı | ✓               | ✓        | ✓                   |
+
+## Pratikte ne yapmalı
+
+Mükemmeli beklemeyin. Sıralama şu:
+
+1. Hiç 2FA yoksa, **hangisi varsa onu açın.** SMS bile olsa.
+2. Authenticator seçeneği varsa ona geçin ve yedek kodları saklayın.
+3. Passkey destekleniyorsa — özellikle e-posta hesabınızda — onu ekleyin.
+4. En kritik hesabınız için fiziksel bir güvenlik anahtarı düşünün.
+
+<Callout type="kontrol">
+  2FA'yı açtıktan sonra çıkış yapıp yeniden girmeyi deneyin. Akışın gerçekten çalıştığını, kurtarma
+  kodlarınızın elinizde olduğunu ilk kez acil bir durumda öğrenmeyin.
+</Callout>
+
+## Bunu neden yapıyoruz?
+
+Çünkü 2FA'nın değeri, saldırganın _tipine_ göre değişiyor. Rastgele sızıntı
+listesiyle deneme yapan birine karşı SMS bile yeter. Sizi özel olarak hedefleyen
+birine karşı yetmez. Kendi durumunuza göre seçin — ama en azından bir tane açın.

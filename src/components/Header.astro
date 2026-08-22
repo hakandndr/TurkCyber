@@ -1,0 +1,135 @@
+---
+import Logo from './Logo.astro';
+import { NAV } from '../config/site';
+
+const path = Astro.url.pathname;
+const isActive = (href: string): boolean => path === href || path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="logo-link" aria-label="TurkCyber ana sayfa">
+      <Logo animated />
+    </a>
+
+    <nav aria-label="Ana menü">
+      <ul class="nav">
+        {
+          NAV.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <a href="/ara/" class="search-link" aria-label="Sitede ara">
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.6-3.6"></path>
+      </svg>
+      <span class="search-label">Ara</span>
+    </a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--surface-0) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-5);
+    min-height: 62px;
+    flex-wrap: wrap;
+  }
+
+  .logo-link {
+    text-decoration: none;
+    margin-right: auto;
+  }
+
+  .nav {
+    display: flex;
+    gap: var(--sp-5);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+  }
+
+  .nav a {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.6rem 0;
+    display: inline-block;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav a:hover {
+    color: var(--cyan);
+  }
+
+  .nav a[aria-current='page'] {
+    color: var(--text);
+    border-bottom-color: var(--green);
+  }
+
+  .search-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    min-height: 44px;
+    padding-inline: var(--sp-2);
+  }
+
+  .search-link:hover {
+    color: var(--cyan);
+  }
+
+  @media (max-width: 640px) {
+    .header-inner {
+      gap: var(--sp-3);
+      padding-block: var(--sp-2);
+    }
+    .nav {
+      order: 3;
+      width: 100%;
+      gap: var(--sp-4);
+      border-top: 1px solid var(--border);
+      padding-top: var(--sp-2);
+    }
+    .nav a {
+      padding: 0.5rem 0;
+      font-size: 0.8rem;
+    }
+    .search-label {
+      display: none;
+    }
+  }
+</style>
