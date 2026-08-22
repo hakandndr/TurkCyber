@@ -77,6 +77,10 @@ const formatted = new Intl.DateTimeFormat('tr-TR', {
     <ul>
       <li>yazdığınız isim (gerçek adınız olmak zorunda değil)</li>
       <li>yorum metniniz</li>
+      <li>
+        <strong>e-posta adresiniz — yalnızca yazdıysanız.</strong> Bu alan isteğe bağlıdır, boş bırakabilirsiniz
+        ve boş bırakırsanız hiçbir şey saklanmaz.
+      </li>
       <li>tarih ve saat</li>
       <li>user-agent bilgisi ve ülke kodu</li>
       <li>
@@ -84,9 +88,41 @@ const formatted = new Intl.DateTimeFormat('tr-TR', {
         veritabanına yazılmaz. Bu özet yalnızca kötüye kullanımı sınırlamak için kullanılır.
       </li>
     </ul>
+    <p>Yorumlar yayınlanmadan önce elle onaylanır; onaylanmayan yorumlar sitede görünmez.</p>
+
+    <h3>Yorumdaki e-posta adresi</h3>
     <p>
-      E-posta adresi istemiyoruz. Yorumlar yayınlanmadan önce elle onaylanır; onaylanmayan yorumlar
-      sitede görünmez.
+      E-posta adresi <strong>zorunlu değildir</strong>. Yorum yazmak için doldurmanız gerekmez.
+    </p>
+    <p>Yazarsanız:</p>
+    <ul>
+      <li><strong>Sitede hiçbir yerde yayınlanmaz.</strong></li>
+      <li>
+        Yorumları getiren genel arayüz bu alanı hiç döndürmez — teknik olarak tarayıcınıza
+        gönderilmez.
+      </li>
+      <li>Başka bir yorumcuya, üçüncü taraflara veya bir listeye aktarılmaz.</li>
+      <li>Bülten veya duyuru göndermek için kullanılmaz.</li>
+      <li>
+        Yalnızca yorumunuza özel olarak yanıt vermemiz gerekirse kullanılır — ve çoğu zaman
+        gerekmez.
+      </li>
+    </ul>
+    <p>
+      Adresinizin silinmesini isterseniz aşağıdaki adresten yazın; yorumunuzu silmeden yalnızca
+      e-posta alanını da temizleyebiliriz.
+    </p>
+
+    <h2>İletişim formu</h2>
+    <p>
+      İletişim sayfasındaki form, mesajınızı bize e-posta olarak ileten
+      <strong>Formspree</strong> adlı üçüncü taraf bir servis üzerinden çalışır. Formu gönderdiğinizde
+      yazdığınız ad, e-posta adresi, konu ve mesaj bu servis tarafından işlenir ve Formspree'nin kendi
+      gizlilik koşulları geçerli olur.
+    </p>
+    <p>
+      Formu kullanmak zorunda değilsiniz; doğrudan
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a> adresine de yazabilirsiniz.
     </p>
 
     <h2>Spam koruması</h2>
@@ -137,6 +173,16 @@ const formatted = new Intl.DateTimeFormat('tr-TR', {
     font-size: var(--step-1);
     color: var(--text-muted);
     margin-block: var(--sp-5) var(--sp-6);
+  }
+  .page h3 {
+    font-size: var(--step-1);
+    margin-top: var(--sp-5);
+    margin-bottom: var(--sp-2);
+  }
+  .page h3 {
+    font-size: var(--step-1);
+    margin-top: var(--sp-5);
+    margin-bottom: var(--sp-2);
   }
   .page h2 {
     font-size: var(--step-2);

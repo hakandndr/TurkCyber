@@ -108,3 +108,30 @@ wrong code**, and the assertions were corrected:
 Run `pnpm install && pnpm check && pnpm build && pnpm test` locally to confirm
 the environment reproduces, commit the lockfile, then follow
 PRODUCTION_CUTOVER.md phase B for staging.
+
+### Addendum — divergence with the owner's local commit
+
+While this pass was being built in the cloud environment, the owner ran
+`pnpm install` locally and committed `e84930b chore: verify local setup and add
+pnpm lockfile` on top of `0559bc3`. That commit added `pnpm-lock.yaml` and
+`.gitattributes` (`* text=auto eol=lf`, plus CRLF for `.bat`/`.cmd`) and
+reformatted six documentation files with Prettier.
+
+The two histories therefore diverged from `0559bc3`.
+
+Resolution, chosen to preserve the owner's work:
+
+- The owner's commit is kept as history; nothing was force-pushed or discarded.
+- The cloud commit `f7119d8` was **not** replayed as-is. Its content was applied
+  to the working tree and committed on top of `e84930b`, so the lockfile and
+  `.gitattributes` survive.
+- The six documentation files the owner touched were checked before committing:
+  their changes were **purely Prettier formatting** (table alignment, JSX
+  collapsing), with no semantic edits, so no content was lost by taking the
+  cloud versions, which are themselves Prettier-formatted and additionally
+  carry this pass's new sections.
+- `f7119d8` remains reachable as a dangling object in this repository if the
+  original tree is ever needed for comparison.
+
+Lesson recorded: transfers into a working repository must check for local
+commits first. A tarball extraction is not a merge.

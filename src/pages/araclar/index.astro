@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/**
+ * Tools index.
+ *
+ * Planned tools are listed as planned. Nothing here links to something that
+ * does not exist, and nothing is described as available before it is.
+ */
+const tools = [
+  {
+    href: '/araclar/bu-mesaj-sahte-mi/',
+    title: 'Bu mesaj sahte mi?',
+    description:
+      'Altı gerçekçi mesaj gösterip her biri için ne yapardınız diye soruyoruz. ' +
+      'Sonunda hangi işaretleri kaçırdığınızı görüyorsunuz.',
+    status: 'ready' as const,
+  },
+  {
+    title: 'Instagram Güvenlik Testi',
+    description: 'Hesabınızın ayarlarını adım adım gözden geçiren bir kontrol listesi.',
+    status: 'planned' as const,
+  },
+  {
+    title: 'Hesap güvenlik puanı',
+    description: 'Birkaç soruyla en zayıf halkanızı bulan kısa bir değerlendirme.',
+    status: 'planned' as const,
+  },
+];
+---
+
+<BaseLayout
+  title="Araçlar"
+  description="Dijital güvenliğinizi kendiniz test edebileceğiniz kısa, tarayıcıda çalışan araçlar."
+>
+  <div class="container-narrow page">
+    <header class="page-head">
+      <p class="eyebrow">Araçlar</p>
+      <h1>Kendiniz deneyin</h1>
+      <p class="lede">
+        Okumak yerine denemek bazen daha iyi öğretir. Bu araçların hepsi tarayıcınızda çalışır —
+        verdiğiniz cevaplar hiçbir yere gönderilmez.
+      </p>
+    </header>
+
+    <ul class="tool-list">
+      {
+        tools.map((tool) => (
+          <li class:list={['tool-item', tool.status === 'planned' && 'is-planned']}>
+            {tool.status === 'ready' ? (
+              <a href={tool.href}>
+                <span class="tool-title">{tool.title}</span>
+                <span class="tool-desc">{tool.description}</span>
+              </a>
+            ) : (
+              <div>
+                <span class="tool-title">
+                  {tool.title}
+                  <span class="badge">Hazırlanıyor</span>
+                </span>
+                <span class="tool-desc">{tool.description}</span>
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    margin-bottom: var(--sp-6);
+  }
+  .page-head h1 {
+    margin-top: var(--sp-2);
+  }
+  .lede {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+  .tool-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .tool-item > * {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+  }
+  .tool-item a:hover {
+    border-color: var(--green);
+    background: var(--surface-2);
+  }
+  .is-planned > * {
+    opacity: 0.55;
+    border-style: dashed;
+  }
+  .tool-title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    padding: 0.2em 0.5em;
+  }
+  .tool-desc {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+</style>

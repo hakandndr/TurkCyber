@@ -3,8 +3,15 @@ import BaseLayout from './BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import Share from '../components/Share.astro';
 import Comments from '../components/Comments.astro';
+import VerdictBadge from '../components/VerdictBadge.astro';
 import { SITE, getCategory, DIFFICULTY_LABELS } from '../config/site';
-import { articlePath, formatTurkishDate, type Article, type Guide } from '../lib/content';
+import {
+  articlePath,
+  formatTurkishDate,
+  type Article,
+  type Guide,
+  type Verdict,
+} from '../lib/content';
 
 interface Props {
   entry: Article;
@@ -15,11 +22,32 @@ const { entry, related } = Astro.props;
 const { data } = entry;
 const category = getCategory(data.category);
 const url = new URL(articlePath(entry), SITE.url).href;
-const isGuide = entry.collection === 'guides';
+
+// Three collections render through this layout and they differ in real ways:
+// only guides carry difficulty and reading time, only news carries a source,
+// only myths carry a verdict. Branch on the collection explicitly rather than
+// treating "not a guide" as "news" — that assumption broke when myths landed.
+const isNews = entry.collection === 'news';
+const isMyth = entry.collection === 'myths';
+
+const SECTION = {
+  guides: { href: '/rehberler/', label: 'Rehberler' },
+  news: { href: '/haberler/', label: 'Haberler' },
+  myths: { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi, gerçek mi?' },
+} as const;
+
+const section = SECTION[entry.collection as keyof typeof SECTION] ?? SECTION.guides;
+
+// Narrow on `entry`, not on a boolean: a boolean flag cannot narrow the union
+// that `entry.data` resolves to, so the fields below would need casts and a
+// cast would hide a genuine mistake if a schema changed.
+const myth = entry.collection === 'myths' ? entry.data : null;
+const news = entry.collection === 'news' ? entry.data : null;
+const guide = entry.collection === 'guides' ? entry.data : null;
 
 const structuredData = {
   '@context': 'https://schema.org',
-  '@type': isGuide ? 'TechArticle' : 'NewsArticle',
+  '@type': isNews ? 'NewsArticle' : isMyth ? 'ClaimReview' : 'TechArticle',
   headline: data.title,
   description: data.description,
   inLanguage: 'tr-TR',
@@ -46,11 +74,11 @@ const structuredData = {
   structuredData={structuredData}
   noindex={data.status !== 'published'}
 >
-  <article class="container-narrow article">
+  <article class="container-reading article">
     <nav aria-label="Konum" class="breadcrumb">
       <a href="/">Ana sayfa</a>
       <span aria-hidden="true">/</span>
-      <a href={isGuide ? '/rehberler/' : '/haberler/'}>{isGuide ? 'Rehberler' : 'Haberler'}</a>
+      <a href={section.href}>{section.label}</a>
       {
         category && (
           <>
@@ -62,7 +90,18 @@ const structuredData = {
     </nav>
 
     <header class="article-head">
-      <h1>{data.title}</h1>
+      {
+        myth && (
+          <div class="verdict-row">
+            <VerdictBadge verdict={myth.verdict as Verdict} size="large" />
+            <p class="verdict-line">{myth.verdictLine}</p>
+          </div>
+        )
+      }
+
+      <h1 class:list={[isMyth && 'claim']}>
+        {isMyth ? <>&ldquo;{data.title}&rdquo;</> : data.title}
+      </h1>
       <p class="article-lede">{data.description}</p>
 
       <div class="article-meta">
@@ -74,18 +113,8 @@ const structuredData = {
             <span class="updated">Güncellendi: {formatTurkishDate(data.updatedAt)}</span>
           )
         }
-        {isGuide && <span>{(data as { readingTime: number }).readingTime} dk okuma</span>}
-        {
-          isGuide && (
-            <span>
-              {
-                DIFFICULTY_LABELS[
-                  (data as { difficulty: keyof typeof DIFFICULTY_LABELS }).difficulty
-                ]
-              }
-            </span>
-          )
-        }
+        {guide && <span>{guide.readingTime} dk okuma</span>}
+        {guide && <span>{DIFFICULTY_LABELS[guide.difficulty]}</span>}
         {data.status !== 'published' && <span class="draft-badge">{data.status}</span>}
       </div>
     </header>
@@ -113,15 +142,11 @@ const structuredData = {
     </div>
 
     {
-      !isGuide && (
+      news && (
         <p class="source-line">
           Kaynak:{' '}
-          <a
-            href={(data as { sourceUrl: string }).sourceUrl}
-            rel="noopener nofollow"
-            target="_blank"
-          >
-            {(data as { sourceName: string }).sourceName}
+          <a href={news.sourceUrl} rel="noopener nofollow" target="_blank">
+            {news.sourceName}
           </a>
         </p>
       )
@@ -174,10 +199,35 @@ const structuredData = {
     margin-bottom: var(--sp-4);
   }
 
-  .article-lede {
-    font-size: var(--step-1);
+  /* A myth's headline is a quoted claim, so it is set apart from the
+     assertive voice the rest of the site uses for its own headings. */
+  .article-head h1.claim {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 500;
     color: var(--text-muted);
-    max-width: var(--measure);
+    font-size: var(--step-3);
+  }
+
+  .verdict-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--sp-4);
+  }
+
+  .verdict-line {
+    flex: 1 1 20rem;
+    color: var(--text);
+    font-size: var(--step-1);
+  }
+
+  .article-lede {
+    font-size: var(--step-2);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 56ch;
   }
 
   .article-meta {
@@ -204,6 +254,7 @@ const structuredData = {
 
   .summary {
     margin-top: var(--sp-5);
+    max-width: var(--measure);
     padding: var(--sp-4) var(--sp-5);
     background: var(--surface-1);
     border: 1px solid var(--border);
@@ -226,6 +277,8 @@ const structuredData = {
   .prose {
     margin-top: var(--sp-6);
     max-width: var(--measure);
+    font-size: var(--step-0);
+    line-height: 1.75;
   }
 
   .prose :global(h2) {
@@ -245,7 +298,7 @@ const structuredData = {
   .prose :global(p),
   .prose :global(ul),
   .prose :global(ol) {
-    margin-bottom: var(--sp-4);
+    margin-bottom: var(--sp-5);
   }
 
   .prose :global(ul),

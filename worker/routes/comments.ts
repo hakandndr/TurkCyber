@@ -42,6 +42,9 @@ async function listComments(request: Request, env: Env): Promise<Response> {
 
   try {
     const { results } = await env.APP_DB.prepare(
+      // Columns are listed explicitly and `email` is not among them. Never
+      // change this to SELECT *: a future column would start leaking through
+      // the public endpoint the moment it was added.
       `SELECT id, parent_id, display_name, body, created_at
          FROM comments
         WHERE article_slug = ? AND status = 'approved'
@@ -106,6 +109,7 @@ async function submitComment(request: Request, env: Env): Promise<Response> {
     name: payload.name,
     body: payload.body,
     parentId: payload.parentId,
+    email: payload.email,
   });
   if (!validation.ok) {
     return jsonResponse(
@@ -152,8 +156,8 @@ async function submitComment(request: Request, env: Env): Promise<Response> {
     await env.APP_DB.prepare(
       `INSERT INTO comments
          (article_slug, parent_id, display_name, body, status, created_at,
-          ip_hash, user_agent, country)
-       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
+          ip_hash, user_agent, country, email)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
     )
       .bind(
         validation.value.articleSlug,
@@ -164,6 +168,7 @@ async function submitComment(request: Request, env: Env): Promise<Response> {
         ipHash,
         sanitizeField(request.headers.get('user-agent') ?? ''),
         sanitizeField(cf?.country ?? ''),
+        validation.value.email,
       )
       .run();
   } catch (error) {

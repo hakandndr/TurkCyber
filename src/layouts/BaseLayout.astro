@@ -80,8 +80,15 @@ const fullTitle = title === SITE.name ? title : `${title} — ${SITE.name}`;
     <meta name="twitter:image" content={ogImageUrl} />
 
     {
+      /*
+       * `is:inline` tells Astro to emit this tag verbatim rather than treating
+       * it as a script to process and bundle. Without it Astro reports a hint,
+       * and a future version could try to transform a JSON-LD payload as if it
+       * were JavaScript. The content is built server-side from typed data and
+       * never contains visitor input.
+       */
       structuredData && (
-        <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+        <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
       )
     }
   </head>

@@ -1,0 +1,362 @@
+---
+/**
+ * Generic renderer for a quiz-shaped tool.
+ *
+ * The definition is serialised into a data island and read by a small script.
+ * Nothing is transmitted: scoring runs in the visitor's browser and the result
+ * never leaves the page.
+ *
+ * Every question is rendered server-side inside the form, so the tool is
+ * readable and answerable without JavaScript — the script adds scoring and the
+ * result panel on top of markup that already stands on its own.
+ */
+import type { ToolDefinition } from '../../lib/tools/types';
+
+interface Props {
+  definition: ToolDefinition;
+}
+
+const { definition } = Astro.props;
+---
+
+<section class="tool" data-tool id={definition.id}>
+  <p class="tool-privacy">
+    <svg
+      viewBox="0 0 20 20"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10 2.6 16 5v4.6c0 3.6-2.4 6.4-6 7.8-3.6-1.4-6-4.2-6-7.8V5z"></path>
+      <path d="m7.4 10 1.9 1.9 3.4-3.7"></path>
+    </svg>
+    Cevaplarınız tarayıcınızdan çıkmaz. Hiçbir yere gönderilmez, kaydedilmez.
+  </p>
+
+  <form class="tool-form" data-tool-form>
+    {
+      definition.questions.map((question, index) => (
+        <fieldset class="question">
+          <legend>
+            <span class="q-index">{index + 1}</span>
+            {question.prompt}
+          </legend>
+
+          {question.scenario && <blockquote class="scenario">{question.scenario}</blockquote>}
+
+          <div class="options">
+            {question.options.map((option) => (
+              <label class="option">
+                <input type="radio" name={question.id} value={option.id} />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+
+          <p class="explanation" data-explanation hidden>
+            {question.explanation}
+          </p>
+        </fieldset>
+      ))
+    }
+
+    <div class="tool-actions">
+      <button type="submit" class="button button-primary">Sonucu gör</button>
+      <button type="reset" class="button" data-tool-reset>Baştan başla</button>
+      <p class="progress" data-progress></p>
+    </div>
+  </form>
+
+  <div class="tool-result" data-tool-result hidden tabindex="-1" aria-live="polite"></div>
+
+  {
+    /*
+    A data island, not a script to execute. `is:inline` keeps Astro from
+    treating it as JavaScript to process and bundle. The payload is built
+    server-side from a typed definition and never contains visitor input.
+  */
+  }
+  <script
+    is:inline
+    type="application/json"
+    data-tool-definition
+    set:html={JSON.stringify(definition)}
+  />
+</section>
+
+<script>
+  import { scoreAnswers } from '../../lib/tools/scoring';
+  import type { ToolDefinition } from '../../lib/tools/types';
+
+  const root = document.querySelector<HTMLElement>('[data-tool]');
+  if (root) {
+    const definitionNode = root.querySelector<HTMLScriptElement>('[data-tool-definition]');
+    const form = root.querySelector<HTMLFormElement>('[data-tool-form]');
+    const resultPanel = root.querySelector<HTMLElement>('[data-tool-result]');
+    const progress = root.querySelector<HTMLElement>('[data-progress]');
+
+    if (definitionNode && form && resultPanel && progress) {
+      const definition = JSON.parse(definitionNode.textContent ?? '{}') as ToolDefinition;
+      const total = definition.questions.length;
+
+      const answered = (): number =>
+        definition.questions.filter((q) => form.querySelector(`input[name="${q.id}"]:checked`))
+          .length;
+
+      const updateProgress = (): void => {
+        const count = answered();
+        progress.textContent = count === 0 ? '' : `${count} / ${total} yanıtlandı`;
+      };
+
+      form.addEventListener('change', updateProgress);
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const answers: Record<string, string> = {};
+        for (const question of definition.questions) {
+          const checked = form.querySelector<HTMLInputElement>(
+            `input[name="${question.id}"]:checked`,
+          );
+          if (checked) answers[question.id] = checked.value;
+        }
+
+        const result = scoreAnswers(definition, answers);
+
+        // Reveal the per-question explanations now that answers are locked in.
+        for (const fieldset of form.querySelectorAll<HTMLElement>('.question')) {
+          const explanation = fieldset.querySelector<HTMLElement>('[data-explanation]');
+          if (explanation) explanation.hidden = false;
+        }
+
+        // Mark which option was the security-aware answer.
+        for (const question of definition.questions) {
+          for (const option of question.options) {
+            const input = form.querySelector<HTMLInputElement>(
+              `input[name="${question.id}"][value="${option.id}"]`,
+            );
+            const label = input?.closest<HTMLElement>('.option');
+            if (!label) continue;
+            label.classList.toggle('option-correct', option.correct === true);
+            label.classList.toggle(
+              'option-chosen-wrong',
+              input!.checked && option.correct !== true,
+            );
+          }
+        }
+
+        resultPanel.hidden = false;
+        resultPanel.className = `tool-result band-${result.band.accent}`;
+        resultPanel.innerHTML = `
+          <p class="result-score">${result.correctCount} / ${total} doğru</p>
+          <h3>${escapeText(result.band.title)}</h3>
+          <p>${escapeText(result.band.message)}</p>`;
+        resultPanel.focus();
+      });
+
+      form.addEventListener('reset', () => {
+        resultPanel.hidden = true;
+        progress.textContent = '';
+        for (const explanation of form.querySelectorAll<HTMLElement>('[data-explanation]')) {
+          explanation.hidden = true;
+        }
+        for (const label of form.querySelectorAll<HTMLElement>('.option')) {
+          label.classList.remove('option-correct', 'option-chosen-wrong');
+        }
+      });
+    }
+  }
+
+  function escapeText(value: string): string {
+    const div = document.createElement('div');
+    div.textContent = value;
+    return div.innerHTML;
+  }
+</script>
+
+<style>
+  .tool {
+    margin-block: var(--sp-6);
+  }
+
+  .tool-privacy {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--step--1);
+    color: var(--green);
+    background: var(--green-wash);
+    border: 1px solid rgba(33, 230, 122, 0.25);
+    border-radius: var(--radius);
+    padding: var(--sp-3) var(--sp-4);
+    margin-bottom: var(--sp-5);
+  }
+
+  .tool-privacy svg {
+    flex: none;
+  }
+
+  .tool-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+  }
+
+  .question {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+    padding: var(--sp-5);
+    margin: 0;
+  }
+
+  .question legend {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-3);
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 600;
+    line-height: 1.35;
+    padding: 0;
+    margin-bottom: var(--sp-4);
+  }
+
+  .q-index {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    padding: 0.15em 0.5em;
+    flex: none;
+  }
+
+  .scenario {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    line-height: 1.6;
+    background: var(--surface-2);
+    border-left: 2px solid var(--border-strong);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: var(--sp-4);
+    margin: 0 0 var(--sp-4);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    min-height: 44px;
+  }
+
+  .option:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+
+  .option input {
+    margin-top: 0.25em;
+    accent-color: var(--green);
+    flex: none;
+  }
+
+  /* Result marking carries a border and a label prefix, not colour alone. */
+  .option-correct {
+    border-color: var(--green);
+    background: var(--green-wash);
+  }
+
+  .option-correct span::before {
+    content: '✓ ';
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .option-chosen-wrong {
+    border-color: var(--amber);
+    background: var(--amber-wash);
+  }
+
+  .option-chosen-wrong span::before {
+    content: '× ';
+    color: var(--amber);
+    font-weight: 700;
+  }
+
+  .explanation {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .tool-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+  }
+
+  .progress {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+
+  .tool-result {
+    margin-top: var(--sp-5);
+    padding: var(--sp-5);
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+  }
+
+  .tool-result:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .tool-result :global(.result-score) {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--sp-2);
+  }
+
+  .tool-result :global(h3) {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-3);
+  }
+
+  .tool-result.band-green {
+    border-left-color: var(--green);
+  }
+  .tool-result.band-amber {
+    border-left-color: var(--amber);
+  }
+  .tool-result.band-red {
+    border-left-color: var(--red);
+  }
+</style>

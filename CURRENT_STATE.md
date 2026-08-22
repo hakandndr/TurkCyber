@@ -1,160 +1,159 @@
 # Current state
 
-**Snapshot: 2026-08-22.** This is the authoritative description of where the
-project is. If anything below disagrees with reality, reality wins and this file
-needs updating.
+**Snapshot: 2026-08-22.** Authoritative description of where the project is. If
+anything below disagrees with reality, reality wins and this file needs updating.
 
 ---
 
 ## Headline
 
-Locally complete and verified. **Nothing has been deployed. No Cloudflare
-resource exists. `turkcyber.com` has not been touched** — it still serves the
-legacy Hostinger site.
+Locally complete and verified. **Nothing deployed. No Cloudflare resource
+exists. `turkcyber.com` untouched** — still the legacy Hostinger site.
+
+Second work pass complete: brand `<TC/>`, 2005 heritage, problem-first taxonomy,
+"Efsane mi, gerçek mi?", interactive tools with one shipped tool, optional
+comment email, rebuilt footer, real contact form, wider visual system, and the
+test/build ordering dependency removed.
 
 ---
 
 ## Repository
 
-|             |                                                                              |
-| ----------- | ---------------------------------------------------------------------------- |
-| Remote      | `https://github.com/hakandndr/turkcyber.git`                                 |
-| Branch      | `main`                                                                       |
-| Push status | see the final session report — the build environment had no push credentials |
-| Lockfile    | **missing** — `pnpm-lock.yaml` must be generated locally and committed       |
-
-The repository was empty before this work. Nothing was force-pushed and no
-history was rewritten.
+|             |                                                                        |
+| ----------- | ---------------------------------------------------------------------- |
+| Remote      | `https://github.com/hakandndr/turkcyber.git`                           |
+| Branch      | `main`                                                                 |
+| Commits     | `0559bc3` (initial) + this pass                                        |
+| Push status | **blocked** — git proxy has not authorised this repo for the session   |
+| Lockfile    | **missing** — `pnpm-lock.yaml` must be generated locally and committed |
 
 ---
 
 ## Verification
 
-Last run, all from a clean tree:
+Last run, from a **clean tree with no `dist/`**:
 
-| Command             | Result                       |
-| ------------------- | ---------------------------- |
-| `pnpm check`        | 0 errors, 0 warnings, 1 hint |
-| `pnpm lint`         | clean (eslint + prettier)    |
-| `pnpm build`        | 26 pages                     |
-| `pnpm test`         | **111 passed**, 5 files      |
-| `pnpm scan:secrets` | clean                        |
+| Command             | Result                            |
+| ------------------- | --------------------------------- |
+| `pnpm check`        | 0 errors, 0 warnings, **0 hints** |
+| `pnpm lint`         | clean (eslint + prettier)         |
+| `pnpm build`        | 33 pages                          |
+| `pnpm test`         | **132 passed**, 6 files           |
+| `pnpm scan:secrets` | clean                             |
 
-Test breakdown: auth 17 · analytics 31 · comments 24 · boss 17 · content 22.
+Tests: auth 17 · analytics 31 · comments 29 · boss 17 · content 25 · tools 13.
+
+`pnpm test` no longer depends on `pnpm build` — `tests/global-setup.ts` builds
+when `dist/` is absent.
+
+Browser checks (Playwright, built output): no horizontal overflow on 10 routes ×
+{1440, 1024, 768, 390}; quiz works end to end; comments-API-down degrades to the
+Turkish notice with the article fully readable.
 
 ---
 
 ## Routes
 
-Public, built and in the sitemap:
+Public and in the sitemap:
 
 ```
-/                         /rehberler/           /rehberler/<slug>/   (8)
-/haberler/                /konular/             /konular/<category>/ (9)
-/hakkinda/                /iletisim/            /gizlilik/
-/rss.xml                  /sitemap.xml          /search-index.json
+/                          /rehberler/            /rehberler/<slug>/       (8)
+/efsane-mi-gercek-mi/      /efsane-mi-gercek-mi/<slug>/                    (5)
+/araclar/                  /araclar/bu-mesaj-sahte-mi/
+/haberler/                 /konular/              /konular/<category>/     (8)
+/hakkinda/                 /iletisim/             /gizlilik/
+/rss.xml                   /sitemap.xml           /search-index.json
 ```
 
-Built but deliberately `noindex` and absent from the sitemap: `/ara/`, `/404`.
+Built but `noindex` and excluded from the sitemap: `/ara/`, `/404`.
 
-Worker-owned, never in the static build:
-
-```
-/collect          analytics beacon
-/api/comments     GET approved · POST for moderation
-/boss             /boss/analytics  /boss/comments  /boss/system
-/boss/login  /boss/logout  /boss/comments/{approve,reject,spam,delete}
-```
+Worker-owned, never in the static build: `/collect`, `/api/comments`,
+`/boss`, `/boss/{analytics,comments,system,login,logout}`,
+`/boss/comments/{approve,reject,spam,delete}`.
 
 ---
 
 ## Content
 
-|                  |                                                                  |
-| ---------------- | ---------------------------------------------------------------- |
-| Published guides | 8                                                                |
-| Published news   | **0**                                                            |
-| Draft news       | 1 (`ornek-haber-sablonu` — a template, excluded from production) |
-| Categories       | 9, defined once in `src/config/site.ts`                          |
+|                   |                                       |
+| ----------------- | ------------------------------------- |
+| Published guides  | 8                                     |
+| Published myths   | 5                                     |
+| Published news    | **0**                                 |
+| Draft news        | 1 template (excluded from production) |
+| Interactive tools | 1 shipped, 2 listed as planned        |
+| Categories        | 8 — six `primary`, two `secondary`    |
 
-News was not written because it would have required inventing sources. The
-information architecture is complete and `/haberler/` renders its empty state.
+### Taxonomy (changed this pass)
+
+`sifreler-passkeys` + `iki-faktorlu-dogrulama` → **`sifreler-2fa`**;
+`sosyal-medya` → **`instagram-sosyal-medya`**. Four guides re-categorised.
+Category ids changed, which changes `/konular/<id>/` URLs — safe now because
+nothing is deployed. **Do not repeat this after go-live without redirects.**
+
+Every category carries a plain-language `question` used on listing surfaces so
+visitors recognise a problem without knowing security vocabulary.
 
 ---
 
 ## Databases
 
-Migrations are written and **not applied anywhere** — no D1 database exists.
+Migrations written; **none applied anywhere** — no D1 database exists.
 
 ```
 migrations/app/        0001_comments.sql
                        0002_comment_indexes.sql
                        0003_audit_events.sql
+                       0004_comment_email.sql     ← new, additive
 migrations/analytics/  0001_visitor_events.sql
 ```
 
-Bindings expected: `APP_DB`, `ANALYTICS_DB`, `THROTTLE_KV`.
-Every `database_id` in `wrangler.jsonc` is a `REPLACE_WITH_*` placeholder.
+`0004` adds a nullable `email` column. Earlier migrations were not modified.
+The public comments API never selects it — asserted by test.
+
+---
+
+## Configuration
+
+| Variable                    | State                                                    |
+| --------------------------- | -------------------------------------------------------- |
+| `PUBLIC_FORMSPREE_ENDPOINT` | **unset** — contact form falls back to the email address |
+| `SHOW_UNPUBLISHED`          | `.env.development` only; defaults closed everywhere else |
+| All secrets                 | unset; no environment provisioned                        |
 
 ---
 
 ## Legacy analytics
 
-**Not imported.** The historical export (~1,661 records) was not supplied to the
-build environment.
-
-`scripts/import-legacy-analytics.mjs` is written and smoke-tested against a
-synthetic file. It:
-
-- accepts JSON, NDJSON or CSV,
-- recomputes `local_date` from the preserved UTC timestamp with a real timezone
-  database (verified across both DST periods),
-- preserves original timestamps, IPs and location fields,
-- stores unrecorded device/browser values as `unknown` rather than guessing,
-- **never deduplicates**,
-- tags rows with `source` and begins with a `DELETE ... WHERE source = '<tag>'`
-  so it is safely re-runnable,
-- **never executes against a database** — it writes SQL and prints the command.
+**Not imported.** Export (~1,661 records) not supplied.
+`scripts/import-legacy-analytics.mjs` is written, smoke-tested, DST-correct,
+non-deduplicating, re-runnable, and never executes against a database itself.
 
 ---
 
 ## Cloudflare
 
-Nothing created. Required when provisioning begins:
-
-| Resource            | Name                                                          |
-| ------------------- | ------------------------------------------------------------- |
-| Worker (staging)    | `turkcyber-staging`                                           |
-| Worker (production) | `turkcyber-production`                                        |
-| D1                  | `turkcyber-app-staging` · `turkcyber-analytics-staging`       |
-| D1                  | `turkcyber-app-production` · `turkcyber-analytics-production` |
-| KV                  | throttle namespace per environment                            |
-| Turnstile           | one widget per environment, hostname-scoped                   |
-
-Secrets required per environment: `BOSS_USER`, `BOSS_PASSWORD_HASH`,
-`SESSION_SECRET`, `TURNSTILE_SECRET_KEY`, `COMMENT_IP_PEPPER`.
+Nothing created. Required at provisioning: Workers `turkcyber-staging` /
+`turkcyber-production`; D1 `turkcyber-{app,analytics}-{staging,production}`;
+a KV namespace per environment; a Turnstile widget per environment.
+All `database_id` values in `wrangler.jsonc` are `REPLACE_WITH_*` placeholders.
 
 ---
 
 ## Production
 
-`turkcyber.com` → legacy Hostinger site. **Unchanged.**
-
-`env.production.routes` in `wrangler.jsonc` is deliberately an empty array.
-Adding routes there is what replaces the live site, and that requires explicit
-owner authorization — PRODUCTION_CUTOVER.md phase D.
-
-No Hostinger file was read, modified or deleted.
+`turkcyber.com` → legacy Hostinger site. **Unchanged.** No Hostinger file read,
+modified or deleted. `env.production.routes` is deliberately `[]`.
 
 ---
 
 ## Blockers
 
-1. **Cloudflare credentials** — no account access from the build environment, so
-   no resource could be created and staging could not be deployed.
-2. **Legacy analytics export** — file not supplied; import waiting.
-3. **`pnpm-lock.yaml`** — the build environment used npm. Generate and commit it
-   locally; CI runs `pnpm install --frozen-lockfile` and will fail without it.
+1. **Cloudflare credentials** — no account access from the build environment.
+2. **Git push** — proxy has not authorised this repository for the session.
+3. **`pnpm-lock.yaml`** — must be generated locally; CI uses `--frozen-lockfile`.
+4. **Formspree endpoint** — owner to supply.
+5. **Legacy analytics export** — owner to supply.
 
 ---
 
@@ -165,6 +164,8 @@ cd D:\IT\turkcyber\turkcyber.com
 pnpm install
 pnpm check ; pnpm lint ; pnpm build ; pnpm test
 git add pnpm-lock.yaml ; git commit -m "chore: add pnpm lockfile"
+git push -u origin main
 ```
 
-Then PRODUCTION_CUTOVER.md **phase A**.
+Then `PRODUCTION_CUTOVER.md` **phase A**. Astro 7 migration afterwards, as its
+own isolated task.

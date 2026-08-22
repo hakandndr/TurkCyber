@@ -2,17 +2,34 @@
  * Content access helpers.
  *
  * Publication is a build input: only `status: published` entries reach a
- * production build. Draft and review entries stay visible during `astro dev`
- * so work in progress can be previewed without a separate environment.
+ * production build. Draft and review entries are previewable while authoring.
+ *
+ * ── The draft gate is deliberately fail-safe ──────────────────────────────
+ *
+ * This used to read `import.meta.env.DEV`, which is derived from Vite's mode
+ * and can be flipped by an ambient NODE_ENV. Running `NODE_ENV=test astro
+ * build` produced a production build containing draft content — a real leak,
+ * found when the test suite started building the site itself.
+ *
+ * The gate is now a single explicit opt-in that defaults to CLOSED. Anything
+ * ambiguous — an unusual NODE_ENV, a CI runner's defaults, a future tool that
+ * sets mode differently — results in drafts being hidden, never published.
+ *
+ * `SHOW_UNPUBLISHED=true` lives in `.env.development`, which Astro loads for
+ * `astro dev` and not for `astro build`. It is not a secret and is committed.
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
 
 export type Guide = CollectionEntry<'guides'>;
 export type NewsItem = CollectionEntry<'news'>;
-export type Article = Guide | NewsItem;
+export type Myth = CollectionEntry<'myths'>;
+export type Article = Guide | NewsItem | Myth;
+
+/** Opt-in, string-compared. Any other value keeps unpublished content hidden. */
+export const SHOW_UNPUBLISHED: boolean = import.meta.env.SHOW_UNPUBLISHED === 'true';
 
 const isVisible = (entry: Article): boolean =>
-  entry.data.status === 'published' || import.meta.env.DEV;
+  entry.data.status === 'published' || SHOW_UNPUBLISHED;
 
 const byNewest = (a: Article, b: Article): number =>
   b.data.publishedAt.getTime() - a.data.publishedAt.getTime();
@@ -25,10 +42,23 @@ export async function getNews(): Promise<NewsItem[]> {
   return (await getCollection('news')).filter(isVisible).sort(byNewest);
 }
 
-export async function getAllArticles(): Promise<Article[]> {
-  const [guides, news] = await Promise.all([getGuides(), getNews()]);
-  return [...guides, ...news].sort(byNewest);
+export async function getMyths(): Promise<Myth[]> {
+  return (await getCollection('myths')).filter(isVisible).sort(byNewest);
 }
+
+export async function getAllArticles(): Promise<Article[]> {
+  const [guides, news, myths] = await Promise.all([getGuides(), getNews(), getMyths()]);
+  return [...guides, ...news, ...myths].sort(byNewest);
+}
+
+/** Verdict labels and the accent each maps to. Never colour alone. */
+export const VERDICTS = {
+  efsane: { label: 'Efsane', accent: 'red' },
+  gercek: { label: 'Gerçek', accent: 'green' },
+  kismen: { label: 'Kısmen doğru', accent: 'amber' },
+} as const;
+
+export type Verdict = keyof typeof VERDICTS;
 
 export async function getFeaturedGuides(limit = 3): Promise<Guide[]> {
   const guides = await getGuides();
@@ -40,9 +70,14 @@ export async function getFeaturedGuides(limit = 3): Promise<Guide[]> {
 }
 
 /** The canonical public URL path for an entry. */
+const COLLECTION_BASE: Record<string, string> = {
+  guides: 'rehberler',
+  news: 'haberler',
+  myths: 'efsane-mi-gercek-mi',
+};
+
 export function articlePath(entry: Article): string {
-  const base = entry.collection === 'guides' ? 'rehberler' : 'haberler';
-  return `/${base}/${entry.id}/`;
+  return `/${COLLECTION_BASE[entry.collection] ?? 'rehberler'}/${entry.id}/`;
 }
 
 /**

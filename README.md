@@ -4,6 +4,10 @@ Turkish digital-security publishing platform. Guides that explain one real
 security problem at a time, in plain Turkish, for people who are not security
 professionals.
 
+The mark is `<TC/>`. The domain was registered in **2005** and ran as a
+cybersecurity forum in that era, then lay dormant for years — the site carries
+that date as a founding date, never as a claim of continuous publication.
+
 A [DNDR Labs](https://dndr.net) project. Production domain: `turkcyber.com`.
 
 > **Language split.** The public site is Turkish. The codebase, comments,
@@ -52,8 +56,8 @@ pnpm build
 pnpm scan:secrets # pre-push credential scan
 ```
 
-`tests/content.test.ts` asserts against `dist/`, so build before testing. CI
-runs the whole sequence in that order.
+`tests/content.test.ts` asserts against `dist/`, but `pnpm test` builds the site
+itself when `dist/` is missing — there is no ordering dependency.
 
 ### Local databases
 
@@ -66,6 +70,17 @@ Migrations live in `migrations/app` and `migrations/analytics` and are applied
 with separate migration tables so the two databases never interfere.
 
 ---
+
+## Content types
+
+| Collection | Route                   | What it is                                      |
+| ---------- | ----------------------- | ----------------------------------------------- |
+| `guides`   | `/rehberler/`           | The core: one concrete problem per guide        |
+| `myths`    | `/efsane-mi-gercek-mi/` | Short myth-busting entries carrying a verdict   |
+| `news`     | `/haberler/`            | Secondary; requires a real, attributable source |
+
+Interactive tools live at `/araclar/` and run entirely in the visitor's browser
+— answers are never transmitted or stored. See `HANDOFF.md` §11b.
 
 ## Adding a guide
 
@@ -152,7 +167,9 @@ src/
   config/site.ts        single source of truth: site identity, categories, nav
   content.config.ts     content schema — invalid frontmatter fails the build
   content/guides/       the guides
+  content/myths/        "Efsane mi, gerçek mi?" entries
   content/news/         news (secondary; a draft template ships as an example)
+  lib/tools/            interactive tool definitions + pure scoring
   components/           Logo, Header, Footer, ArticleCard, Callout, Share, Comments
   layouts/              BaseLayout (SEO, fonts, beacon), ArticleLayout
   pages/                routes, plus rss.xml.ts, sitemap.xml.ts, search-index.json.ts
@@ -165,21 +182,22 @@ migrations/
   app/                  comments, indexes, audit trail
   analytics/            visitor events
 scripts/                hash-password, import-legacy-analytics, scan-secrets, icon/OG generators
-tests/                  vitest — 111 tests
+tests/                  vitest — 132 tests
 ```
 
 ---
 
 ## Documentation
 
-| File                                           | What it is                                                 |
-| ---------------------------------------------- | ---------------------------------------------------------- |
-| [ARCHITECTURE.md](ARCHITECTURE.md)             | design decisions and why they were made                    |
-| [SECURITY.md](SECURITY.md)                     | security model, boundaries, reporting                      |
-| [PROCESS.md](PROCESS.md)                       | append-only work journal                                   |
-| [CURRENT_STATE.md](CURRENT_STATE.md)           | latest authoritative snapshot                              |
-| [HANDOFF.md](HANDOFF.md)                       | everything another engineer needs to continue              |
-| [PRODUCTION_CUTOVER.md](PRODUCTION_CUTOVER.md) | phased runbook; production requires explicit authorization |
+| File                                           | What it is                                                      |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| [ARCHITECTURE.md](ARCHITECTURE.md)             | design decisions and why they were made                         |
+| [SECURITY.md](SECURITY.md)                     | security model, boundaries, reporting                           |
+| [PROCESS.md](PROCESS.md)                       | append-only work journal                                        |
+| [CURRENT_STATE.md](CURRENT_STATE.md)           | latest authoritative snapshot                                   |
+| [HANDOFF.md](HANDOFF.md)                       | everything another engineer needs to continue                   |
+| [PRODUCTION_CUTOVER.md](PRODUCTION_CUTOVER.md) | phased runbook; production requires explicit authorization      |
+| [CLAUDE.md](CLAUDE.md)                         | working rules — including the mandatory doc-reconciliation rule |
 
 ---
 

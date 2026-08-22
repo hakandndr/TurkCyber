@@ -56,4 +56,30 @@ const news = defineCollection({
   }),
 });
 
-export const collections = { guides, news };
+/**
+ * "Efsane mi, gerçek mi?" — short myth-busting entries.
+ *
+ * A separate collection rather than a guide category, because the shape of the
+ * content is genuinely different: the title IS the claim as people actually say
+ * it, and every entry carries a verdict. That lets the listing surface answer
+ * the question before the visitor clicks, which a guide card cannot do.
+ */
+const myths = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/myths' }),
+  schema: baseSchema.omit({ title: true }).extend({
+    /** The claim, written the way someone would say it out loud. */
+    title: z.string().min(8).max(140),
+    /**
+     * The answer, given before the reader clicks.
+     *
+     * `kismen` exists because most security myths are not cleanly false —
+     * they are true in a narrow case and wrong as a general rule. Forcing
+     * those into `efsane` would make the site inaccurate.
+     */
+    verdict: z.enum(['efsane', 'gercek', 'kismen']),
+    /** One-line answer shown under the verdict badge. */
+    verdictLine: z.string().min(20).max(160),
+  }),
+});
+
+export const collections = { guides, news, myths };

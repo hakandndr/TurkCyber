@@ -1,0 +1,105 @@
+---
+/**
+ * The verdict on a myth entry.
+ *
+ * Carries an icon and the written label as well as a colour, so the answer is
+ * never conveyed by colour alone — a requirement both for accessibility and
+ * for anyone reading a printed or greyscale copy.
+ */
+import { VERDICTS, type Verdict } from '../lib/content';
+
+interface Props {
+  verdict: Verdict;
+  /** `large` for the article header, `small` for cards. */
+  size?: 'large' | 'small';
+}
+
+const { verdict, size = 'small' } = Astro.props;
+const { label, accent } = VERDICTS[verdict];
+---
+
+<span class:list={['verdict', `verdict-${accent}`, `verdict-${size}`]}>
+  <svg
+    viewBox="0 0 20 20"
+    width={size === 'large' ? 17 : 14}
+    height={size === 'large' ? 17 : 14}
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    {
+      verdict === 'efsane' && (
+        <>
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <path d="m7.2 7.2 5.6 5.6M12.8 7.2l-5.6 5.6" />
+          </>
+        </>
+      )
+    }
+    {
+      verdict === 'gercek' && (
+        <>
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <path d="m6.6 10.2 2.4 2.4 4.4-4.8" />
+          </>
+        </>
+      )
+    }
+    {
+      verdict === 'kismen' && (
+        <>
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <path d="M6.5 10h7" />
+          </>
+        </>
+      )
+    }
+  </svg>
+  {label}
+</span>
+
+<style>
+  .verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .verdict-small {
+    font-size: 0.68rem;
+    padding: 0.3em 0.6em;
+  }
+
+  .verdict-large {
+    font-size: 0.8rem;
+    padding: 0.5em 0.9em;
+  }
+
+  .verdict-red {
+    color: var(--red);
+    background: var(--red-wash);
+  }
+
+  .verdict-green {
+    color: var(--green);
+    background: var(--green-wash);
+  }
+
+  .verdict-amber {
+    color: var(--amber);
+    background: var(--amber-wash);
+  }
+</style>

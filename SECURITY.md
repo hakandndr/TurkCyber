@@ -75,8 +75,24 @@ console returns `503 Panel is not configured` — never a partially working pane
   filters `status = 'approved'` and a test asserts the word `pending` never
   appears in that SQL.
 - No raw IP is stored. `ip_hash` is HMAC-SHA256 keyed with `COMMENT_IP_PEPPER`.
+- The optional `email` column (migration `0004`) is **never exposed publicly**.
+  The public read lists its columns explicitly and `email` is not among them; a
+  test asserts the query neither mentions `email` nor uses `SELECT *`. It is not
+  required to comment, and `/gizlilik/` states exactly how it is handled.
 
 ---
+
+## The contact form
+
+`/iletisim/` posts to Formspree, a third party, using the build-time
+`PUBLIC_FORMSPREE_ENDPOINT`. Notes:
+
+- The endpoint is validated against the expected Formspree URL shape. If it is
+  unset or malformed the form is **not rendered** and the page falls back to the
+  email address — a misconfigured build cannot silently discard messages.
+- A honeypot field (`_gotcha`) is positioned off-screen rather than
+  `display: none`, because bots skip fields that are not rendered at all.
+- `/gizlilik/` discloses that Formspree processes the submission.
 
 ## Secrets
 
@@ -132,3 +148,6 @@ disagrees with the implementation is worse than none.
   concurrent requests from one address. Acceptable for an abuse brake; not
   suitable if it ever becomes an accounting record.
 - **No CSP reporting endpoint.** Violations are invisible until someone notices.
+- **Comment email is stored in plain text** in `APP_DB`. It is optional, never
+  published, and never leaves the database through a public route — but it is
+  not encrypted at rest beyond whatever D1 provides.

@@ -15,7 +15,8 @@ import { PAGE_SIZE, repeatFlag, type BuiltFilters } from '../lib/analytics-query
 
 const STYLE = `
 :root{--bg:#090b0c;--panel:#0c0f10;--raised:#101415;--line:rgba(255,255,255,.08);
---text:#f1f5f4;--muted:#8e9995;--green:#21e67a;--cyan:#00c8ff;--amber:#ffb54a;--red:#ff6a5e}
+--text:#f1f5f4;--muted:#8e9995;--green:#21e67a;--cyan:#00c8ff;--amber:#ffb54a;--red:#ff6a5e;
+--brand-red:#e30a17}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);
 font:13px/1.5 ui-monospace,"JetBrains Mono","DejaVu Sans Mono",monospace}
@@ -24,7 +25,8 @@ a{color:var(--cyan)}
 header.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;
 flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:20px}
 .brand{font-size:18px;font-weight:600;letter-spacing:-.02em}
-.brand .b{color:var(--muted)}.brand .t{color:var(--cyan)}
+.brand .b{color:var(--muted)}.brand .t{color:var(--text)}
+.brand .c{color:var(--brand-red)}.brand .s{color:var(--green)}
 nav.sub{display:flex;gap:14px;flex-wrap:wrap}
 nav.sub a{color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
 nav.sub a.on{color:var(--text);border-bottom-color:var(--cyan)}
@@ -93,7 +95,7 @@ function shell(title: string, active: string, body: string): string {
 <title>${escapeHtml(title)}</title><style>${STYLE}</style></head>
 <body><div class="wrap">
 <header class="bar">
-<div class="brand"><span class="b">&lt;</span><span class="t">tc</span><span class="b">/&gt;</span> boss</div>
+<div class="brand"><span class="b">&lt;</span><span class="t">T</span><span class="c">C</span><span class="s">/</span><span class="b">&gt;</span> boss</div>
 <nav class="sub">${tab('/boss/', 'Overview')}${tab('/boss/analytics/', 'Analytics')}${tab(
     '/boss/comments/',
     'Comments',
@@ -113,7 +115,7 @@ export function renderLogin(error?: string): string {
 <title>boss</title><style>${STYLE}</style></head>
 <body><div class="login">
 <div class="brand" style="margin-bottom:16px;font-size:22px">
-<span class="b">&lt;</span><span class="t">tc</span><span class="b">/&gt;</span></div>
+<span class="b">&lt;</span><span class="t">T</span><span class="c">C</span><span class="s">/</span><span class="b">&gt;</span></div>
 ${error ? `<div class="err">${escapeHtml(error)}</div>` : ''}
 <form method="post" action="/boss/login/">
 <input name="username" autocomplete="username" placeholder="user" required autofocus>

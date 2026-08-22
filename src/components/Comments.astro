@@ -38,6 +38,35 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
       autocomplete="nickname"
     />
 
+    <label for="comment-email">
+      E-posta <span class="optional">(isteğe bağlı)</span>
+    </label>
+    <input
+      id="comment-email"
+      name="email"
+      type="email"
+      maxlength="120"
+      autocomplete="email"
+      aria-describedby="comment-email-note"
+    />
+    <p id="comment-email-note" class="field-note">
+      <svg
+        viewBox="0 0 20 20"
+        width="13"
+        height="13"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="3" y="5" width="14" height="10" rx="2"></rect>
+        <path d="m3.6 6 6.4 4.6L16.4 6"></path>
+      </svg>
+      Yayınlanmaz, kimseyle paylaşılmaz. Yalnızca gerekirse size özel olarak yanıt verebilmemiz için.
+    </p>
+
     <label for="comment-body">Yorumunuz</label>
     <textarea
       id="comment-body"
@@ -185,6 +214,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
             slug,
             name,
             body,
+            email: String(data.get('email') ?? '').trim() || null,
             parentId: data.get('parentId') || null,
             turnstileToken: String(data.get('cf-turnstile-response') ?? ''),
           }),
@@ -297,6 +327,31 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
     margin-bottom: var(--sp-2);
   }
 
+  .optional {
+    color: var(--text-faint);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Sits directly under the field it describes, so the promise is read at the
+     moment the address is typed rather than on a separate policy page. */
+  .field-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45em;
+    margin-top: var(--sp-1);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-faint);
+    max-width: 44ch;
+  }
+
+  .field-note svg {
+    flex: none;
+    margin-top: 0.25em;
+    color: var(--green);
+  }
+
   .comment-form label {
     font-family: var(--font-mono);
     font-size: 0.75rem;
@@ -307,6 +362,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
   }
 
   .comment-form input[type='text'],
+  .comment-form input[type='email'],
   .comment-form textarea {
     font: inherit;
     background: var(--surface-1);

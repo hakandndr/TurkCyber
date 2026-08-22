@@ -1,0 +1,21 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import Callout from '../../components/Callout.astro';
+import { getGuides, getMyths, relatedGuides } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const [myths, guides] = await Promise.all([getMyths(), getGuides()]);
+  return myths.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry, related: relatedGuides(entry, guides) },
+  }));
+}
+
+const { entry, related } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<ArticleLayout entry={entry} related={related}>
+  <Content components={{ Callout }} />
+</ArticleLayout>

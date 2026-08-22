@@ -1,14 +1,57 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
-import { CATEGORIES, SITE } from '../config/site';
-import { getFeaturedGuides, getGuides, getNews } from '../lib/content';
+import MythCard from '../components/MythCard.astro';
+import { PRIMARY_CATEGORIES, SECONDARY_CATEGORIES, SITE } from '../config/site';
+import { getFeaturedGuides, getGuides, getMyths, getNews } from '../lib/content';
 
-const [featured, guides, news] = await Promise.all([getFeaturedGuides(3), getGuides(), getNews()]);
+const [featured, guides, news, myths] = await Promise.all([
+  getFeaturedGuides(3),
+  getGuides(),
+  getNews(),
+  getMyths(),
+]);
 
 const featuredIds = new Set(featured.map((g) => g.id));
-const latest = guides.filter((g) => !featuredIds.has(g.id)).slice(0, 6);
+const latest = guides.filter((g) => !featuredIds.has(g.id)).slice(0, 4);
 const latestNews = news.slice(0, 3);
+const topMyths = myths.slice(0, 3);
+
+/**
+ * Quick access.
+ *
+ * Phrased as the sentence a worried person would actually type or say, not as
+ * a category name. Someone arriving mid-panic should recognise their situation
+ * without first learning what "phishing" or "2FA" means.
+ *
+ * Every destination here already exists — nothing links to a planned page.
+ */
+const QUICK_ACCESS = [
+  {
+    href: '/konular/instagram-sosyal-medya/',
+    label: 'Instagram hesabımı koru',
+    detail: 'Ele geçirilmeye karşı ayarlar ve sahte destek mesajları',
+    accent: 'cyan' as const,
+  },
+  {
+    href: '/araclar/bu-mesaj-sahte-mi/',
+    label: 'Bu mesaj sahte mi?',
+    detail: 'Altı gerçekçi örnekle kısa test — tarayıcınızda çalışır',
+    accent: 'green' as const,
+  },
+  {
+    href: '/konular/hesap-guvenligi/',
+    label: 'Hesabımı nasıl güvene alırım?',
+    detail: 'Şifre, iki aşamalı doğrulama ve kurtarma ayarları',
+    accent: 'green' as const,
+  },
+  {
+    href: '/rehberler/telefonunuz-kaybolursa-ilk-15-dakika/',
+    label: 'Telefonumu kaybettim',
+    detail: 'İlk 15 dakikada sırayla yapılacaklar',
+    accent: 'cyan' as const,
+  },
+];
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -24,39 +67,61 @@ const structuredData = {
 <BaseLayout title={SITE.name} description={SITE.description} structuredData={structuredData}>
   <section class="hero">
     <div class="container hero-inner">
-      <p class="eyebrow">Türkçe dijital güvenlik rehberleri</p>
-      <h1>{SITE.tagline}</h1>
-      <p class="hero-text">{SITE.description}</p>
-      <div class="hero-actions">
-        <a href="/rehberler/" class="button button-primary">Rehberlere göz at</a>
-        <a href="#son-icerikler" class="button">En son içerikler</a>
+      <div class="hero-text">
+        <p class="eyebrow">Türkçe dijital güvenlik rehberleri</p>
+        <h1>{SITE.tagline}</h1>
+        <p class="hero-lede">{SITE.description}</p>
+        <div class="hero-actions">
+          <a href="/rehberler/" class="button button-primary">Rehberlere göz at</a>
+          <a href="/efsane-mi-gercek-mi/" class="button">Efsane mi, gerçek mi?</a>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <section class="container section">
-    <h2>Öne Çıkan Rehberler</h2>
-    <div class="grid">
-      {featured.map((entry) => <ArticleCard entry={entry} />)}
-    </div>
-  </section>
-
-  <section class="container section" id="son-icerikler">
-    <h2>Yeni Rehberler</h2>
-    <div class="grid">
-      {latest.map((entry) => <ArticleCard entry={entry} />)}
-    </div>
-  </section>
-
-  <section class="container section">
-    <h2>Popüler Konular</h2>
-    <ul class="topics">
       {
-        CATEGORIES.map((category) => (
+        /*
+        Decorative, and deliberately factual: it shows this domain's real
+        registration year rather than inventing a command-line tool TurkCyber
+        does not ship. Hidden from assistive technology and from narrow
+        viewports, where it would only cost vertical space.
+      */
+      }
+      <aside class="hero-aside" aria-hidden="true">
+        <div class="term">
+          <span class="term-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </span>
+          <pre><span class="p">$</span> whois turkcyber.com
+
+domain      turkcyber.com
+created     <span class="hl">2005</span>
+status      active
+
+<span class="c"># 2005'te bir siber güvenlik</span>
+<span class="c"># forumu olarak kuruldu.</span>
+<span class="c"># Uzun bir aradan sonra</span>
+<span class="c"># yeniden yayında.</span>
+
+<span class="p">$</span> <span class="cursor">_</span></pre>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Quick access sits directly under the hero, above everything editorial:
+       someone with an urgent problem should not have to scroll past a shelf of
+       articles to find the door marked with their situation. -->
+  <section class="container quick" aria-labelledby="quick-heading">
+    <h2 id="quick-heading" class="section-title">Sık karşılaşılan durumlar</h2>
+    <ul class="quick-grid">
+      {
+        QUICK_ACCESS.map((item) => (
           <li>
-            <a href={`/konular/${category.id}/`} class:list={['topic', `topic-${category.accent}`]}>
-              <span class="topic-name">{category.name}</span>
-              <span class="topic-desc">{category.description}</span>
+            <a href={item.href} class:list={['quick-card', `quick-${item.accent}`]}>
+              <span class="quick-label">{item.label}</span>
+              <span class="quick-detail">{item.detail}</span>
+              <span class="quick-arrow" aria-hidden="true">
+                →
+              </span>
             </a>
           </li>
         ))
@@ -64,13 +129,81 @@ const structuredData = {
     </ul>
   </section>
 
+  <section class="container section" aria-labelledby="featured-heading">
+    <h2 id="featured-heading" class="section-title">Öne çıkan rehberler</h2>
+    <div class="grid grid-lead">
+      {
+        featured.map((entry, index) => (
+          <ArticleCard entry={entry} size={index === 0 ? 'lead' : 'default'} />
+        ))
+      }
+    </div>
+  </section>
+
+  {
+    topMyths.length > 0 && (
+      <section class="container section myths-section" aria-labelledby="myths-heading">
+        <div class="section-head">
+          <h2 id="myths-heading" class="section-title">
+            Efsane mi, gerçek mi?
+          </h2>
+          <a href="/efsane-mi-gercek-mi/" class="section-more">
+            Hepsi →
+          </a>
+        </div>
+        <p class="section-lede">
+          Herkesin duyduğu ama çoğu yanlış olan cümleler. Cevap başlığın hemen altında.
+        </p>
+        <div class="myth-list">
+          {topMyths.map((entry) => (
+            <MythCard entry={entry} headingLevel={3} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="container section" aria-labelledby="topics-heading">
+    <h2 id="topics-heading" class="section-title">Konular</h2>
+    <ul class="topics">
+      {
+        PRIMARY_CATEGORIES.map((category) => (
+          <li>
+            <a href={`/konular/${category.id}/`} class:list={['topic', `topic-${category.accent}`]}>
+              <span class="topic-question">{category.question}</span>
+              <span class="topic-name">{category.name}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <ul class="topics-secondary">
+      {
+        SECONDARY_CATEGORIES.map((category) => (
+          <li>
+            <a href={`/konular/${category.id}/`}>{category.name}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="container section" aria-labelledby="latest-heading">
+    <h2 id="latest-heading" class="section-title">Yeni rehberler</h2>
+    <div class="grid">
+      {latest.map((entry) => <ArticleCard entry={entry} />)}
+    </div>
+  </section>
+
   {
     latestNews.length > 0 && (
-      <section class="container section">
-        <h2>Güncel Güvenlik Haberleri</h2>
+      <section class="container section" aria-labelledby="news-heading">
+        <h2 id="news-heading" class="section-title">
+          Güncel güvenlik haberleri
+        </h2>
         <div class="grid">
           {latestNews.map((entry) => (
-            <ArticleCard entry={entry} />
+            <ArticleCard entry={entry} size="compact" />
           ))}
         </div>
       </section>
@@ -81,25 +214,122 @@ const structuredData = {
 <style>
   .hero {
     border-bottom: 1px solid var(--border);
-    /* Depth without a gradient wash: one soft radial pinned behind the text. */
+    position: relative;
+    overflow: hidden;
+    /* Two soft pools of accent rather than a gradient wash across the band. */
     background:
-      radial-gradient(60ch 40ch at 12% -10%, rgba(33, 230, 122, 0.07), transparent 70%),
-      radial-gradient(50ch 34ch at 88% 0%, rgba(0, 200, 255, 0.05), transparent 70%);
+      radial-gradient(64ch 40ch at 8% -20%, rgba(33, 230, 122, 0.08), transparent 68%),
+      radial-gradient(52ch 34ch at 92% -10%, rgba(0, 200, 255, 0.06), transparent 68%);
   }
 
   .hero-inner {
-    padding-block: var(--sp-8);
-    max-width: 62ch;
+    padding-block: clamp(var(--sp-7), 6vw, calc(var(--sp-8) * 1.4));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-7);
+    align-items: center;
+  }
+
+  @media (min-width: 1040px) {
+    .hero-inner {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    }
   }
 
   .hero h1 {
     margin-top: var(--sp-3);
+    max-width: 16ch;
+  }
+
+  /* --- hero aside --- */
+
+  .hero-aside {
+    display: none;
+  }
+
+  @media (min-width: 1040px) {
+    .hero-aside {
+      display: block;
+      justify-self: end;
+      width: 100%;
+      max-width: 30rem;
+    }
+  }
+
+  .term {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface-1) 82%, transparent);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
+  }
+
+  .term-bar {
+    display: flex;
+    gap: 6px;
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .term pre {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: var(--sp-5);
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+    overflow-x: auto;
+  }
+
+  .term .p {
+    color: var(--green);
+  }
+
+  .term .hl {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .term .c {
+    color: var(--text-faint);
+  }
+
+  .term .cursor {
+    color: var(--green);
+    animation: blink 1.3s steps(2, start) infinite;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .term .cursor {
+      animation: none;
+    }
+  }
+
+  .hero-lede {
+    margin-top: var(--sp-5);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+    max-width: 58ch;
   }
 
   .hero-text {
-    margin-top: var(--sp-4);
-    color: var(--text-muted);
-    font-size: var(--step-1);
+    max-width: none;
   }
 
   .hero-actions {
@@ -113,16 +343,152 @@ const structuredData = {
     padding-block: var(--sp-7);
   }
 
-  .section h2 {
+  .section-title {
     font-size: var(--step-2);
     margin-bottom: var(--sp-5);
   }
 
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+  }
+
+  .section-head .section-title {
+    margin-bottom: var(--sp-2);
+  }
+
+  .section-more {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .section-more:hover {
+    color: var(--cyan);
+  }
+
+  .section-lede {
+    color: var(--text-muted);
+    margin-bottom: var(--sp-5);
+    max-width: 60ch;
+  }
+
+  /* --- quick access --- */
+
+  .quick {
+    padding-block: var(--sp-7) var(--sp-5);
+  }
+
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--sp-3);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .quick-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    height: 100%;
+    padding: var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: transform 0.14s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quick-card {
+      transition: none;
+    }
+  }
+
+  .quick-card:hover {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+
+  .quick-green:hover {
+    border-color: rgba(33, 230, 122, 0.5);
+  }
+  .quick-cyan:hover {
+    border-color: rgba(0, 200, 255, 0.45);
+  }
+
+  .quick-label {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    padding-right: var(--sp-5);
+  }
+
+  .quick-detail {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .quick-arrow {
+    position: absolute;
+    top: var(--sp-5);
+    right: var(--sp-5);
+    color: var(--text-faint);
+    font-size: var(--step-0);
+  }
+
+  .quick-card:hover .quick-arrow {
+    color: var(--green);
+  }
+
+  /* --- shelves --- */
+
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--sp-4);
   }
+
+  /* The lead card spans two tracks, so the shelf needs a fixed column count
+     rather than auto-fit for the span to mean anything. */
+  .grid-lead {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 900px) {
+    .grid-lead {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .grid-lead {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .myths-section {
+    border-block: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0, 200, 255, 0.03), transparent 60%);
+  }
+
+  .myth-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+
+  /* --- topics --- */
 
   .topics {
     display: grid;
@@ -138,7 +504,7 @@ const structuredData = {
     flex-direction: column;
     gap: var(--sp-2);
     height: 100%;
-    padding: var(--sp-4);
+    padding: var(--sp-4) var(--sp-5);
     background: var(--surface-1);
     border: 1px solid var(--border);
     border-left: 3px solid var(--border-strong);
@@ -157,14 +523,47 @@ const structuredData = {
     background: var(--surface-2);
   }
 
-  .topic-name {
+  /* The question leads, the taxonomy label follows — a visitor recognises the
+     situation before the category name. */
+  .topic-question {
     font-family: var(--font-display);
+    font-size: var(--step-0);
     font-weight: 600;
     color: var(--text);
   }
 
-  .topic-desc {
+  .topic-name {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .topics-secondary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    list-style: none;
+    padding: 0;
+    margin-top: var(--sp-4);
+  }
+
+  .topics-secondary a {
+    font-family: var(--font-mono);
     font-size: var(--step--1);
     color: var(--text-muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.4em 1em;
+    display: inline-block;
+    min-height: 36px;
+    line-height: 1.6;
+  }
+
+  .topics-secondary a:hover {
+    color: var(--cyan);
+    border-color: var(--border-strong);
   }
 </style>

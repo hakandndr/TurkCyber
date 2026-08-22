@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../config/site';
+import { HERITAGE, SITE } from '../config/site';
 ---
 
 <BaseLayout
@@ -13,6 +13,14 @@ import { SITE } from '../config/site';
     <p class="lede">
       TurkCyber, günlük hayatta karşılaşılan dijital güvenlik problemlerini Türkçe olarak, sade ve
       uygulanabilir biçimde anlatan bağımsız bir yayın projesidir.
+    </p>
+
+    <h2>Alan adının geçmişi</h2>
+    <p>{HERITAGE.about}</p>
+    <p>
+      Bunu açıkça yazıyoruz çünkü 2005 tarihi, aralıksız yayın yaptığımız anlamına gelmiyor. Arada
+      uzun bir sessizlik dönemi var. Alan adının geçmişini bir kıdem iddiası olarak kullanmak
+      istemeyiz; sadece bu adresin nereden geldiğini bilmenizi isteriz.
     </p>
 
     <h2>Ne yapıyoruz</h2>

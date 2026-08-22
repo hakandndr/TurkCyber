@@ -45,19 +45,33 @@ jobs:
       - name: Lint and format check
         run: pnpm lint
 
-      # The build runs before the tests: tests/content.test.ts asserts against
-      # dist/, so it verifies what actually ships rather than what the source
-      # intends.
+      # tests/content.test.ts asserts against dist/, so it verifies what
+      # actually ships. `pnpm test` builds the site itself when dist/ is
+      # missing, so this step is not a precondition — it is here to surface a
+      # build failure as its own red step rather than inside the test run.
       - name: Build
         run: pnpm build
 
       - name: Test
         run: pnpm test
 
-      - name: Verify private routes are absent from the build
+      - name: Verify private routes and drafts are absent from the build
         run: |
           set -euo pipefail
           test ! -d dist/boss
           grep -q 'Disallow: /boss' dist/robots.txt
           ! grep -q '/boss' dist/sitemap.xml
-          echo "private routes absent from the static build"
+          # The draft gate must stay closed in a production build. This ran red
+          # once, under NODE_ENV=test, and shipped draft content.
+          test ! -d dist/haberler/ornek-haber-sablonu
+          echo "private routes and drafts absent from the static build"
+
+      # The same build with a hostile NODE_ENV. The publication gate must not
+      # depend on ambient environment.
+      - name: Draft gate holds under an unexpected NODE_ENV
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          NODE_ENV=test pnpm build
+          test ! -d dist/haberler/ornek-haber-sablonu
+          echo "draft gate holds under NODE_ENV=test"

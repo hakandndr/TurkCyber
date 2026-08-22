@@ -1,19 +1,36 @@
 ---
-import { FOOTER_LINKS, SITE } from '../config/site';
+/**
+ * Site footer.
+ *
+ * Three semantic columns, each a distinct kind of information:
+ *
+ *   1. Brand and heritage   — who this is
+ *   2. Navigation           — where to go
+ *   3. Contact and DNDR     — how to reach a person
+ *
+ * The previous single-row layout put the navigation links and the contact
+ * metadata in adjacent columns with identical styling, so "Gizlilik" and
+ * "admin@turkcyber.com" read as one list. Each column now carries its own
+ * heading and the contact block is visually distinct from the link list.
+ */
+import { FOOTER_LINKS, HERITAGE, SITE } from '../config/site';
 import Logo from './Logo.astro';
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="container footer-inner">
-    <div class="footer-brand">
+  <div class="container footer-grid">
+    <section class="col col-brand" aria-labelledby="footer-brand-heading">
+      <h2 id="footer-brand-heading" class="visually-hidden">TurkCyber</h2>
       <Logo variant="compact" />
-      <p class="footer-note">Türkçe dijital güvenlik rehberleri. Bağımsız bir yayın projesi.</p>
-    </div>
+      <p class="footer-tagline">Türkçe dijital güvenlik rehberleri.</p>
+      <p class="footer-heritage">{HERITAGE.footer}</p>
+    </section>
 
-    <nav aria-label="Alt menü">
-      <ul class="footer-nav">
+    <nav class="col col-nav" aria-labelledby="footer-nav-heading">
+      <h2 id="footer-nav-heading" class="col-heading">Site</h2>
+      <ul class="footer-links">
         {
           FOOTER_LINKS.map((link) => (
             <li>
@@ -24,11 +41,20 @@ const year = new Date().getFullYear();
       </ul>
     </nav>
 
-    <div class="footer-meta">
-      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-      <a href={SITE.owner.url} rel="noopener">A DNDR Labs Project</a>
-      <span>&copy; {year}</span>
-    </div>
+    <section class="col col-contact" aria-labelledby="footer-contact-heading">
+      <h2 id="footer-contact-heading" class="col-heading">İletişim</h2>
+      <a class="contact-mail" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+      <p class="contact-note">Kişisel hesap kurtarma desteği veremiyoruz.</p>
+      <a class="dndr" href={SITE.owner.url} rel="noopener">
+        <span class="dndr-mark" aria-hidden="true"></span>
+        A DNDR Labs Project
+      </a>
+    </section>
+  </div>
+
+  <div class="container footer-base">
+    <span>&copy; {year} TurkCyber</span>
+    <span class="founded">Kuruluş: {HERITAGE.foundedYear}</span>
   </div>
 </footer>
 
@@ -37,25 +63,48 @@ const year = new Date().getFullYear();
     margin-top: auto;
     border-top: 1px solid var(--border);
     background: var(--surface-1);
-    padding-block: var(--sp-6);
+    padding-block: var(--sp-7) var(--sp-5);
     font-size: var(--step--1);
   }
 
-  .footer-inner {
+  .footer-grid {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) auto auto;
-    gap: var(--sp-6);
+    /* Brand column carries more text, so it takes the wider track. */
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: var(--sp-7);
     align-items: start;
   }
 
-  .footer-note {
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+
+  .col-heading {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--sp-1);
+  }
+
+  .footer-tagline {
     color: var(--text-muted);
-    margin-top: var(--sp-3);
     max-width: 34ch;
   }
 
-  .footer-nav,
-  .footer-meta {
+  .footer-heritage {
+    color: var(--text-faint);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    max-width: 46ch;
+  }
+
+  .footer-links {
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
@@ -64,28 +113,88 @@ const year = new Date().getFullYear();
     margin: 0;
   }
 
-  .footer-nav a,
-  .footer-meta a {
+  .footer-links a {
     color: var(--text-muted);
     text-decoration: none;
   }
 
-  .footer-nav a:hover,
-  .footer-meta a:hover {
+  .footer-links a:hover {
     color: var(--cyan);
   }
 
-  .footer-meta span {
-    color: var(--text-faint);
+  /* The contact column is deliberately styled unlike the link list, so the
+     address is never mistaken for another navigation item. */
+  .contact-mail {
     font-family: var(--font-mono);
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+    padding-bottom: 2px;
+    align-self: flex-start;
+    word-break: break-all;
   }
 
-  @media (max-width: 780px) {
-    .footer-inner {
+  .contact-mail:hover {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+  }
+
+  .contact-note {
+    color: var(--text-faint);
+    font-size: 0.8rem;
+    max-width: 32ch;
+  }
+
+  .dndr {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-top: var(--sp-2);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  .dndr-mark {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: var(--green);
+    flex: none;
+  }
+
+  .dndr:hover {
+    color: var(--green);
+  }
+
+  .footer-base {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 900px) {
+    .footer-grid {
       grid-template-columns: 1fr 1fr;
+      gap: var(--sp-6);
     }
-    .footer-brand {
+    .col-brand {
       grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-6);
     }
   }
 </style>

@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MythCard from '../../components/MythCard.astro';
+import { getMyths } from '../../lib/content';
+
+const myths = await getMyths();
+---
+
+<BaseLayout
+  title="Efsane mi, gerçek mi?"
+  description="Dijital güvenlik hakkında sık duyulan iddialar ve gerçekte ne kadar doğru oldukları. Kısa, net cevaplar."
+>
+  <div class="container-narrow page">
+    <header class="page-head">
+      <p class="eyebrow">Efsane mi, gerçek mi?</p>
+      <h1>Sık duyulan iddialar</h1>
+      <p class="lede">
+        Dijital güvenlik hakkında herkesin duyduğu ama çoğu yanlış veya eksik olan cümleler. Her
+        birinin cevabı başlığın hemen altında — okumadan da görebilirsiniz.
+      </p>
+    </header>
+
+    {
+      myths.length > 0 ? (
+        <div class="myth-list">
+          {myths.map((entry) => (
+            <MythCard entry={entry} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">Henüz içerik yok.</p>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    margin-bottom: var(--sp-6);
+  }
+  .page-head h1 {
+    margin-top: var(--sp-2);
+  }
+  .lede {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+  .myth-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .empty {
+    color: var(--text-muted);
+  }
+</style>

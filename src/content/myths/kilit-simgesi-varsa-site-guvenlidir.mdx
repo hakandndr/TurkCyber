@@ -1,0 +1,52 @@
+---
+title: 'Adres çubuğunda kilit simgesi varsa site güvenlidir'
+verdict: efsane
+verdictLine: 'Kilit yalnızca bağlantının şifrelendiğini gösterir. Sahte siteler de kilit gösterir.'
+description: 'Kilit simgesinin ne anlama geldiği ve ne anlama gelmediği. Sahte siteler de ücretsiz sertifika alabildiği için kilit tek başına hiçbir şey kanıtlamaz.'
+category: dolandiricilik-phishing
+publishedAt: 2026-08-22
+status: published
+featured: true
+summary: 'Kilit simgesi "bu bağlantı dinlenemiyor" der, "bu site dürüst" demez. Sertifika almak ücretsiz ve otomatik olduğu için sahte sayfalar da kilitli görünür.'
+tags: ['phishing', 'https', 'sahte site']
+---
+
+Bu, yıllarca doğru olduğu öğretilen ama bugün açıkça yanlış olan bir kural.
+
+## Kilit ne söyler?
+
+Kilit simgesi tek bir şey söyler: **tarayıcınızla o site arasındaki trafik
+şifrelenmiş durumda.** Yani aradaki biri — mesela ortak bir Wi-Fi ağındaki
+başka biri — yazdıklarınızı okuyamaz.
+
+Bu gerçek ve değerli bir koruma. Ama tamamen farklı bir soruya cevap veriyor.
+
+## Kilit ne söylemez?
+
+Kilit, sitenin **kim olduğunu söylediği kişi olduğunu** söylemez.
+
+Sertifika almak bugün ücretsiz ve otomatik. Dolandırıcı
+`instagram-guvenlik-dogrulama.com` adresini alır, birkaç saniyede sertifika
+çıkarır ve sayfası tıpkı gerçeği gibi kilitli görünür.
+
+<Callout type="dikkat">
+  Kilidin varlığı bir güvence değil, sadece bir asgari şart. Yokluğu kötü bir işarettir; varlığı iyi
+  bir işaret değildir.
+</Callout>
+
+## Peki neye bakmalı?
+
+Adrese — ama doğru yerine. Alan adının **sonuna**, yani ilk tek eğik çizgiden
+hemen önceki kısma bakın:
+
+```
+https://giris.instagram.com.dogrulama-tr.net/login
+                            ^^^^^^^^^^^^^^^^^^
+                            gerçek alan adı burası
+```
+
+Bu adres `instagram.com` değil, `dogrulama-tr.net` sitesidir.
+
+Daha da iyisi: adrese hiç bakmak zorunda kalmayın. Bağlantıya tıklamak yerine
+adresi kendiniz yazın veya uygulamayı açın. Ayrıntısı burada:
+[Sahte Giriş Sayfasını Nasıl Anlarsınız?](/rehberler/sahte-giris-sayfasi-nasil-anlasilir/)

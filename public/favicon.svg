@@ -1,19 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TurkCyber">
   <title>TurkCyber</title>
   <!--
-    Favicon mark. The full <tc/> composition is not legible at 16px, so the
-    brackets are dropped and the accent slash carries the identity alongside
-    the letterforms. Letters are drawn as geometry rather than text so the icon
-    does not depend on a font being available.
+    Favicon mark.
+
+    The full <TC/> composition is not legible at 16px, so the angle brackets
+    are dropped and the mark reduces to TC/ — the letterforms plus the accent
+    slash. The complete mark is used everywhere it has room to breathe.
+
+    Letters are drawn as geometry rather than <text> so the icon does not
+    depend on a font being available to the renderer.
+
+    Colours match the brand roles: T white, C Turkish red, slash cyber green.
   -->
   <rect width="32" height="32" rx="6" fill="#0c0f10"/>
-  <!-- t -->
-  <path d="M7 9.5v11.2c0 1.6 .9 2.4 2.6 2.4h1.7" fill="none" stroke="#f1f5f4"
-        stroke-width="2.6" stroke-linecap="round"/>
-  <path d="M4.4 13h6.1" fill="none" stroke="#f1f5f4" stroke-width="2.6" stroke-linecap="round"/>
-  <!-- c -->
-  <path d="M21.6 14.2a4.6 4.6 0 1 0 0 7.2" fill="none" stroke="#f1f5f4"
-        stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- T : crossbar + stem -->
+  <path d="M3.4 10.6h8.6" fill="none" stroke="#f1f5f4" stroke-width="2.9" stroke-linecap="round"/>
+  <path d="M7.7 10.6v10.9" fill="none" stroke="#f1f5f4" stroke-width="2.9" stroke-linecap="round"/>
+
+  <!-- C : arc opening to the right -->
+  <path d="M21.6 12.9a4.9 4.9 0 1 0 0 7.6" fill="none" stroke="#e30a17"
+        stroke-width="2.9" stroke-linecap="round"/>
+
   <!-- accent slash -->
-  <path d="M28 8.5 24 24" fill="none" stroke="#21e67a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M28.4 9.2 24.6 23.4" fill="none" stroke="#21e67a"
+        stroke-width="2.9" stroke-linecap="round"/>
 </svg>

@@ -32,6 +32,17 @@ html {
 
 body {
   background: var(--surface-0);
+  /*
+   * A very faint grid, fixed behind everything. It reads as graph paper or a
+   * schematic at the edge of vision rather than as a "cyber" motif — at 2%
+   * opacity it is felt more than seen, and it disappears entirely against
+   * card surfaces.
+   */
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
   font-size: var(--step-0);
@@ -140,6 +151,21 @@ hr {
   max-width: var(--container-narrow);
   margin-inline: auto;
   padding-inline: var(--sp-4);
+}
+
+.container-reading {
+  width: 100%;
+  max-width: var(--container-reading);
+  margin-inline: auto;
+  padding-inline: var(--sp-4);
+}
+
+@media (min-width: 640px) {
+  .container,
+  .container-narrow,
+  .container-reading {
+    padding-inline: var(--sp-6);
+  }
 }
 
 .stack > * + * {

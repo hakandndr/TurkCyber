@@ -1,46 +1,63 @@
 ---
 /**
- * The TurkCyber mark: <tc/>
+ * The TurkCyber mark: <TC/>
  *
- * `tc` is dominant; the angle brackets are muted; the slash carries the accent
- * and pulses slowly in the header.
+ * `TC` reads two ways on purpose — TurkCyber's initials, and the country code.
+ * The white T and the Turkish-flag-red C carry that second reading quietly,
+ * without a flag or a crescent anywhere.
+ *
+ * Colour roles:
+ *   <  >   muted grey — punctuation, deliberately recessive
+ *   T      white — the letterform that carries weight
+ *   C      Turkish red — the identity note
+ *   /      cyber green — the only animated element
  *
  * Rendered as text rather than SVG so it inherits the loaded monospace face and
- * stays crisp at any size. The favicon is a separate hand-built SVG — see
+ * stays crisp at any size. The favicon is a separate hand-built mark — see
  * public/favicon.svg — because at 16px this composition is not legible.
  */
 interface Props {
-  /** `full` includes the wordmark; `compact` is the bracket mark alone. */
+  /** `full` includes the wordmark and heritage line; `compact` is the mark alone. */
   variant?: 'full' | 'compact';
   /** Slow opacity pulse on the slash. Header only. */
   animated?: boolean;
+  /** Show the "2005'ten beri" heritage line. Only meaningful with `full`. */
+  heritage?: boolean;
   class?: string;
 }
 
-const { variant = 'full', animated = false, class: className = '' } = Astro.props;
+const { variant = 'full', animated = false, heritage = false, class: className = '' } = Astro.props;
 ---
 
 <span class:list={['logo', `logo-${variant}`, className]} aria-label="TurkCyber">
   <span class="mark" aria-hidden="true">
-    <span class="bracket">&lt;</span><span class="letters">tc</span><span
-      class:list={['slash', animated && 'slash-pulse']}>/</span
-    ><span class="bracket">&gt;</span>
+    <span class="bracket">&lt;</span><span class="letter-t">T</span><span class="letter-c">C</span
+    ><span class:list={['slash', animated && 'slash-pulse']}>/</span><span class="bracket"
+      >&gt;</span
+    >
   </span>
-  {variant === 'full' && <span class="wordmark">TurkCyber</span>}
+  {
+    variant === 'full' && (
+      <span class="names">
+        <span class="wordmark">TurkCyber</span>
+        {heritage && <span class="heritage">2005'ten beri</span>}
+      </span>
+    )
+  }
 </span>
 
 <style>
   .logo {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.55rem;
+    align-items: center;
+    gap: 0.6rem;
     font-family: var(--font-mono);
     line-height: 1;
     text-decoration: none;
   }
 
   .mark {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.03em;
     white-space: nowrap;
@@ -51,23 +68,45 @@ const { variant = 'full', animated = false, class: className = '' } = Astro.prop
     font-weight: 500;
   }
 
-  .letters {
+  .letter-t {
     color: var(--text);
+  }
+
+  /*
+   * Turkish red. Only used at this size and weight — see the contrast note on
+   * --brand-red in tokens.css before reusing it anywhere smaller.
+   */
+  .letter-c {
+    color: var(--brand-red);
   }
 
   .slash {
     color: var(--green);
   }
 
+  .names {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
   .wordmark {
     font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     color: var(--text);
   }
 
-  /* Slow, quiet. The mark should read as alive, not as a notification. */
+  .heritage {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  /* Slow and quiet. The mark should read as alive, not as a notification. */
   .slash-pulse {
     animation: slash-pulse 3.2s ease-in-out infinite;
   }
@@ -90,6 +129,12 @@ const { variant = 'full', animated = false, class: className = '' } = Astro.prop
   }
 
   .logo-compact .mark {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
+  }
+
+  @media (max-width: 520px) {
+    .heritage {
+      display: none;
+    }
   }
 </style>

@@ -12,6 +12,9 @@ import { articlePath, getAllArticles } from '../lib/content';
 const STATIC_PATHS = [
   '/',
   '/rehberler/',
+  '/efsane-mi-gercek-mi/',
+  '/araclar/',
+  '/araclar/bu-mesaj-sahte-mi/',
   '/haberler/',
   '/konular/',
   '/hakkinda/',

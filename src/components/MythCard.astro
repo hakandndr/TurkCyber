@@ -1,0 +1,87 @@
+---
+/**
+ * A myth entry on a listing surface.
+ *
+ * Deliberately shaped unlike ArticleCard: the claim is the headline, and the
+ * verdict answers it before the visitor clicks. Someone scanning the page
+ * should be able to resolve a misconception without opening anything.
+ */
+import VerdictBadge from './VerdictBadge.astro';
+import { articlePath, type Myth, type Verdict } from '../lib/content';
+
+interface Props {
+  entry: Myth;
+  headingLevel?: 2 | 3;
+}
+
+const { entry, headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+---
+
+<article class="myth">
+  <Heading class="myth-claim">
+    <a href={articlePath(entry)}>&ldquo;{entry.data.title}&rdquo;</a>
+  </Heading>
+
+  <div class="myth-answer">
+    <VerdictBadge verdict={entry.data.verdict as Verdict} />
+    <p class="myth-line">{entry.data.verdictLine}</p>
+  </div>
+</article>
+
+<style>
+  .myth {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-5);
+    background: var(--surface-1);
+    /* A left rule rather than a full card border: myths read as entries in a
+       column of answers, not as another grid of articles. */
+    border-left: 2px solid var(--border-strong);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  .myth:hover {
+    background: var(--surface-2);
+    border-left-color: var(--cyan);
+  }
+
+  .myth-claim {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 500;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+
+  .myth-claim a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .myth-claim a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .myth:hover .myth-claim a {
+    color: var(--text);
+  }
+
+  .myth-answer {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+  }
+
+  .myth-line {
+    flex: 1 1 16rem;
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+</style>
