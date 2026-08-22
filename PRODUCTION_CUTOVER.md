@@ -244,7 +244,7 @@ This is the last phase that requires no authorization.
 
 ---
 
-## Phase H — cutover  ⚠ REQUIRES EXPLICIT OWNER AUTHORIZATION
+## Phase H — cutover ⚠ REQUIRES EXPLICIT OWNER AUTHORIZATION
 
 **Do not perform any step in this phase without the owner's explicit,
 specific approval for this action.** Authorization for phases A–G is not

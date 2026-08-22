@@ -11,13 +11,13 @@ Do not open a public GitHub issue for a vulnerability.
 
 ## Trust boundaries
 
-| Boundary | What crosses it | Treatment |
-| --- | --- | --- |
-| Visitor → `/collect` | query params, headers | sanitised, capped at 300 chars, bound into SQL |
-| Visitor → `/api/comments` | JSON body | validated, length-capped, Turnstile-verified, same-origin required |
-| Visitor → static site | nothing | fully static |
-| Operator → `/boss` | credentials, filters, moderation actions | password + signed session; all filters bound; all mutations POST + same-origin |
-| Database → `/boss` HTML | attacker-controlled strings | escaped at render |
+| Boundary                  | What crosses it                          | Treatment                                                                      |
+| ------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| Visitor → `/collect`      | query params, headers                    | sanitised, capped at 300 chars, bound into SQL                                 |
+| Visitor → `/api/comments` | JSON body                                | validated, length-capped, Turnstile-verified, same-origin required             |
+| Visitor → static site     | nothing                                  | fully static                                                                   |
+| Operator → `/boss`        | credentials, filters, moderation actions | password + signed session; all filters bound; all mutations POST + same-origin |
+| Database → `/boss` HTML   | attacker-controlled strings              | escaped at render                                                              |
 
 **The rows in the analytics table are attacker-controlled.** User agents,
 referrers and paths are written by whoever made the request. A private panel
@@ -55,7 +55,7 @@ asserts the string travels as a bound parameter and never appears in the clause.
   password is refused while the window is open.
 - The visitor sees only `Kullanıcı adı veya şifre hatalı.` A test asserts the
   responses for a wrong username and a wrong password are byte-identical.
-- The operator log reports *which check* failed, never a value:
+- The operator log reports _which check_ failed, never a value:
   `boss: sign-in refused (user mismatch, password failed, reason mismatch)`.
 
 If any of `BOSS_USER`, `BOSS_PASSWORD_HASH` or `SESSION_SECRET` is missing, the

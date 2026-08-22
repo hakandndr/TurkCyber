@@ -81,19 +81,19 @@ bypass it.
 
 Frontmatter fields:
 
-| Field | Notes |
-| --- | --- |
-| `title` | 8–120 characters |
-| `description` | 40–200 characters; used as the meta description |
-| `category` | must be one of the ids in `src/config/site.ts` |
-| `publishedAt` / `updatedAt` | dates |
-| `status` | `draft` · `review` · `published` — only `published` ships |
-| `featured` | promotes to the homepage shelf |
-| `summary` | the "Kısaca" block above the article |
-| `difficulty` | `baslangic` · `orta` · `ileri` |
-| `readingTime` | minutes, author-supplied |
-| `tags` | up to 8 |
-| `uiVerifiedAt` | set when the guide depends on a third-party UI; renders a visible "last checked" line |
+| Field                       | Notes                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| `title`                     | 8–120 characters                                                                      |
+| `description`               | 40–200 characters; used as the meta description                                       |
+| `category`                  | must be one of the ids in `src/config/site.ts`                                        |
+| `publishedAt` / `updatedAt` | dates                                                                                 |
+| `status`                    | `draft` · `review` · `published` — only `published` ships                             |
+| `featured`                  | promotes to the homepage shelf                                                        |
+| `summary`                   | the "Kısaca" block above the article                                                  |
+| `difficulty`                | `baslangic` · `orta` · `ileri`                                                        |
+| `readingTime`               | minutes, author-supplied                                                              |
+| `tags`                      | up to 8                                                                               |
+| `uiVerifiedAt`              | set when the guide depends on a third-party UI; renders a visible "last checked" line |
 
 Categories are defined once, in `src/config/site.ts`. Navigation, category
 pages, the content schema and the search index all derive from that file. Never
@@ -104,9 +104,7 @@ duplicate the list.
 Inside an `.mdx` guide:
 
 ```mdx
-<Callout type="dikkat">
-Bir uyarı metni.
-</Callout>
+<Callout type="dikkat">Bir uyarı metni.</Callout>
 ```
 
 Types: `bilgi` (cyan, information), `kontrol` (green, do this), `ornek`
@@ -120,14 +118,14 @@ renders an icon and a written label, so meaning never depends on colour alone.
 Names only; see [.env.example](.env.example). Real values go in `.dev.vars`
 locally (gitignored) or `wrangler secret put` for deployed environments.
 
-| Name | Purpose |
-| --- | --- |
-| `BOSS_USER` | private console login name |
-| `BOSS_PASSWORD_HASH` | `pbkdf2$<iterations>$<salt>$<hash>` from `scripts/hash-password.mjs` |
-| `SESSION_SECRET` | signs session cookies |
-| `PUBLIC_TURNSTILE_SITE_KEY` | public; appears in client HTML |
-| `TURNSTILE_SECRET_KEY` | server-side only |
-| `COMMENT_IP_PEPPER` | HMAC key turning visitor IPs into non-reversible abuse keys |
+| Name                        | Purpose                                                              |
+| --------------------------- | -------------------------------------------------------------------- |
+| `BOSS_USER`                 | private console login name                                           |
+| `BOSS_PASSWORD_HASH`        | `pbkdf2$<iterations>$<salt>$<hash>` from `scripts/hash-password.mjs` |
+| `SESSION_SECRET`            | signs session cookies                                                |
+| `PUBLIC_TURNSTILE_SITE_KEY` | public; appears in client HTML                                       |
+| `TURNSTILE_SECRET_KEY`      | server-side only                                                     |
+| `COMMENT_IP_PEPPER`         | HMAC key turning visitor IPs into non-reversible abuse keys          |
 
 Set each secret as a **separate** `wrangler secret put` command. Piping several
 through one heredoc has scrambled them in practice.
@@ -174,13 +172,13 @@ tests/                  vitest — 111 tests
 
 ## Documentation
 
-| File | What it is |
-| --- | --- |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | design decisions and why they were made |
-| [SECURITY.md](SECURITY.md) | security model, boundaries, reporting |
-| [PROCESS.md](PROCESS.md) | append-only work journal |
-| [CURRENT_STATE.md](CURRENT_STATE.md) | latest authoritative snapshot |
-| [HANDOFF.md](HANDOFF.md) | everything another engineer needs to continue |
+| File                                           | What it is                                                 |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| [ARCHITECTURE.md](ARCHITECTURE.md)             | design decisions and why they were made                    |
+| [SECURITY.md](SECURITY.md)                     | security model, boundaries, reporting                      |
+| [PROCESS.md](PROCESS.md)                       | append-only work journal                                   |
+| [CURRENT_STATE.md](CURRENT_STATE.md)           | latest authoritative snapshot                              |
+| [HANDOFF.md](HANDOFF.md)                       | everything another engineer needs to continue              |
 | [PRODUCTION_CUTOVER.md](PRODUCTION_CUTOVER.md) | phased runbook; production requires explicit authorization |
 
 ---

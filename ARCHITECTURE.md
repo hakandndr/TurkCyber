@@ -10,11 +10,11 @@ reasoning so the next person can tell a deliberate choice from an accident.
 Astro produces a fully static site. The Cloudflare Worker serves that build
 through its `ASSETS` binding and owns exactly three dynamic paths:
 
-| Path | Purpose | Failure behaviour |
-| --- | --- | --- |
-| `/collect` | analytics beacon | always returns the pixel; write is fire-and-forget |
-| `/api/comments` | first-party comments | article renders; thread shows a Turkish notice |
-| `/boss/*` | private console | 503 if unconfigured, 401 if unauthenticated |
+| Path            | Purpose              | Failure behaviour                                  |
+| --------------- | -------------------- | -------------------------------------------------- |
+| `/collect`      | analytics beacon     | always returns the pixel; write is fire-and-forget |
+| `/api/comments` | first-party comments | article renders; thread shows a Turkish notice     |
+| `/boss/*`       | private console      | 503 if unconfigured, 401 if unauthenticated        |
 
 **Why.** The product is a reference library. Someone reading a guide about
 losing their phone should not be blocked by a comments outage. Making content
@@ -101,7 +101,7 @@ eras and produce a page numbered 52, 53, 1802, 1803. The CTE in
 
 **Bot patterns live in the application as a visible list.** What counts as a
 visitor is an editorial judgement that needs adjusting as new crawlers appear.
-The list is interpolated into SQL, which is safe *only* because it is a
+The list is interpolated into SQL, which is safe _only_ because it is a
 compile-time constant; every request-derived value is a bound parameter.
 
 **Full IP is stored.** A deliberate choice for a private panel, and `/gizlilik/`
@@ -137,7 +137,7 @@ Password-based, per the blueprint: `BOSS_USER`, `BOSS_PASSWORD_HASH`,
 Cloudflare Access. TurkCyber uses the blueprint's password model instead,
 because that is what this project's specification called for and it keeps the
 console reachable without a Zero Trust dependency. If Access is preferred later,
-it layers *in front of* this rather than replacing it.
+it layers _in front of_ this rather than replacing it.
 
 **PBKDF2 iterations are capped at 100,000.** This is a runtime ceiling, not a
 preference: the Workers runtime throws `NotSupportedError` above it rather than

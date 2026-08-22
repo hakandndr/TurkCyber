@@ -16,12 +16,12 @@ legacy Hostinger site.
 
 ## Repository
 
-| | |
-| --- | --- |
-| Remote | `https://github.com/hakandndr/turkcyber.git` |
-| Branch | `main` |
+|             |                                                                              |
+| ----------- | ---------------------------------------------------------------------------- |
+| Remote      | `https://github.com/hakandndr/turkcyber.git`                                 |
+| Branch      | `main`                                                                       |
 | Push status | see the final session report — the build environment had no push credentials |
-| Lockfile | **missing** — `pnpm-lock.yaml` must be generated locally and committed |
+| Lockfile    | **missing** — `pnpm-lock.yaml` must be generated locally and committed       |
 
 The repository was empty before this work. Nothing was force-pushed and no
 history was rewritten.
@@ -32,13 +32,13 @@ history was rewritten.
 
 Last run, all from a clean tree:
 
-| Command | Result |
-| --- | --- |
-| `pnpm check` | 0 errors, 0 warnings, 1 hint |
-| `pnpm lint` | clean (eslint + prettier) |
-| `pnpm build` | 26 pages |
-| `pnpm test` | **111 passed**, 5 files |
-| `pnpm scan:secrets` | clean |
+| Command             | Result                       |
+| ------------------- | ---------------------------- |
+| `pnpm check`        | 0 errors, 0 warnings, 1 hint |
+| `pnpm lint`         | clean (eslint + prettier)    |
+| `pnpm build`        | 26 pages                     |
+| `pnpm test`         | **111 passed**, 5 files      |
+| `pnpm scan:secrets` | clean                        |
 
 Test breakdown: auth 17 · analytics 31 · comments 24 · boss 17 · content 22.
 
@@ -70,12 +70,12 @@ Worker-owned, never in the static build:
 
 ## Content
 
-| | |
-| --- | --- |
-| Published guides | 8 |
-| Published news | **0** |
-| Draft news | 1 (`ornek-haber-sablonu` — a template, excluded from production) |
-| Categories | 9, defined once in `src/config/site.ts` |
+|                  |                                                                  |
+| ---------------- | ---------------------------------------------------------------- |
+| Published guides | 8                                                                |
+| Published news   | **0**                                                            |
+| Draft news       | 1 (`ornek-haber-sablonu` — a template, excluded from production) |
+| Categories       | 9, defined once in `src/config/site.ts`                          |
 
 News was not written because it would have required inventing sources. The
 information architecture is complete and `/haberler/` renders its empty state.
@@ -122,14 +122,14 @@ synthetic file. It:
 
 Nothing created. Required when provisioning begins:
 
-| Resource | Name |
-| --- | --- |
-| Worker (staging) | `turkcyber-staging` |
-| Worker (production) | `turkcyber-production` |
-| D1 | `turkcyber-app-staging` · `turkcyber-analytics-staging` |
-| D1 | `turkcyber-app-production` · `turkcyber-analytics-production` |
-| KV | throttle namespace per environment |
-| Turnstile | one widget per environment, hostname-scoped |
+| Resource            | Name                                                          |
+| ------------------- | ------------------------------------------------------------- |
+| Worker (staging)    | `turkcyber-staging`                                           |
+| Worker (production) | `turkcyber-production`                                        |
+| D1                  | `turkcyber-app-staging` · `turkcyber-analytics-staging`       |
+| D1                  | `turkcyber-app-production` · `turkcyber-analytics-production` |
+| KV                  | throttle namespace per environment                            |
+| Turnstile           | one widget per environment, hostname-scoped                   |
 
 Secrets required per environment: `BOSS_USER`, `BOSS_PASSWORD_HASH`,
 `SESSION_SECRET`, `TURNSTILE_SECRET_KEY`, `COMMENT_IP_PEPPER`.

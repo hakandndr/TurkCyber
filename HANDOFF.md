@@ -211,16 +211,16 @@ same-origin, authenticated, and writes an `audit_events` row.
 
 ## 9. Environment variables
 
-| Name | Where | Notes |
-| --- | --- | --- |
-| `BOSS_USER` | secret | console login name |
-| `BOSS_PASSWORD_HASH` | secret | from `scripts/hash-password.mjs` |
-| `SESSION_SECRET` | secret | 32+ random bytes |
-| `TURNSTILE_SECRET_KEY` | secret | server-side only |
-| `COMMENT_IP_PEPPER` | secret | HMAC key for comment abuse keys |
-| `PUBLIC_TURNSTILE_SITE_KEY` | build env | public, appears in HTML |
-| `ANALYTICS_TIMEZONE` | var | `America/Los_Angeles` |
-| `ENVIRONMENT` | var | `development` / `staging` / `production` |
+| Name                        | Where     | Notes                                    |
+| --------------------------- | --------- | ---------------------------------------- |
+| `BOSS_USER`                 | secret    | console login name                       |
+| `BOSS_PASSWORD_HASH`        | secret    | from `scripts/hash-password.mjs`         |
+| `SESSION_SECRET`            | secret    | 32+ random bytes                         |
+| `TURNSTILE_SECRET_KEY`      | secret    | server-side only                         |
+| `COMMENT_IP_PEPPER`         | secret    | HMAC key for comment abuse keys          |
+| `PUBLIC_TURNSTILE_SITE_KEY` | build env | public, appears in HTML                  |
+| `ANALYTICS_TIMEZONE`        | var       | `America/Los_Angeles`                    |
+| `ENVIRONMENT`               | var       | `development` / `staging` / `production` |
 
 Local: `.dev.vars` (gitignored). Deployed: `wrangler secret put`.
 
