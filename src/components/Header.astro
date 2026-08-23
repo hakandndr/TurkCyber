@@ -1,9 +1,34 @@
 ---
+/**
+ * Site header.
+ *
+ * ── Why the navigation is grouped ────────────────────────────────────────
+ *
+ * It used to carry seven first-level destinations plus search. That reads as
+ * an inventory of everything the site contains rather than as a way in, and on
+ * a phone it became a horizontally scrolling strip — a pattern that hides
+ * items behind a gesture nobody is told about.
+ *
+ * Five content sections now sit under "İçerikler", which is a real page at
+ * /icerikler/ and not a dropdown trigger. Two rules follow from that and both
+ * are deliberate:
+ *
+ *   - the LABEL is an ordinary link. Clicking it navigates.
+ *   - the CHEVRON is a separate button. Clicking it opens the group.
+ *
+ * So the menu is never hover-only, keyboard users get a real button with
+ * `aria-expanded`, and the group never becomes the only way to reach the page.
+ *
+ * The search control is unchanged from the version already approved.
+ */
 import Logo from './Logo.astro';
 import { NAV } from '../config/site';
 
 const path = Astro.url.pathname;
 const isActive = (href: string): boolean => path === href || path.startsWith(href);
+
+const groupActive = (item: (typeof NAV)[number]): boolean =>
+  isActive(item.href) || ('children' in item && item.children.some((c) => isActive(c.href)));
 ---
 
 <header class="site-header">
@@ -12,16 +37,60 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
       <Logo animated heritage />
     </a>
 
-    <nav class="nav-wrap" aria-label="Ana menü">
+    <nav class="desktop-nav" aria-label="Ana menü">
       <ul class="nav">
         {
-          NAV.map((item) => (
-            <li>
-              <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-                {item.label}
-              </a>
-            </li>
-          ))
+          NAV.map((item) =>
+            'children' in item ? (
+              <li class="nav-group" data-group>
+                <span class="group-head">
+                  <a
+                    href={item.href}
+                    class="group-link"
+                    aria-current={groupActive(item) ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                  <button
+                    type="button"
+                    class="group-toggle"
+                    aria-expanded="false"
+                    aria-controls="nav-group-icerikler"
+                    aria-label={`${item.label} alt menüsünü aç`}
+                    data-group-toggle
+                  >
+                    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true">
+                      <path
+                        d="M2.5 4.5 6 8l3.5-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </span>
+
+                <ul class="group-menu" id="nav-group-icerikler" data-group-menu hidden>
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={child.href} aria-current={isActive(child.href) ? 'page' : undefined}>
+                        <span class="group-menu-label">{child.label}</span>
+                        <span class="group-menu-blurb">{child.blurb}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ) : (
+              <li>
+                <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            ),
+          )
         }
       </ul>
     </nav>
@@ -42,8 +111,211 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
       </svg>
       <span class="search-label">Ara</span>
     </a>
+
+    <button
+      type="button"
+      class="menu-button"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+      aria-label="Menü"
+      data-menu-button
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          class="icon-open"
+        >
+          <path d="M4 7h16"></path>
+          <path d="M4 12h16"></path>
+          <path d="M4 17h16"></path>
+        </g>
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          class="icon-close"
+        >
+          <path d="M6 6l12 12"></path>
+          <path d="M18 6L6 18"></path>
+        </g>
+      </svg>
+    </button>
+  </div>
+
+  <!--
+    The mobile panel is a sibling of the bar rather than a child of the desktop
+    list, so the two navigations never fight over the same markup. It renders
+    server-side and is simply hidden until opened — with JavaScript off, the
+    links are still in the document for a screen reader and for search.
+  -->
+  <div class="mobile-nav" id="mobile-nav" data-mobile-nav hidden>
+    <nav class="container mobile-inner" aria-label="Menü">
+      <ul>
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                class="mobile-top"
+                href={item.href}
+                aria-current={groupActive(item) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+              {'children' in item && (
+                <ul class="mobile-children">
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={child.href} aria-current={isActive(child.href) ? 'page' : undefined}>
+                        {child.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+        <li>
+          <a class="mobile-top" href="/ara/">Ara</a>
+        </li>
+      </ul>
+    </nav>
   </div>
 </header>
+
+<script>
+  /*
+   * Two independent controls, no framework.
+   *
+   * Both close on Escape and on an outside click, and both keep
+   * `aria-expanded` on the element that actually toggles them. Neither opens
+   * on hover: a hover-only menu is unreachable by touch and by keyboard.
+   */
+  const setup = (): void => {
+    const header = document.querySelector<HTMLElement>('.site-header');
+    if (!header) return;
+
+    // ── Desktop group ────────────────────────────────────────────────────
+    const group = header.querySelector<HTMLElement>('[data-group]');
+    const toggle = header.querySelector<HTMLButtonElement>('[data-group-toggle]');
+    const menu = header.querySelector<HTMLElement>('[data-group-menu]');
+
+    let closeTimer: number | undefined;
+    let groupExplicitlyOpen = false;
+
+    const setGroup = (open: boolean): void => {
+      if (!toggle || !menu || !group) return;
+      window.clearTimeout(closeTimer);
+      if (!open) groupExplicitlyOpen = false;
+      toggle.setAttribute('aria-expanded', String(open));
+      menu.hidden = !open;
+      group.classList.toggle('is-open', open);
+    };
+
+    toggle?.addEventListener('click', () => {
+      if (groupExplicitlyOpen) {
+        setGroup(false);
+        return;
+      }
+      groupExplicitlyOpen = true;
+      setGroup(true);
+    });
+
+    /*
+     * Hover and focus OPEN the group; they never own it.
+     *
+     * The click and keyboard paths above are unchanged, so a touch device — or
+     * anyone using a keyboard — gets the same menu without a pointer. Hover is
+     * added on top for the pointing device that can use it, which is what
+     * `(hover: hover) and (pointer: fine)` tests for: a phone that reports a
+     * synthetic hover must not open a menu the user never asked for.
+     *
+     * Closing is delayed. The gap between the label and the panel is real
+     * space a pointer has to cross, and a menu that vanishes mid-crossing is
+     * worse than one that never opened.
+     */
+    const CLOSE_DELAY = 200;
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+    const openOnIntent = (): void => {
+      if (!canHover.matches) return;
+      setGroup(true);
+    };
+
+    const closeSoon = (): void => {
+      if (!canHover.matches) return;
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(() => setGroup(false), CLOSE_DELAY);
+    };
+
+    group?.addEventListener('pointerenter', openOnIntent);
+    group?.addEventListener('pointerleave', closeSoon);
+
+    // Focus entering the group opens it; focus leaving the group closes it,
+    // which is what makes tabbing through the menu behave like hovering it.
+    group?.addEventListener('focusin', (event) => {
+      // The toggle owns its click/Enter state. Opening it during the focus
+      // event would make that same click immediately toggle it closed again.
+      if (event.target === toggle) return;
+      setGroup(true);
+    });
+    group?.addEventListener('focusout', (event) => {
+      const next = (event as FocusEvent).relatedTarget as Node | null;
+      if (next && group.contains(next)) return;
+      setGroup(false);
+    });
+
+    // ── Mobile panel ─────────────────────────────────────────────────────
+    const button = header.querySelector<HTMLButtonElement>('[data-menu-button]');
+    const panel = header.querySelector<HTMLElement>('[data-mobile-nav]');
+
+    const setPanel = (open: boolean): void => {
+      if (!button || !panel) return;
+      button.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      header.classList.toggle('menu-open', open);
+    };
+
+    button?.addEventListener('click', () => {
+      setPanel(button.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      // Return focus to whichever control was open, or the user is stranded.
+      if (toggle?.getAttribute('aria-expanded') === 'true') {
+        setGroup(false);
+        toggle.focus();
+      }
+      if (button?.getAttribute('aria-expanded') === 'true') {
+        setPanel(false);
+        button.focus();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      const target = event.target as Node;
+      if (group && !group.contains(target)) setGroup(false);
+      if (panel && button && !panel.contains(target) && !button.contains(target)) setPanel(false);
+    });
+
+    // A resize past the breakpoint must not leave a hidden panel "open".
+    window.matchMedia('(min-width: 61rem)').addEventListener('change', () => {
+      setPanel(false);
+      setGroup(false);
+    });
+
+    // Losing hover capability mid-session (a tablet docking, a stylus) must
+    // not strand an open menu that nothing will now close.
+    canHover.addEventListener('change', () => setGroup(false));
+  };
+
+  setup();
+</script>
 
 <style>
   .site-header {
@@ -60,7 +332,6 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
     align-items: center;
     gap: var(--sp-5);
     min-height: 62px;
-    flex-wrap: wrap;
   }
 
   .logo-link {
@@ -70,11 +341,11 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
 
   .nav {
     display: flex;
+    align-items: center;
     gap: var(--sp-5);
     list-style: none;
     padding: 0;
     margin: 0;
-    flex-wrap: wrap;
   }
 
   .nav a {
@@ -82,9 +353,10 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
     font-size: 0.85rem;
     color: var(--text-muted);
     text-decoration: none;
-    padding: 0.6rem 0;
+    padding: 0.55rem 0;
     display: inline-block;
     border-bottom: 2px solid transparent;
+    white-space: nowrap;
   }
 
   .nav a:hover {
@@ -94,6 +366,114 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
   .nav a[aria-current='page'] {
     color: var(--text);
     border-bottom-color: var(--green);
+  }
+
+  /* --- grouped item --- */
+
+  .nav-group {
+    position: relative;
+  }
+
+  .group-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .group-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Comfortably clickable without widening the bar. */
+    width: 26px;
+    height: 32px;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .group-toggle:hover {
+    color: var(--cyan);
+  }
+
+  .group-toggle svg {
+    transition: transform 0.16s ease;
+  }
+
+  .nav-group.is-open .group-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  /*
+   * The panel is offset from the label, but the group's own hover area is
+   * extended upward by the pseudo-element below so the pointer never crosses
+   * an inert gap on the way down.
+   */
+  .group-menu::before {
+    content: '';
+    position: absolute;
+    inset: -0.6rem 0 auto 0;
+    height: 0.6rem;
+  }
+
+  .group-menu {
+    position: absolute;
+    top: calc(100% + 0.55rem);
+    left: -0.75rem;
+    z-index: 30;
+    width: 20rem;
+    max-width: calc(100vw - 2rem);
+    list-style: none;
+    margin: 0;
+    padding: var(--sp-2);
+    background: var(--surface-1);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgb(0 0 0 / 45%);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .group-menu {
+      animation: group-in 180ms ease-out;
+    }
+
+    @keyframes group-in {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+    }
+  }
+
+  .group-menu a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--sp-3);
+    border-radius: var(--radius);
+    border-bottom: 0;
+    white-space: normal;
+  }
+
+  .group-menu a:hover,
+  .group-menu a:focus-visible {
+    background: var(--surface-2);
+  }
+
+  .group-menu-label {
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .group-menu-blurb {
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-muted);
   }
 
   .search-link {
@@ -112,55 +492,105 @@ const isActive = (href: string): boolean => path === href || path.startsWith(hre
     color: var(--cyan);
   }
 
-  @media (max-width: 860px) {
-    .header-inner {
-      gap: var(--sp-3);
-      padding-block: var(--sp-2);
-    }
+  /* --- mobile --- */
 
-    /* Search moves up beside the logo so the nav can own one full row on its
-       own. With six items, letting the nav wrap pushed the search icon onto a
-       third line and ate most of the viewport before the hero. */
-    .search-link {
-      order: 2;
-    }
+  .menu-button {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: none;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    flex: none;
+  }
 
-    /* The scroll container must be the flex child itself — the <nav>, not the
-       <ul> inside it. Constraining only the list left the wrapper free to size
-       to its content and push the document wider than the viewport. */
-    .nav-wrap {
-      order: 3;
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      border-top: 1px solid var(--border);
-      padding-top: var(--sp-1);
-    }
+  .icon-close {
+    display: none;
+  }
 
-    .nav-wrap::-webkit-scrollbar {
+  .menu-open .menu-button .icon-open {
+    display: none;
+  }
+
+  .menu-open .menu-button .icon-close {
+    display: block;
+  }
+
+  .mobile-nav {
+    border-top: 1px solid var(--border);
+    background: var(--surface-1);
+  }
+
+  .mobile-inner {
+    padding-block: var(--sp-4) var(--sp-5);
+  }
+
+  .mobile-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mobile-nav a {
+    display: block;
+    text-decoration: none;
+    color: var(--text-muted);
+    padding: 0.7rem 0;
+  }
+
+  .mobile-top {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .mobile-nav a[aria-current='page'] {
+    color: var(--cyan);
+  }
+
+  .mobile-children {
+    padding-left: var(--sp-4);
+    margin-bottom: var(--sp-2);
+    border-left: 1px solid var(--border);
+  }
+
+  .mobile-children a {
+    font-family: var(--font-body);
+    font-size: 0.94rem;
+    padding: 0.5rem 0;
+  }
+
+  /*
+   * One breakpoint, chosen so the grouped bar never has to wrap: below it the
+   * desktop nav is replaced outright rather than turned into a scrolling
+   * strip.
+   */
+  @media (max-width: 61rem) {
+    .desktop-nav {
       display: none;
     }
 
-    .nav {
-      width: max-content;
-      gap: var(--sp-5);
-      flex-wrap: nowrap;
+    .menu-button {
+      display: inline-flex;
     }
 
-    .nav li {
-      flex: none;
-    }
-
-    .nav a {
-      padding: 0.5rem 0;
-      font-size: 0.82rem;
-      white-space: nowrap;
+    .header-inner {
+      gap: var(--sp-3);
     }
 
     .search-label {
+      display: none;
+    }
+  }
+
+  @media (min-width: 61.0625rem) {
+    .mobile-nav {
       display: none;
     }
   }

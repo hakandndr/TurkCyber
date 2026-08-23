@@ -12,6 +12,7 @@ import { articlePath, getAllArticles } from '../lib/content';
 
 const STATIC_PATHS = [
   '/',
+  '/icerikler/',
   '/rehberler/',
   '/efsane-mi-gercek-mi/',
   '/teknik/',

@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CONTENT_AREAS } from '../config/site';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../lib/seo';
+import { getAllArticles } from '../lib/content';
+import { READY_TOOLS } from '../config/tools';
+
+/**
+ * The İçerikler hub.
+ *
+ * Exists so the grouped navigation has a destination. A parent label that only
+ * opens a menu is a dead end for anyone using a keyboard, a screen reader, or
+ * a touch device that resolves the first tap as a click — and it gives search
+ * engines a navigation item with nothing behind it.
+ *
+ * Deliberately thin: one line per area and a real count, not a second copy of
+ * each section's own listing. Counts come from the content collections, so a
+ * new guide is reflected here without anyone remembering to edit this file.
+ */
+const articles = await getAllArticles();
+const countOf = (collection: string): number =>
+  articles.filter((entry) => entry.collection === collection).length;
+
+const COUNTS: Record<string, string> = {
+  '/rehberler/': `${countOf('guides')} rehber`,
+  '/efsane-mi-gercek-mi/': `${countOf('myths')} iddia`,
+  '/araclar/': `${READY_TOOLS.length} araç`,
+  '/haberler/': countOf('news') > 0 ? `${countOf('news')} haber` : 'Henüz yayın yok',
+};
+
+const description =
+  'TurkCyber içeriklerinin tamamı: rehberler, efsane mi gerçek mi, araçlar, konu dizini ve haberler.';
+
+const structuredData = ldGraph(
+  collectionPageLd('İçerikler', '/icerikler/', description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'İçerikler', path: '/icerikler/' },
+  ]),
+);
+---
+
+<BaseLayout title="İçerikler" seoTitle="İçerikler | TurkCyber" {description} {structuredData}>
+  <div class="container-narrow page">
+    <header class="page-head">
+      <p class="eyebrow">İçerikler</p>
+      <h1>Nereden başlamak istersiniz?</h1>
+      <p class="lede">
+        Sitedeki her şey beş başlık altında. Bir sorununuz varsa rehberlerle, bir cümlenin doğru
+        olup olmadığını merak ediyorsanız efsanelerle başlayın.
+      </p>
+    </header>
+
+    <ul class="areas">
+      {
+        CONTENT_AREAS.map((area) => (
+          <li>
+            <a href={area.href}>
+              <span class="area-head">
+                <span class="area-name">{area.label}</span>
+                {COUNTS[area.href] && <span class="area-count">{COUNTS[area.href]}</span>}
+              </span>
+              <span class="area-blurb">{area.blurb}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="aside-note">
+      Bir mekanizmanın teknik olarak nasıl işlediğini merak ediyorsanız
+      <a href="/teknik/">Teknik Derinlik</a> bölümü ayrı duruyor.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    margin-bottom: var(--sp-6);
+  }
+  .page-head h1 {
+    margin-top: var(--sp-2);
+  }
+  .lede {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+  .areas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .areas a {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+  }
+  .areas a:hover {
+    border-color: var(--green);
+    background: var(--surface-2);
+  }
+  .area-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+  }
+  .area-name {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .area-count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+  }
+  .area-blurb {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+  .aside-note {
+    margin-top: var(--sp-6);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+</style>

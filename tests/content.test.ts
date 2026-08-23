@@ -19,7 +19,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { CATEGORIES, CATEGORY_IDS, NAV } from '../src/config/site';
+import { CATEGORIES, CATEGORY_IDS, CONTENT_AREAS, NAV } from '../src/config/site';
 import { READY_TOOLS } from '../src/config/tools';
 import { LEVELS, WEIGHT_ORDER, allItems, evaluateChecklist } from '../src/lib/tools/checklist';
 import { HESAP_GUVENLIK_PUANI } from '../src/lib/tools/hesap-guvenlik-puani';
@@ -227,6 +227,40 @@ describe('draft content', () => {
 
   it('shows the empty state on the news index', () => {
     expect(read(join('haberler', 'index.html'))).toContain('Henüz haber yayınlanmadı');
+  });
+});
+
+describe('grouped navigation', () => {
+  it('keeps the header to four destinations plus search', () => {
+    expect(NAV.length).toBe(4);
+    expect(NAV.map((item) => item.href)).toEqual([
+      '/icerikler/',
+      '/teknik/',
+      '/hakkinda/',
+      '/iletisim/',
+    ]);
+  });
+
+  /*
+   * A parent label that only opens a menu is a dead end for keyboard, screen
+   * reader and touch. The group must have a real page behind it.
+   */
+  it('gives the content group a real page of its own', () => {
+    expect(existsSync(join(TEST_DIST, 'icerikler', 'index.html'))).toBe(true);
+    expect(sitemapPaths()).toContain('/icerikler/');
+  });
+
+  it('links every content area from the hub', () => {
+    const html = read(join('icerikler', 'index.html'));
+    for (const area of CONTENT_AREAS) {
+      expect(html, `${area.href} missing from the hub`).toContain(`href="${area.href}"`);
+    }
+  });
+
+  it('exposes the group as a button with aria state, not a hover menu', () => {
+    const html = read('index.html');
+    expect(html).toContain('aria-controls="nav-group-icerikler"');
+    expect(html).toMatch(/aria-expanded="false"/);
   });
 });
 

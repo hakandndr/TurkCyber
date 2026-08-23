@@ -226,20 +226,59 @@ export function getCategory(id: string): Category | undefined {
 }
 
 /**
+ * The five content areas, grouped under /icerikler/.
+ *
+ * They were all first-level navigation until this pass, which put seven
+ * destinations in the header and made the bar read as a list of everything the
+ * site contains rather than as a way in. Grouping them gives the header room —
+ * and gives the group a real page, instead of a dropdown that exists only to
+ * hold links.
+ */
+export const CONTENT_AREAS = [
+  {
+    href: '/rehberler/',
+    label: 'Rehberler',
+    blurb: 'Tek bir problemi ele alan, adım adım anlatan yazılar.',
+  },
+  {
+    href: '/efsane-mi-gercek-mi/',
+    label: 'Efsane mi, gerçek mi?',
+    blurb: 'Sık duyulan iddialar ve cevapları — cevap başlığın hemen altında.',
+  },
+  {
+    href: '/araclar/',
+    label: 'Araçlar',
+    blurb: 'Tarayıcınızda çalışan kısa testler. Cevaplarınız hiçbir yere gitmez.',
+  },
+  {
+    href: '/konular/',
+    label: 'Konular',
+    blurb: 'Bütün içeriğin problem alanlarına göre dizini.',
+  },
+  {
+    href: '/haberler/',
+    label: 'Haberler',
+    blurb: 'Yalnızca sizi doğrudan ilgilendiren gelişmeler.',
+  },
+] as const;
+
+/**
  * Public navigation. `/boss` is deliberately absent — the private console is
  * never linked, never in the sitemap and never indexed.
+ *
+ * `children` marks a grouped item: the label itself is a real link to its own
+ * page and the group opens beside it. Never a hover-only menu, and never a
+ * label that goes nowhere.
  */
 export const NAV = [
-  { href: '/rehberler/', label: 'Rehberler' },
-  { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi?' },
+  { href: '/icerikler/', label: 'İçerikler', children: CONTENT_AREAS },
   { href: '/teknik/', label: 'Teknik' },
-  { href: '/araclar/', label: 'Araçlar' },
-  { href: '/haberler/', label: 'Haberler' },
-  { href: '/konular/', label: 'Konular' },
   { href: '/hakkinda/', label: 'Hakkında' },
+  { href: '/iletisim/', label: 'İletişim' },
 ] as const;
 
 export const FOOTER_LINKS = [
+  { href: '/icerikler/', label: 'İçerikler' },
   { href: '/rehberler/', label: 'Rehberler' },
   { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi, gerçek mi?' },
   { href: '/teknik/', label: 'Nasıl çalışıyor?' },
