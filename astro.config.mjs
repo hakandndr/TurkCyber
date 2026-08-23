@@ -14,6 +14,10 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'always',
   build: { format: 'directory', inlineStylesheets: 'auto' },
+  // The Worker CSP deliberately omits unsafe-inline. Astro otherwise embeds
+  // small component entrypoints directly in each page, so keep every
+  // executable enhancement as a same-origin asset instead.
+  vite: { build: { assetsInlineLimit: 0 } },
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   devToolbar: { enabled: false },
   compressHTML: true,

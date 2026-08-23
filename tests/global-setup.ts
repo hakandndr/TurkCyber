@@ -59,6 +59,10 @@ export default function setup(): void {
       // produced once before. The publication gate is fail-safe on its own now,
       // but the test build should still be the build a release produces.
       NODE_ENV: 'production',
+      // Do not inherit a developer's shell or ignored .env file. This value is
+      // passed only to the child build, so the parent test environment needs no
+      // mutation or cleanup.
+      SHOW_UNPUBLISHED: 'false',
     },
   });
 

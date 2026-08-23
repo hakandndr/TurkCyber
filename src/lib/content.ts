@@ -15,8 +15,8 @@
  * ambiguous — an unusual NODE_ENV, a CI runner's defaults, a future tool that
  * sets mode differently — results in drafts being hidden, never published.
  *
- * `SHOW_UNPUBLISHED=true` lives in `.env.development`, which Astro loads for
- * `astro dev` and not for `astro build`. It is not a secret and is committed.
+ * Authors may opt in through their ignored local environment or for one dev
+ * command. Release and test builds explicitly keep the flag closed.
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
 

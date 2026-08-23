@@ -58,6 +58,12 @@ const dirsIn = (path: string): string[] => {
 
 const guideSlugs = (): string[] => dirsIn('rehberler');
 
+const filesIn = (root: string): string[] =>
+  readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(root, entry.name);
+    return entry.isDirectory() ? filesIn(path) : [path];
+  });
+
 /** Every <loc> in the sitemap, as a path. */
 const sitemapPaths = (): string[] =>
   [...read('sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map(
@@ -81,6 +87,31 @@ describe('the test build itself', () => {
     // dist/, this fails and says why.
     expect(TEST_DIST.endsWith('.test-dist')).toBe(true);
     expect(existsSync(join(TEST_DIST, 'index.html'))).toBe(true);
+  });
+
+  it('emits executable scripts as same-origin assets for the Worker CSP', () => {
+    const violations: string[] = [];
+
+    for (const path of filesIn(TEST_DIST).filter((file) => file.endsWith('.html'))) {
+      const html = readFileSync(path, 'utf8');
+      for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+        const attributes = match[1] ?? '';
+        if (/\bsrc\s*=/.test(attributes)) continue;
+
+        const type = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
+        if (type === 'application/ld+json' || type === 'application/json') continue;
+        if ((match[2] ?? '').trim()) violations.push(path.slice(TEST_DIST.length + 1));
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it('loads a no-JS-only navigation fallback', () => {
+    expect(read('index.html')).toContain('<noscript><link rel="stylesheet" href="/no-js.css"');
+    const fallback = readFileSync(join(process.cwd(), 'public', 'no-js.css'), 'utf8');
+    expect(fallback).toContain('.mobile-nav[hidden]');
+    expect(fallback).toContain('.menu-button');
   });
 });
 
@@ -211,13 +242,6 @@ describe('the draft publication gate', () => {
       .join('\n');
     expect(code).not.toContain('import.meta.env.DEV');
   });
-
-  it('keeps the opt-in flag in the development environment file only', () => {
-    // .env.development is loaded by `astro dev`, never by `astro build`.
-    const devEnv = readFileSync(join(process.cwd(), '.env.development'), 'utf8');
-    expect(devEnv).toContain('SHOW_UNPUBLISHED=true');
-    expect(existsSync(join(process.cwd(), '.env.production'))).toBe(false);
-  });
 });
 
 describe('draft content', () => {
@@ -240,6 +264,22 @@ describe('draft content', () => {
     const html = read('index.html');
     expect(html).toContain('Güncel güvenlik haberleri');
     expect(html).toContain('Henüz yayınlanmış güncel güvenlik haberi yok');
+  });
+});
+
+describe('release configuration', () => {
+  it('allows only the approved external contact form action', () => {
+    const worker = readFileSync(join(process.cwd(), 'worker', 'index.ts'), 'utf8');
+    expect(worker).toContain('"form-action \'self\' https://formspree.io/f/mljrvker"');
+    expect(worker).toContain('"connect-src \'self\' https://formspree.io/f/mljrvker"');
+    expect(worker).not.toMatch(/form-action[^\n]*formspree\.io(?:\s|["'])/);
+    expect(worker).not.toMatch(/connect-src[^\n]*formspree\.io(?:\s|["'])/);
+  });
+
+  it('routes the complete staging hostname while leaving production unrouted', () => {
+    const config = readFileSync(join(process.cwd(), 'wrangler.jsonc'), 'utf8');
+    expect(config).toContain('"pattern": "turkcyber-staging.dndr.net/*"');
+    expect(config).toMatch(/"production"\s*:\s*\{[\s\S]*?"routes"\s*:\s*\[\]/);
   });
 });
 

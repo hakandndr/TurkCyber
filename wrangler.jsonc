@@ -48,17 +48,10 @@
         "ENVIRONMENT": "staging",
         "ANALYTICS_TIMEZONE": "America/Los_Angeles",
       },
-      // Route pattern MUST carry the trailing wildcard. Cloudflare matches the
-      // pattern against the whole URL including the query string, and the
-      // beacon always sends ?path=…&referrer=…&t=…. A bare "/collect" never
-      // matches a real request. The wildcard also catches unrelated paths such
-      // as /collections/*, so worker/index.ts re-checks the exact pathname and
-      // falls through to static assets for anything else.
-      "routes": [
-        { "pattern": "turkcyber-staging.dndr.net/collect*", "zone_name": "dndr.net" },
-        { "pattern": "turkcyber-staging.dndr.net/api/*", "zone_name": "dndr.net" },
-        { "pattern": "turkcyber-staging.dndr.net/boss*", "zone_name": "dndr.net" },
-      ],
+      // Staging owns its entire staging-only hostname so homepage and page
+      // smoke tests reach the ASSETS binding as well as the dynamic routes.
+      // Production remains deliberately unrouted below.
+      "routes": [{ "pattern": "turkcyber-staging.dndr.net/*", "zone_name": "dndr.net" }],
       "d1_databases": [
         {
           "binding": "APP_DB",

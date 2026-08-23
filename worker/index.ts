@@ -27,7 +27,7 @@ const PUBLIC_SECURITY_HEADERS: Record<string, string> = {
   'content-security-policy': [
     "default-src 'self'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://formspree.io/f/mljrvker",
     "frame-ancestors 'none'",
     "object-src 'none'",
     "img-src 'self' data:",
@@ -35,7 +35,7 @@ const PUBLIC_SECURITY_HEADERS: Record<string, string> = {
     "font-src 'self' https://fonts.gstatic.com",
     "script-src 'self' https://challenges.cloudflare.com",
     'frame-src https://challenges.cloudflare.com',
-    "connect-src 'self'",
+    "connect-src 'self' https://formspree.io/f/mljrvker",
     'upgrade-insecure-requests',
   ].join('; '),
   'referrer-policy': 'strict-origin-when-cross-origin',

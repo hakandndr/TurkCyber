@@ -1,0 +1,10 @@
+/* Progressive fallback only: this file is loaded from a <noscript> element. */
+@media (max-width: 61rem) {
+  .site-header .menu-button {
+    display: none !important;
+  }
+
+  .site-header .mobile-nav[hidden] {
+    display: block !important;
+  }
+}
