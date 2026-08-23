@@ -2,22 +2,32 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { CATEGORIES } from '../../config/site';
 import { getAllArticles } from '../../lib/content';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
 
 const articles = await getAllArticles();
 const counts = new Map<string, number>();
 for (const article of articles) {
   counts.set(article.data.category, (counts.get(article.data.category) ?? 0) + 1);
 }
+
+const description =
+  'TurkCyber içeriklerinin konu başlıkları: hesap güvenliği, şifreler, 2FA, banka ' +
+  'dolandırıcılığı, gizlilik ve teknik derinlik.';
+
+const structuredData = ldGraph(
+  collectionPageLd('Konular', '/konular/', description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Konular', path: '/konular/' },
+  ]),
+);
 ---
 
-<BaseLayout
-  title="Konular"
-  description="TurkCyber içeriklerinin konu başlıkları: hesap güvenliği, şifreler, 2FA, dolandırıcılık, gizlilik ve daha fazlası."
->
+<BaseLayout title="Konular" seoTitle="Konu Başlıkları | TurkCyber" {description} {structuredData}>
   <div class="container page">
     <header class="page-head">
       <h1>Konular</h1>
-      <p>İçerikler dokuz başlık altında toplanır.</p>
+      <p>İçerikler {CATEGORIES.length} başlık altında toplanır.</p>
     </header>
 
     <ul class="topics">

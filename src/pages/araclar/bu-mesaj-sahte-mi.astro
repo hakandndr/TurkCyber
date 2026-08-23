@@ -1,99 +1,30 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import ToolLayout from '../../layouts/ToolLayout.astro';
 import QuizTool from '../../components/tools/QuizTool.astro';
 import { BU_MESAJ_SAHTE_MI } from '../../lib/tools/bu-mesaj-sahte-mi';
 ---
 
-<BaseLayout
-  title="Bu mesaj sahte mi?"
-  description="Altı gerçekçi mesaj üzerinden oltalama işaretlerini tanıma testi. Tarayıcınızda çalışır, cevaplarınız hiçbir yere gönderilmez."
+<ToolLayout
+  toolId="bu-mesaj-sahte-mi"
+  note="Mesajların hepsi bu test için yazıldı. Gerçek bir yazışma değildir ve hiçbir kurumu gerçek bir dolandırıcılığın kaynağı olarak göstermez."
 >
-  <div class="container-narrow page">
-    <nav aria-label="Konum" class="breadcrumb">
-      <a href="/">Ana sayfa</a>
-      <span aria-hidden="true">/</span>
-      <a href="/araclar/">Araçlar</a>
-    </nav>
+  <QuizTool definition={BU_MESAJ_SAHTE_MI} />
 
-    <header class="head">
-      <h1>{BU_MESAJ_SAHTE_MI.title}</h1>
-      <p class="lede">{BU_MESAJ_SAHTE_MI.description}</p>
-      <p class="note">
-        Mesajların hepsi bu test için yazıldı. Gerçek bir yazışma değildir ve hiçbir kurumu gerçek
-        bir dolandırıcılığın kaynağı olarak göstermez.
-      </p>
-    </header>
-
-    <QuizTool definition={BU_MESAJ_SAHTE_MI} />
-
-    <aside class="after">
-      <h2>Devamı</h2>
-      <ul>
-        <li>
-          <a href="/rehberler/sahte-giris-sayfasi-nasil-anlasilir/"
-            >Sahte giriş sayfasını nasıl anlarsınız?</a
-          >
-        </li>
-        <li>
-          <a href="/rehberler/instagram-hesabinizi-nasil-korursunuz/"
-            >Instagram hesabınızı nasıl korursunuz?</a
-          >
-        </li>
-        <li>
-          <a href="/efsane-mi-gercek-mi/kilit-simgesi-varsa-site-guvenlidir/"
-            >Kilit simgesi varsa site güvenli midir?</a
-          >
-        </li>
-      </ul>
-    </aside>
-  </div>
-</BaseLayout>
-
-<style>
-  .page {
-    padding-block: var(--sp-6) var(--sp-8);
-  }
-  .breadcrumb {
-    display: flex;
-    gap: var(--sp-2);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--text-faint);
-    margin-bottom: var(--sp-5);
-  }
-  .breadcrumb a {
-    color: var(--text-muted);
-    text-decoration: none;
-  }
-  .breadcrumb a:hover {
-    color: var(--cyan);
-  }
-  .head {
-    margin-bottom: var(--sp-5);
-  }
-  .lede {
-    margin-top: var(--sp-4);
-    color: var(--text-muted);
-    font-size: var(--step-1);
-  }
-  .note {
-    margin-top: var(--sp-3);
-    font-size: var(--step--1);
-    color: var(--text-faint);
-  }
-  .after {
-    margin-top: var(--sp-7);
-    padding-top: var(--sp-5);
-    border-top: 1px solid var(--border);
-  }
-  .after h2 {
-    font-size: var(--step-2);
-    margin-bottom: var(--sp-3);
-  }
-  .after ul {
-    padding-left: var(--sp-5);
-  }
-  .after li {
-    margin-bottom: var(--sp-2);
-  }
-</style>
+  <ul slot="after">
+    <li>
+      <a href="/rehberler/sahte-giris-sayfasi-nasil-anlasilir/"
+        >Sahte giriş sayfasını nasıl anlarsınız?</a
+      >
+    </li>
+    <li>
+      <a href="/rehberler/instagram-hesabinizi-nasil-korursunuz/"
+        >Instagram hesabınızı nasıl korursunuz?</a
+      >
+    </li>
+    <li>
+      <a href="/efsane-mi-gercek-mi/kilit-simgesi-varsa-site-guvenlidir/"
+        >Kilit simgesi varsa site güvenli midir?</a
+      >
+    </li>
+  </ul>
+</ToolLayout>

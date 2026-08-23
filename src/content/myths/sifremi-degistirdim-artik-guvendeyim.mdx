@@ -1,0 +1,63 @@
+---
+title: 'Şifremi değiştirdim, hesabım artık temiz'
+verdict: kismen
+verdictLine: 'Doğru bir ilk adım ama tek başına yetmeyebilir — açık oturumlar ve bağlı uygulamalar şifre değişiminden etkilenmeyebilir.'
+description: 'Hesabı geri aldıktan sonra şifre değiştirmek yeterli sanılıyor. Saldırganın erişimini gerçekten kesen üç adım ve doğru sıralaması.'
+category: hesap-guvenligi
+publishedAt: 2026-08-23
+status: published
+summary: 'Şifre değişimi yeni girişleri engeller ama hâlihazırda açık bir oturumu her sistemde sonlandırmaz. Bağlı üçüncü taraf uygulamalar ise şifreden tamamen bağımsız bir kapıdır. Temizlik: şifre, ardından tüm oturumların kapatılması, ardından bağlı uygulamaların gözden geçirilmesi.'
+tags: ['hesap güvenliği', 'oturum', 'kurtarma']
+---
+
+Hesabınızı geri aldınız, şifreyi değiştirdiniz, rahatladınız. Sonra birkaç gün
+sonra yine tuhaf bir şey oluyor.
+
+Bunun en sık sebebi, şifre değişiminin **açık bir oturumu her zaman
+sonlandırmaması.**
+
+## Neden yetmeyebilir
+
+Giriş yaptığınızda sistem tarayıcıya ya da uygulamaya bir oturum bilgisi verir.
+Sonraki isteklerde şifre değil o bilgi kullanılır.
+
+Bazı sistemler şifre değişiminde tüm oturumları geçersiz kılar. Bazıları
+kılmaz, bazıları yalnızca bir kısmını kılar. Yani saldırganın hâlihazırda açık
+oturumu çalışmaya devam edebilir.
+
+<Callout type="bilgi">
+  Bunun neden böyle olduğunun teknik anlatımı: [Oturum çerezi nedir ve neden
+  çalınır?](/teknik/oturum-cerezi-nedir-ve-neden-calinir/)
+</Callout>
+
+## İkinci unutulan kapı: bağlı uygulamalar
+
+Hesabınıza erişim verdiğiniz üçüncü taraf uygulamalar şifrenizle çalışmaz; ayrı
+bir izinle çalışır. Şifreyi değiştirmek o izni iptal etmez.
+
+Saldırgan hesaba girdiğinde kendi uygulamasına erişim vermişse, siz şifreyi
+değiştirdikten sonra da erişimi sürer.
+
+## Doğru sıra
+
+<Callout type="kontrol">
+  1. **Şifreyi değiştirin** — mümkünse temiz olduğundan emin olduğunuz bir cihazdan. 2. **Tüm
+  oturumları kapatın.** Hesap ayarlarında "cihazlar", "oturumlar" ya da "giriş etkinliği" başlığı
+  altındadır. 3. **Bağlı uygulamaları gözden geçirin** ve tanımadıklarınızın erişimini kaldırın. 4.
+  **Kurtarma bilgilerini kontrol edin.** Saldırganın eklediği bir e-posta veya telefon numarası
+  kalmışsa hesabı tekrar alabilir. 5. **İki aşamalı doğrulamayı açın** ya da yeniden kurun.
+</Callout>
+
+Sıralama önemli: önce şifre, sonra oturumlar. Ters sırada saldırgan hâlâ eski
+şifreyle yeni bir oturum açabilir.
+
+## Dördüncü adımı atlamayın
+
+En sık gözden kaçan yer kurtarma bilgileri. Şifreyi ve oturumları hallettiğiniz
+hâlde saldırganın eklediği bir kurtarma e-postası duruyorsa, "şifremi unuttum"
+akışıyla hesabı yeniden alabilir.
+
+## Devamı
+
+- [Hesap güvenlik puanı](/araclar/hesap-guvenlik-puani/)
+- [Instagram güvenlik testi](/araclar/instagram-guvenlik-testi/)

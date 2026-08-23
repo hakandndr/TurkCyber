@@ -29,11 +29,18 @@ import {
 import {
   LAST_24H_QUERY,
   PAGE_SIZE,
+  RETENTION_CONFIRM_PHRASE,
+  RETENTION_DAYS,
+  RETENTION_DELETE,
+  RETENTION_OLDER_QUERY,
+  RETENTION_SUMMARY_QUERY,
   SUMMARY_QUERY,
   TOP_PAGES_QUERY,
   buildFilters,
   countQuery,
+  retentionCutoff,
   rowsQuery,
+  type RetentionStats,
 } from '../lib/analytics-query';
 import { DEFAULT_TIMEZONE } from '../lib/time';
 import {
@@ -85,7 +92,24 @@ export async function handleBoss(request: Request, env: Env): Promise<Response> 
     if (path === '/boss') return withCookie(await overview(env));
     if (path === '/boss/analytics') return withCookie(await analytics(request, env));
     if (path === '/boss/comments') return withCookie(await commentsPage(request, env));
-    if (path === '/boss/system') return withCookie(await systemPage(env));
+    if (path === '/boss/system') {
+      return withCookie(await systemPage(env, noticeFrom(url)));
+    }
+
+    /*
+     * Manual analytics retention.
+     *
+     * POST only, same-origin only, session required (that check has already
+     * happened above), confirmation phrase required, audited. It touches
+     * ANALYTICS_DB and nothing else. Nothing calls this on a schedule — see
+     * the note in worker/lib/analytics-query.ts.
+     */
+    if (path === '/boss/analytics/purge') {
+      if (request.method !== 'POST') {
+        return htmlResponse('Method not allowed.', 405, { allow: 'POST' });
+      }
+      return withCookie(await purgeAnalytics(request, env, refreshed));
+    }
 
     const moderate = path.match(/^\/boss\/comments\/(approve|reject|spam|delete)$/);
     if (moderate && request.method === 'POST') {
@@ -379,7 +403,104 @@ async function moderateComment(
   });
 }
 
-async function systemPage(env: Env): Promise<Response> {
+/**
+ * Retention counts.
+ *
+ * Read-only. Runs on every System page load so the operator always sees the
+ * real state rather than a number cached from an earlier visit.
+ */
+async function loadRetention(env: Env): Promise<RetentionStats | undefined> {
+  if (!env.ANALYTICS_DB) return undefined;
+  const cutoff = retentionCutoff(new Date());
+  const [summary, older] = await Promise.all([
+    env.ANALYTICS_DB.prepare(RETENTION_SUMMARY_QUERY).first<{
+      total: number;
+      oldest: string | null;
+      newest: string | null;
+    }>(),
+    env.ANALYTICS_DB.prepare(RETENTION_OLDER_QUERY).bind(cutoff).first<{ older: number }>(),
+  ]);
+  return {
+    total: summary?.total ?? 0,
+    oldest: summary?.oldest ?? null,
+    newest: summary?.newest ?? null,
+    older: older?.older ?? 0,
+    cutoff,
+  };
+}
+
+/** Notices are passed as a flag, never as free text — the query string is visitor-writable. */
+const NOTICES: Record<string, { text: string; ok: boolean }> = {
+  purged: { text: 'Eski ziyaret kayıtları silindi.', ok: true },
+  nothing: { text: `${RETENTION_DAYS} günden eski kayıt bulunamadı.`, ok: true },
+  unconfirmed: { text: 'Onay metni eşleşmedi. Hiçbir kayıt silinmedi.', ok: false },
+};
+
+function noticeFrom(url: URL): { text: string; ok: boolean } | undefined {
+  return NOTICES[url.searchParams.get('notice') ?? ''];
+}
+
+async function purgeAnalytics(
+  request: Request,
+  env: Env,
+  session: SessionPayload,
+): Promise<Response> {
+  if (!isSameOrigin(request)) return htmlResponse('Forbidden.', 403);
+  if (!env.ANALYTICS_DB) return htmlResponse('ANALYTICS_DB is not bound.', 503);
+
+  const form = await request.formData();
+  const confirm = String(form.get('confirm') ?? '')
+    .trim()
+    .toUpperCase();
+
+  // Fail closed. An unconfirmed request deletes nothing and says so.
+  if (confirm !== RETENTION_CONFIRM_PHRASE) {
+    return redirectToSystem('unconfirmed');
+  }
+
+  const cutoff = retentionCutoff(new Date());
+  const before = await env.ANALYTICS_DB.prepare(RETENTION_OLDER_QUERY)
+    .bind(cutoff)
+    .first<{ older: number }>();
+  const count = before?.older ?? 0;
+
+  if (count === 0) return redirectToSystem('nothing');
+
+  // ANALYTICS_DB only. The audit record goes to APP_DB because that is where
+  // the audit trail lives — an INSERT, never a DELETE against that database.
+  await env.ANALYTICS_DB.prepare(RETENTION_DELETE).bind(cutoff).run();
+
+  if (env.APP_DB) {
+    await env.APP_DB.prepare(
+      `INSERT INTO audit_events (occurred_at, actor, action, entity_type, entity_id, details)
+       VALUES (?, ?, 'analytics_purge', 'analytics', ?, ?)`,
+    )
+      .bind(
+        new Date().toISOString(),
+        session.u,
+        cutoff,
+        `deleted ${count} visitor_events older than ${RETENTION_DAYS}d`,
+      )
+      .run()
+      // An audit write that fails must not make the operator think the purge
+      // failed — it already happened. Log it and carry on.
+      .catch((error: unknown) => {
+        console.error('boss: analytics purge audit write failed', error);
+      });
+  }
+
+  console.warn(`boss: purged ${count} visitor_events older than ${cutoff} (actor ${session.u})`);
+  return redirectToSystem('purged');
+}
+
+function redirectToSystem(notice: string): Response {
+  return new Response(null, {
+    status: 303,
+    headers: { location: `/boss/system/?notice=${notice}`, ...PRIVATE_HEADERS },
+  });
+}
+
+async function systemPage(env: Env, notice?: { text: string; ok: boolean }): Promise<Response> {
   const info: Record<string, string> = {
     environment: env.ENVIRONMENT ?? 'unknown',
     timezone: timeZone(env),
@@ -401,5 +522,10 @@ async function systemPage(env: Env): Promise<Response> {
     audit = rows.results ?? [];
   }
 
-  return htmlResponse(renderSystem(info, audit, timeZone(env)));
+  const retention = await loadRetention(env).catch((error: unknown) => {
+    console.error('boss: retention stats failed', error);
+    return undefined;
+  });
+
+  return htmlResponse(renderSystem(info, audit, timeZone(env), retention, notice));
 }

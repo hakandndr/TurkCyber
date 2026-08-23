@@ -1,0 +1,83 @@
+---
+title: 'Faturadaki IBAN Değiştiyse: Ödeme Yönlendirme Dolandırıcılığı'
+description: 'Doğru firmadan gelmiş gibi görünen bir e-postada IBAN değişmiş olabilir. Kurumsal ödemelerde en pahalı dolandırıcılık türü ve onu durduran tek alışkanlık.'
+category: banka-kamu-dolandiriciligi
+publishedAt: 2026-08-23
+status: published
+difficulty: orta
+readingTime: 6
+summary: 'Saldırgan yazışmanın içine girer ve ödeme anında IBAN’ı değiştirir. Yazışma gerçek, firma gerçek, sadece hesap numarası değişmiştir. Tek çözüm: IBAN değişikliğini her zaman ayrı bir kanaldan, bilinen bir numaradan sesli olarak doğrulamak.'
+tags: ['iban', 'fatura', 'dolandırıcılık', 'e-posta', 'kurumsal']
+---
+
+Bu, bireysel kullanıcıdan çok küçük işletmeleri ve serbest çalışanları vuruyor —
+ve tek seferde kaybedilen tutarlar en yüksek olanlar arasında.
+
+Senaryo sade: ödeme yapacaksınız, karşı taraftan gelen e-postada IBAN
+değişmiştir. Yazışma gerçektir. Firma gerçektir. İmza gerçektir. Sadece hesap
+numarası size ait olmayan bir yere aittir.
+
+## Nasıl oluyor
+
+İki yaygın yol var.
+
+### Yazışmanın içine girmek
+
+Saldırgan taraflardan birinin e-posta hesabına erişir. Genellikle bir sızıntıdan
+gelen şifre ya da bir sahte giriş sayfası yoluyla. Sonra aylarca hiçbir şey
+yapmaz — sadece okur.
+
+Ödeme yaklaştığında araya girer: doğru zamanda, doğru üslupla, doğru dosya
+adlarıyla bir mesaj gönderir. "Muhasebe hesap değiştirdi, yeni IBAN ekte."
+
+<Callout type="dikkat">
+  Bu senaryoda e-posta gerçekten karşı tarafın adresinden gelmiş olabilir. Gönderen adresine bakarak
+  ayırt edemezsiniz.
+</Callout>
+
+### Benzer alan adı
+
+Daha basit olanı: `firma.com.tr` yerine `firrna.com.tr` ya da `firma-tr.com`.
+Yazı tipine göre `rn` ile `m` neredeyse ayırt edilemez.
+
+Bu yöntemde gönderen adresi dikkatle bakılırsa yakalanır — ama ödeme günü, koşan
+bir insan dikkatle bakmaz. Yazının [teknik
+tarafı](/teknik/benzer-alan-adlari-neden-fark-edilmiyor/) ayrı bir sayfada.
+
+## Durduran tek alışkanlık
+
+<Callout type="kontrol">
+  **IBAN değişikliği her zaman ikinci bir kanaldan doğrulanır.** E-postayla bildirilen bir IBAN
+  değişikliğini telefonla doğrulayın — ve o telefonu, **yeni e-postadaki numaradan değil**, sizde
+  zaten kayıtlı olan numaradan arayın.
+</Callout>
+
+Bu kural aptalca basit görünüyor ve saldırının tamamını kapatıyor. Çünkü
+saldırgan yazışmayı ele geçirmiş olsa bile, sizin defterinizdeki eski telefon
+numarasını değiştiremez.
+
+## Kurumsal tarafta işleyen kontroller
+
+Bir ekibiniz varsa, bunu bir kişinin dikkatine bırakmayın:
+
+- **IBAN değişikliği için ayrı bir onay adımı** koyun. Ödemeyi yapan kişi ile
+  IBAN'ı değiştiren kişi aynı olmasın.
+- **Tedarikçi IBAN'larını sabit bir kayıtta tutun.** Ödeme, e-postadaki
+  bilgiden değil o kayıttan yapılsın.
+- Belirli bir tutarın üstünde **sesli teyit** zorunlu olsun.
+- E-posta hesaplarında **iki aşamalı doğrulama** açık olsun — bu saldırının
+  başlangıç noktası neredeyse her zaman ele geçirilmiş bir posta kutusudur.
+
+<Callout type="bilgi">
+  "Acele et" baskısı burada da var: mesaj genellikle gün sonu, hafta sonu öncesi ya da bir tatil
+  arifesinde gelir. Zamanlama tesadüf değildir.
+</Callout>
+
+## Ödeme yapıldıysa
+
+Saatler önemli. Sırasıyla:
+[Parayı dolandırıcıya gönderdim, şimdi ne
+yapmalıyım?](/rehberler/parayi-dolandiriciya-gonderdim-ne-yapmaliyim/)
+
+Ek olarak karşı tarafı da **hemen** haberdar edin: e-posta hesaplarından biri ele
+geçirilmişse aynı saldırı onların diğer müşterilerinde de sürüyor olabilir.

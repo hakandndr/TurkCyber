@@ -1,0 +1,110 @@
+---
+title: 'Benzer Alan Adları Neden Gözden Kaçıyor?'
+description: 'Sahte adresler artık yazım hatasıyla yakalanmıyor. Alan adının hangi parçasının önemli olduğu, hangi numaraların kullanıldığı ve bakarak karar vermenin neden zayıf bir yöntem olduğu.'
+category: nasil-calisiyor
+publishedAt: 2026-08-23
+status: published
+readingTime: 7
+prerequisite: 'Bir internet adresinin nasıl göründüğünü bilmeniz yeterli; DNS bilmenize gerek yok.'
+summary: 'Adresin anlamlı parçası, son eğik çizgiden önceki son iki bölümdür. Saldırganlar bu kuralı bildiğiniz varsayımıyla değil, bilmediğiniz varsayımıyla çalışır: alt alan adı, tire, benzer harf ve farklı alfabe numaralarının hepsi bunun üzerine kuruludur.'
+tags: ['alan adı', 'phishing', 'tarayıcı', 'nasıl çalışıyor']
+---
+
+"Adrese dikkat edin" tavsiyesi doğru ama eksik. Çünkü adresin **neresine**
+bakılacağı söylenmiyor ve orası tam olarak saldırganın oynadığı yer.
+
+## Adresin hangi parçası önemli
+
+Bir adreste kimliği belirleyen kısım, ilk tek eğik çizgiden önceki bölümün
+**sonudur**. Baştan değil, sondan okunur.
+
+```
+https://giris.hesap.turkcyber.com/dogrula
+        └──── alt alanlar ────┘ └── kimlik ──┘
+```
+
+Burada site `turkcyber.com`'dur. `giris` ve `hesap` sadece o sitenin kendi
+oluşturduğu alt bölümlerdir.
+
+Şimdi aynı görünen bir adres:
+
+```
+https://turkcyber.com.dogrulama-merkezi.net/giris
+                      └──── gerçek kimlik ────┘
+```
+
+Bu adres `dogrulama-merkezi.net`'e aittir. `turkcyber.com` kısmı sadece bir alt
+alan adıdır ve o alan adının sahibi istediğini yazabilir.
+
+<Callout type="onemli">
+  Kural: **son noktadan geriye doğru iki bölüm** kimliği verir. Türkiye'de sık görülen `.com.tr`
+  gibi uzantılarda üç bölümdür. Baştaki her şey — ne kadar tanıdık görünürse görünsün — sahibinin
+  serbestçe yazdığı metindir.
+</Callout>
+
+## Kullanılan numaralar
+
+### Alt alan adı
+
+Yukarıdaki örnek. En ucuz, en yaygın ve mobilde en etkili yöntem, çünkü telefon
+tarayıcıları adres çubuğunu kısaltır ve genellikle **başını** gösterir.
+
+### Tire ekleme
+
+`turkcyber-giris.com`, `turkcyber-destek.net`. Marka adı görünür durumda ama alan
+adı bambaşkadır.
+
+### Benzer harfler
+
+`rn` ile `m`, büyük `I` ile küçük `l`, `0` ile `O`. Bir e-posta listesinde hızla
+okurken `firrna.com` ile `firma.com` ayırt edilmez.
+
+### Farklı alfabeler
+
+Kiril alfabesindeki bir harf, Latin harfiyle neredeyse aynı çizilir. Tarayıcılar
+bu duruma karşı bir savunma taşır ve bu tür adresleri genellikle `xn--` ile
+başlayan çevrilmiş hâliyle gösterir — ama bu savunma her durumda devreye girmez
+ve kullanıcıya `xn--` gösterildiğinde de çoğu kişi bunun ne anlama geldiğini
+bilmez.
+
+### Uzantı değiştirme
+
+`marka.com.tr` yerine `marka.com`, ya da `marka.tr` yerine `marka.net`. Kimse
+hangi kurumun hangi uzantıyı kullandığını ezberlemiyor.
+
+## Kilit simgesi neden yardımcı olmuyor
+
+Sertifika almak bugün ücretsiz ve otomatik. Sahte sitelerin neredeyse tamamı
+kilitli görünür.
+
+Kilit yalnızca şunu söyler: **bağlantı şifrelidir ve bu adresle konuşuyorsunuz.**
+O adresin kime ait olduğu ya da niyetinin ne olduğu hakkında hiçbir şey söylemez.
+
+<Callout type="bilgi">
+  Bunun ayrıntısı ayrı bir yazıda: [Kilit simgesi varsa site
+  güvenlidir](/efsane-mi-gercek-mi/kilit-simgesi-varsa-site-guvenlidir/)
+</Callout>
+
+## Bakarak karar vermek neden zayıf bir yöntem
+
+Adres okumayı öğrenmek faydalıdır ve bu yazıyı okuduktan sonra birçok sahte
+adresi yakalayacaksınız. Ama bunu tek savunma olarak kullanmak riskli, çünkü:
+
+- Yorgunken, acele ederken ve telefonda okuma kalitesi düşer.
+- Adres çubuğu mobilde kısaltılır.
+- İyi seçilmiş bir alan adı, dikkatli bakışta bile makul görünür.
+
+<Callout type="kontrol">
+  Daha sağlam bir yöntem: **girişi hiçbir zaman gelen bir bağlantıdan başlatmayın.** Adresi kendiniz
+  yazın, yer imlerinizi kullanın ya da uygulamayı açın. Bu alışkanlık, adresi hiç okumanızı
+  gerektirmez.
+</Callout>
+
+Şifre yöneticisi burada sessiz bir koruma katmanı ekler: kayıtlı şifreyi yalnızca
+kayıtlı alan adında önerir. Sahte bir sayfada otomatik doldurma **gelmiyorsa**,
+bu tek başına dikkate değer bir uyarıdır.
+
+## Devamı
+
+- [Sahte giriş sayfası nasıl anlaşılır?](/rehberler/sahte-giris-sayfasi-nasil-anlasilir/)
+- [Faturadaki IBAN değiştiyse](/rehberler/iban-degistirme-dolandiriciligi/)

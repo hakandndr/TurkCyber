@@ -152,3 +152,60 @@ SELECT CASE WHEN host = 'unknown' THEN '—' ELSE host || path END AS location,
        count(*) AS events
   FROM visitor_events
  GROUP BY location ORDER BY events DESC LIMIT 6`;
+
+/* ── Retention ──────────────────────────────────────────────────────────────
+ *
+ * /gizlilik/ states that visitor records are kept for at most 90 days. That
+ * sentence is only true if something actually deletes them, so this is the
+ * mechanism behind it.
+ *
+ * It is DELIBERATELY MANUAL. There is no cron trigger, no scheduled handler
+ * and no automatic call anywhere in the Worker. Three reasons:
+ *
+ *   1. An unattended DELETE against the only copy of the analytics history is
+ *      a single bug away from destroying it. A human pressing a button is a
+ *      cheap and very effective safety interlock.
+ *   2. The legacy import (~1,661 historical records) has not happened yet.
+ *      A scheduled purge running before that import lands would silently
+ *      delete rows the moment they arrive.
+ *   3. Every run is auditable and attributable to an operator, which an
+ *      automatic job is not.
+ *
+ * If this ever becomes automatic, /gizlilik/ changes in the same commit.
+ */
+
+/** The retention window /gizlilik/ commits to. Not a legal requirement. */
+export const RETENTION_DAYS = 90;
+
+export interface RetentionStats {
+  total: number;
+  oldest: string | null;
+  newest: string | null;
+  /** Rows older than the cutoff — the number the delete would remove. */
+  older: number;
+  /** ISO timestamp; rows strictly older than this are deletable. */
+  cutoff: string;
+}
+
+export function retentionCutoff(now: Date, days: number = RETENTION_DAYS): string {
+  return new Date(now.getTime() - days * 86_400_000).toISOString();
+}
+
+export const RETENTION_SUMMARY_QUERY = `
+SELECT count(*) AS total, min(occurred_at) AS oldest, max(occurred_at) AS newest
+  FROM visitor_events`;
+
+export const RETENTION_OLDER_QUERY = `
+SELECT count(*) AS older FROM visitor_events WHERE occurred_at < ?`;
+
+/**
+ * The purge itself.
+ *
+ * `visitor_events` only. This statement must never be pointed at APP_DB: the
+ * comments and the audit trail live there, they are not visitor analytics, and
+ * nothing in the retention promise covers them.
+ */
+export const RETENTION_DELETE = `DELETE FROM visitor_events WHERE occurred_at < ?`;
+
+/** Typed by the operator to confirm. Deliberately not a plain "Yes". */
+export const RETENTION_CONFIRM_PHRASE = 'SIL';

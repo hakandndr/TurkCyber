@@ -23,7 +23,8 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 export type Guide = CollectionEntry<'guides'>;
 export type NewsItem = CollectionEntry<'news'>;
 export type Myth = CollectionEntry<'myths'>;
-export type Article = Guide | NewsItem | Myth;
+export type Technical = CollectionEntry<'technical'>;
+export type Article = Guide | NewsItem | Myth | Technical;
 
 /** Opt-in, string-compared. Any other value keeps unpublished content hidden. */
 export const SHOW_UNPUBLISHED: boolean = import.meta.env.SHOW_UNPUBLISHED === 'true';
@@ -46,9 +47,18 @@ export async function getMyths(): Promise<Myth[]> {
   return (await getCollection('myths')).filter(isVisible).sort(byNewest);
 }
 
+export async function getTechnical(): Promise<Technical[]> {
+  return (await getCollection('technical')).filter(isVisible).sort(byNewest);
+}
+
 export async function getAllArticles(): Promise<Article[]> {
-  const [guides, news, myths] = await Promise.all([getGuides(), getNews(), getMyths()]);
-  return [...guides, ...news, ...myths].sort(byNewest);
+  const [guides, news, myths, technical] = await Promise.all([
+    getGuides(),
+    getNews(),
+    getMyths(),
+    getTechnical(),
+  ]);
+  return [...guides, ...news, ...myths, ...technical].sort(byNewest);
 }
 
 /** Verdict labels and the accent each maps to. Never colour alone. */
@@ -74,6 +84,7 @@ const COLLECTION_BASE: Record<string, string> = {
   guides: 'rehberler',
   news: 'haberler',
   myths: 'efsane-mi-gercek-mi',
+  technical: 'teknik',
 };
 
 export function articlePath(entry: Article): string {

@@ -2,13 +2,27 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { getNews } from '../../lib/content';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
 
 const news = await getNews();
+
+const description =
+  'Sizi doğrudan etkileyebilecek sızıntılar, saldırılar ve platform güvenlik değişiklikleri.';
+
+const structuredData = ldGraph(
+  collectionPageLd('Haberler', '/haberler/', description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Haberler', path: '/haberler/' },
+  ]),
+);
 ---
 
 <BaseLayout
   title="Haberler"
-  description="Sizi doğrudan etkileyebilecek sızıntılar, saldırılar ve platform güvenlik değişiklikleri."
+  seoTitle="Güvenlik Haberleri | TurkCyber"
+  {description}
+  {structuredData}
 >
   <div class="container page">
     <header class="page-head">

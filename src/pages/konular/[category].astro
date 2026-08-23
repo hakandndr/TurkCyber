@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { CATEGORIES } from '../../config/site';
 import { getAllArticles } from '../../lib/content';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
 
 export async function getStaticPaths() {
   const articles = await getAllArticles();
@@ -16,9 +17,19 @@ export async function getStaticPaths() {
 }
 
 const { category, entries } = Astro.props;
+
+const path = `/konular/${category.id}/`;
+const structuredData = ldGraph(
+  collectionPageLd(category.name, path, category.description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Konular', path: '/konular/' },
+    { name: category.name, path },
+  ]),
+);
 ---
 
-<BaseLayout title={category.name} description={category.description}>
+<BaseLayout title={category.name} description={category.description} {structuredData}>
   <div class="container page">
     <header class="page-head">
       <p class="eyebrow">Konu</p>

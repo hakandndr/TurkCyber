@@ -6,6 +6,14 @@ import Comments from '../components/Comments.astro';
 import VerdictBadge from '../components/VerdictBadge.astro';
 import { SITE, getCategory, DIFFICULTY_LABELS } from '../config/site';
 import {
+  CONTENT_KINDS,
+  articleLd,
+  breadcrumbLd,
+  kindOfCollection,
+  ldGraph,
+  metaDescription,
+} from '../lib/seo';
+import {
   articlePath,
   formatTurkishDate,
   type Article,
@@ -23,20 +31,17 @@ const { data } = entry;
 const category = getCategory(data.category);
 const url = new URL(articlePath(entry), SITE.url).href;
 
-// Three collections render through this layout and they differ in real ways:
-// only guides carry difficulty and reading time, only news carries a source,
-// only myths carry a verdict. Branch on the collection explicitly rather than
-// treating "not a guide" as "news" — that assumption broke when myths landed.
+// Four collections render through this layout and they differ in real ways:
+// only guides carry difficulty, only news carries a source, only myths carry a
+// verdict, only technical entries carry a prerequisite. Branch on the
+// collection explicitly rather than treating "not a guide" as "news" — that
+// assumption broke once already, when myths landed.
 const isNews = entry.collection === 'news';
 const isMyth = entry.collection === 'myths';
+const isTechnical = entry.collection === 'technical';
 
-const SECTION = {
-  guides: { href: '/rehberler/', label: 'Rehberler' },
-  news: { href: '/haberler/', label: 'Haberler' },
-  myths: { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi, gerçek mi?' },
-} as const;
-
-const section = SECTION[entry.collection as keyof typeof SECTION] ?? SECTION.guides;
+const kind = kindOfCollection(entry.collection);
+const section = { href: CONTENT_KINDS[kind].basePath, label: CONTENT_KINDS[kind].section };
 
 // Narrow on `entry`, not on a boolean: a boolean flag cannot narrow the union
 // that `entry.data` resolves to, so the fields below would need casts and a
@@ -44,30 +49,66 @@ const section = SECTION[entry.collection as keyof typeof SECTION] ?? SECTION.gui
 const myth = entry.collection === 'myths' ? entry.data : null;
 const news = entry.collection === 'news' ? entry.data : null;
 const guide = entry.collection === 'guides' ? entry.data : null;
+const technical = entry.collection === 'technical' ? entry.data : null;
 
-const structuredData = {
-  '@context': 'https://schema.org',
-  '@type': isNews ? 'NewsArticle' : isMyth ? 'ClaimReview' : 'TechArticle',
+const path = articlePath(entry);
+const description = metaDescription(data.description, data.seoDescription);
+
+const base = articleLd({
   headline: data.title,
-  description: data.description,
-  inLanguage: 'tr-TR',
-  datePublished: data.publishedAt.toISOString(),
-  dateModified: (data.updatedAt ?? data.publishedAt).toISOString(),
-  author: { '@type': 'Organization', name: data.author, url: SITE.url },
-  publisher: {
-    '@type': 'Organization',
-    name: SITE.name,
-    url: SITE.url,
-  },
-  mainEntityOfPage: { '@type': 'WebPage', '@id': url },
-  articleSection: category?.name,
-  keywords: data.tags.join(', '),
-};
+  description,
+  path,
+  publishedAt: data.publishedAt,
+  updatedAt: data.updatedAt,
+  author: data.author,
+  section: category?.name,
+  tags: data.tags,
+});
+
+/*
+ * A myth page really is a claim review, and it has the data to say so
+ * honestly: the title IS the claim, and the verdict IS the rating. The
+ * three-point scale below is the site's own `VERDICTS`, not an invented
+ * confidence score — `kismen` sits in the middle because most security myths
+ * are true in a narrow case and wrong as a general rule.
+ */
+const MYTH_RATING = { efsane: 1, kismen: 2, gercek: 3 } as const;
+
+const articleNode: Record<string, unknown> = myth
+  ? {
+      '@type': 'ClaimReview',
+      url: new URL(path, SITE.url).href,
+      claimReviewed: data.title,
+      datePublished: data.publishedAt.toISOString(),
+      author: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: MYTH_RATING[myth.verdict],
+        bestRating: 3,
+        worstRating: 1,
+        alternateName: myth.verdictLine,
+      },
+    }
+  : { ...base, '@type': isNews ? 'NewsArticle' : isTechnical ? 'TechArticle' : 'Article' };
+
+// The trail here must match the visible breadcrumb below it, element for
+// element. Structured data that disagrees with the page is a markup
+// violation, not a shortcut.
+const crumbs = [
+  { name: 'Ana sayfa', path: '/' },
+  { name: section.label, path: section.href },
+  ...(category ? [{ name: category.name, path: `/konular/${category.id}/` }] : []),
+  { name: data.title, path },
+];
+
+const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
 ---
 
 <BaseLayout
-  title={data.seoTitle ?? data.title}
-  description={data.seoDescription ?? data.description}
+  title={data.title}
+  seoTitle={data.seoTitle}
+  kind={kind}
+  description={description}
   ogType="article"
   publishedAt={data.publishedAt}
   updatedAt={data.updatedAt}
@@ -115,9 +156,20 @@ const structuredData = {
         }
         {guide && <span>{guide.readingTime} dk okuma</span>}
         {guide && <span>{DIFFICULTY_LABELS[guide.difficulty]}</span>}
+        {technical && <span>{technical.readingTime} dk okuma</span>}
+        {isTechnical && <span class="level-badge">İLERİ SEVİYE</span>}
         {data.status !== 'published' && <span class="draft-badge">{data.status}</span>}
       </div>
     </header>
+
+    {
+      technical?.prerequisite && (
+        <aside class="prerequisite">
+          <p class="eyebrow">Bunu okumadan önce</p>
+          <p>{technical.prerequisite}</p>
+        </aside>
+      )
+    }
 
     {
       data.summary && (
@@ -244,6 +296,32 @@ const structuredData = {
 
   .article-meta .updated {
     color: var(--green);
+  }
+
+  /*
+   * The technical lane is labelled on the page, not just in navigation. A
+   * reader who arrived from search should be able to tell in one glance that
+   * this explains a mechanism rather than giving them steps to follow.
+   */
+  .level-badge {
+    color: var(--cyan);
+    letter-spacing: 0.12em;
+  }
+
+  .prerequisite {
+    margin-top: var(--sp-5);
+    max-width: var(--measure);
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--text-faint);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .prerequisite p:last-child {
+    margin-top: var(--sp-2);
   }
 
   .draft-badge {

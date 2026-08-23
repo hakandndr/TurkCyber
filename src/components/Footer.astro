@@ -12,6 +12,11 @@
  * metadata in adjacent columns with identical styling, so "Gizlilik" and
  * "admin@turkcyber.com" read as one list. Each column now carries its own
  * heading and the contact block is visually distinct from the link list.
+ *
+ * The vertical rhythm is tighter than it was. The three-group structure
+ * survives untouched — the change is spacing only: the footer was taking a
+ * screenful on a phone, which pushes the last thing a reader wants (contact,
+ * privacy) below yet another scroll.
  */
 import { FOOTER_LINKS, HERITAGE, SITE } from '../config/site';
 import Logo from './Logo.astro';
@@ -63,7 +68,7 @@ const year = new Date().getFullYear();
     margin-top: auto;
     border-top: 1px solid var(--border);
     background: var(--surface-1);
-    padding-block: var(--sp-7) var(--sp-5);
+    padding-block: var(--sp-5) var(--sp-4);
     font-size: var(--step--1);
   }
 
@@ -71,14 +76,14 @@ const year = new Date().getFullYear();
     display: grid;
     /* Brand column carries more text, so it takes the wider track. */
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: var(--sp-7);
+    gap: var(--sp-4) var(--sp-6);
     align-items: start;
   }
 
   .col {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-3);
+    gap: var(--sp-2);
     min-width: 0;
   }
 
@@ -89,7 +94,7 @@ const year = new Date().getFullYear();
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-faint);
-    margin-bottom: var(--sp-1);
+    margin-bottom: 0;
   }
 
   .footer-tagline {
@@ -107,7 +112,7 @@ const year = new Date().getFullYear();
   .footer-links {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-2);
+    gap: var(--sp-1);
     list-style: none;
     padding: 0;
     margin: 0;
@@ -149,7 +154,7 @@ const year = new Date().getFullYear();
     display: inline-flex;
     align-items: center;
     gap: var(--sp-2);
-    margin-top: var(--sp-2);
+    margin-top: var(--sp-1);
     color: var(--text-muted);
     text-decoration: none;
     font-family: var(--font-mono);
@@ -173,8 +178,8 @@ const year = new Date().getFullYear();
     justify-content: space-between;
     gap: var(--sp-4);
     flex-wrap: wrap;
-    margin-top: var(--sp-6);
-    padding-top: var(--sp-4);
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
     border-top: 1px solid var(--border);
     font-family: var(--font-mono);
     font-size: 0.72rem;
@@ -184,7 +189,7 @@ const year = new Date().getFullYear();
   @media (max-width: 900px) {
     .footer-grid {
       grid-template-columns: 1fr 1fr;
-      gap: var(--sp-6);
+      gap: var(--sp-4) var(--sp-5);
     }
     .col-brand {
       grid-column: 1 / -1;
@@ -194,7 +199,7 @@ const year = new Date().getFullYear();
   @media (max-width: 560px) {
     .footer-grid {
       grid-template-columns: 1fr;
-      gap: var(--sp-6);
+      gap: var(--sp-5);
     }
   }
 </style>

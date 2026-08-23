@@ -1,0 +1,24 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import Callout from '../../components/Callout.astro';
+import { getGuides, getTechnical, relatedGuides } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const [technical, guides] = await Promise.all([getTechnical(), getGuides()]);
+  return technical.map((entry) => ({
+    params: { slug: entry.id },
+    // Related items are deliberately practical guides rather than more theory.
+    // Someone who has just understood how an attack works is usually one step
+    // away from wanting to know what to do about it.
+    props: { entry, related: relatedGuides(entry, guides) },
+  }));
+}
+
+const { entry, related } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<ArticleLayout entry={entry} related={related}>
+  <Content components={{ Callout }} />
+</ArticleLayout>

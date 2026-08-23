@@ -2,13 +2,28 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MythCard from '../../components/MythCard.astro';
 import { getMyths } from '../../lib/content';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
 
 const myths = await getMyths();
+
+const description =
+  'Dijital güvenlik hakkında sık duyulan iddialar ve gerçekte ne kadar doğru oldukları. ' +
+  'Kısa, net cevaplar.';
+
+const structuredData = ldGraph(
+  collectionPageLd('Efsane mi, gerçek mi?', '/efsane-mi-gercek-mi/', description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Efsane mi, gerçek mi?', path: '/efsane-mi-gercek-mi/' },
+  ]),
+);
 ---
 
 <BaseLayout
   title="Efsane mi, gerçek mi?"
-  description="Dijital güvenlik hakkında sık duyulan iddialar ve gerçekte ne kadar doğru oldukları. Kısa, net cevaplar."
+  seoTitle="Efsane mi, Gerçek mi? Güvenlik İddiaları | TurkCyber"
+  {description}
+  {structuredData}
 >
   <div class="container-narrow page">
     <header class="page-head">

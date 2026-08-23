@@ -1,8 +1,9 @@
 # Handoff
 
-> **Current status:** the test-pipeline rework and Formspree integration are
+> **Current status:** the 2026-08-23 product/content/SEO pass is
 > `verification pending on owner's Windows machine`. See CURRENT_STATE.md for
-> the exact commands.
+> the exact commands, and delete `.git\index.lock` before your first git
+> command.
 
 Everything needed to continue TurkCyber with no prior conversation context.
 
@@ -43,15 +44,22 @@ article; analytics failing is invisible. Neither can stop a guide rendering.
 ## 3. Filesystem
 
 ```
-src/config/site.ts        SITE identity, 9 CATEGORIES, NAV, FOOTER_LINKS
+src/config/site.ts        SITE identity, HERITAGE, 10 CATEGORIES, NAV, FOOTER_LINKS
                           ── single source of truth; never duplicate the list
+src/config/tools.ts       the tool registry — index page, sitemap and search
+                          index all read it; a page not listed here is invisible
 src/content.config.ts     Zod schema; invalid frontmatter FAILS THE BUILD
-src/content/guides/       8 published .mdx guides
+src/content/guides/       16 published .mdx guides
+src/content/myths/        9 published "Efsane mi, gerçek mi?" entries
+src/content/technical/    6 "Nasıl çalışıyor?" entries (the İLERİ SEVİYE lane)
 src/content/news/         1 draft template, 0 published
 src/lib/content.ts        collection access, status filtering, related guides
-src/lib/search.ts         Turkish-aware normalisation + ranking
-src/layouts/              BaseLayout (SEO, fonts, beacon), ArticleLayout
-src/components/           Logo, Header, Footer, ArticleCard, Callout, Share, Comments
+src/lib/search.ts         Turkish-aware normalisation + relevance ranking
+src/lib/seo.ts            titles, meta descriptions, JSON-LD builders
+src/lib/tools/checklist.ts  pure evaluation for the checklist-shaped tools
+src/layouts/              BaseLayout (SEO, fonts, beacon), ArticleLayout, ToolLayout
+src/components/           Logo, Header, Footer, ArticleCard, MythCard, Callout,
+                          Share, Comments, VerdictBadge, tools/{Quiz,Checklist}Tool
 src/pages/                routes + rss.xml.ts, sitemap.xml.ts, search-index.json.ts
 
 worker/index.ts           routing + public security headers
@@ -65,9 +73,12 @@ worker/lib/               auth, time, ua, referrer, sanitize, throttle,
 migrations/app/           0001 comments · 0002 indexes · 0003 audit_events
 migrations/analytics/     0001 visitor_events
 
+scripts/brandmark.py      the mark as geometry — real JetBrains Mono outlines.
+                          Every raster version of <TC/> derives from this file.
 scripts/                  hash-password.mjs · import-legacy-analytics.mjs
                           scan-secrets.mjs · generate-icons.py · generate-og-default.py
-tests/                    132 it() declarations across 6 files (static count)
+tests/                    vitest, 6 files; run it for the count rather than
+                          trusting a number written down here
 tests/paths.ts            TEST_DIST — the suite's own build directory
 tests/global-setup.ts     deletes .test-dist/ and rebuilds it every run
 ```
@@ -200,7 +211,7 @@ source)`.
 robots.txt, `no-store` + `noindex` on every response.
 
 Pages: `/boss/` overview · `/boss/analytics/` · `/boss/comments/` ·
-`/boss/system/`.
+`/boss/system/` (environment, **retention**, audit trail).
 
 **Auth.** `BOSS_USER` + PBKDF2 hash in `BOSS_PASSWORD_HASH`, signed session
 cookie via `SESSION_SECRET`.
@@ -232,6 +243,24 @@ in JS.
 
 **Moderation.** approve · reject · spam · delete. Every mutation is POST,
 same-origin, authenticated, and writes an `audit_events` row.
+
+**Analytics retention.** `/boss/system/` shows oldest, newest, total and the
+count older than 90 days, and offers one manual delete —
+`POST /boss/analytics/purge`, same-origin, session-required, confirmation
+phrase `SIL`, audited.
+
+Three things about it are load-bearing:
+
+1. It is **manual on purpose.** Nothing schedules it. An unattended DELETE
+   against the only copy of the analytics history is one bug away from
+   destroying it, and the legacy import has not happened yet — a scheduled
+   purge would delete those rows the moment they landed.
+2. It touches **`visitor_events` in ANALYTICS_DB and nothing else.** A test
+   asserts APP_DB never receives a `DELETE`. The audit row is an INSERT into
+   APP_DB, which is where the audit trail lives.
+3. `/gizlilik/` says records are kept "en fazla 90 gün" **because** this exists.
+   If retention ever becomes automatic, or stops working, that page changes in
+   the same commit. It must never be phrased as a legal requirement.
 
 ---
 
@@ -303,16 +332,14 @@ Full detail in [SECURITY.md](SECURITY.md). The short version:
 
 ## 12. Known issues and gaps
 
-- **No `pnpm-lock.yaml`.** The build environment used npm. Generate it locally
-  and commit; CI runs `--frozen-lockfile`.
 - **No news content.** Deliberate — writing it would have meant inventing
   sources. Template ships as a draft.
 - **Legacy analytics not imported.** Export not supplied; importer ready.
 - **Google Fonts is a third-party request.** Disclosed in `/gizlilik/`.
   Self-hosting is a clean follow-up (ARCHITECTURE.md §11) and would let a whole
   privacy section be deleted.
-- **No retention job.** The privacy page says so honestly. If one is added, the
-  privacy page must change in the same commit.
+- **Retention is manual, not scheduled.** Deliberate — see §8. It means the
+  90-day line on `/gizlilik/` is kept by a person, not by a cron trigger.
 - **Per-article OG images not generated.** One good default card instead.
 - **KV rate limiting is not atomic.** Fine as an abuse brake.
 - **Astro `check` reports 1 hint** about the JSON-LD script tag. Harmless.
@@ -323,7 +350,7 @@ Full detail in [SECURITY.md](SECURITY.md). The short version:
 
 In order:
 
-1. `pnpm install` locally, commit `pnpm-lock.yaml`.
+1. Run the verification block in CURRENT_STATE.md and commit this pass.
 2. PRODUCTION_CUTOVER.md phase A (repository readiness) — no Cloudflare needed.
 3. Phase B: create staging D1 databases and KV, fill the `REPLACE_WITH_*` ids,
    apply migrations, set secrets, deploy staging, verify `noindex`.

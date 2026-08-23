@@ -4,10 +4,19 @@ import '../styles/base.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../config/site';
+import { documentTitle, type ContentKind } from '../lib/seo';
 
 interface Props {
+  /** The page's own name. Used for OG/Twitter and as the `<title>` base. */
   title: string;
   description: string;
+  /**
+   * Content type. Drives the `<title>` shape so a search result says what
+   * kind of page it is — see src/lib/seo.ts.
+   */
+  kind?: ContentKind;
+  /** Complete `<title>` override. Frontmatter `seoTitle`, or the homepage. */
+  seoTitle?: string;
   /** Overrides the default OG image. */
   ogImage?: string;
   /** `article` for guides and news, `website` elsewhere. */
@@ -22,6 +31,8 @@ interface Props {
 const {
   title,
   description,
+  kind,
+  seoTitle,
   ogImage = '/og/default.png',
   ogType = 'website',
   publishedAt,
@@ -32,7 +43,7 @@ const {
 
 const canonical = new URL(Astro.url.pathname, SITE.url).href;
 const ogImageUrl = new URL(ogImage, SITE.url).href;
-const fullTitle = title === SITE.name ? title : `${title} — ${SITE.name}`;
+const fullTitle = documentTitle({ title, kind, override: seoTitle });
 ---
 
 <!doctype html>

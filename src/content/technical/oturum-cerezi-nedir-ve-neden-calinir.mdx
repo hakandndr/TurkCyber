@@ -1,0 +1,99 @@
+---
+title: 'Oturum Çerezi Nedir ve Neden Çalınmaya Değer?'
+description: 'Şifreniz değişse bile bir hesap açık kalabilir. Tarayıcınızdaki “giriş fişi”nin ne olduğu, neden şifreden daha değerli olduğu ve onu geçersiz kılmanın tek yolu.'
+category: nasil-calisiyor
+publishedAt: 2026-08-23
+status: published
+readingTime: 7
+prerequisite: 'Bir siteye giriş yapmak ve çıkış yapmak arasındaki farkı bilmeniz yeterli.'
+summary: 'Giriş yaptığınızda site tarayıcınıza bir oturum bilgisi bırakır. O bilgiyi ele geçiren, şifrenizi hiç bilmeden hesabınıza girmiş sayılır — ve şifre değiştirmek tek başına onu her zaman geçersiz kılmaz. Bu yüzden “tüm oturumları kapat” adımı önemlidir.'
+tags: ['oturum', 'çerez', 'hesap güvenliği', 'nasıl çalışıyor']
+---
+
+Bir siteye şifrenizi girip giriş yaptınız. Sayfayı yenilediniz. Site sizi hâlâ
+tanıyor. Neden tekrar şifre sormuyor?
+
+Çünkü giriş anında site tarayıcınıza küçük bir bilgi bıraktı. Bundan sonraki her
+istekte tarayıcınız o bilgiyi de gönderiyor ve site "tamam, bu sen" diyor.
+
+Buna **oturum çerezi** ya da **oturum belirteci** deniyor. Uygulamalarda adı
+farklı olabilir ama fikir aynı: giriş bir kez yapılır, sonrasında bir fiş
+taşınır.
+
+## Neden şifreden daha değerli
+
+Şifreniz bir **iddiadır**: "ben oyum". Oturum bilgisi bir **kabuldür**: "seni
+zaten içeri aldık".
+
+Aradaki fark saldırgan için çok büyük:
+
+| Ele geçen      | Sonrasında gereken                              |
+| -------------- | ----------------------------------------------- |
+| Şifre          | Giriş yapmak, çoğu zaman ikinci adımı da geçmek |
+| Oturum bilgisi | Hiçbir şey. Zaten içeride sayılır.              |
+
+<Callout type="onemli">
+  Oturum bilgisi çalındığında **iki aşamalı doğrulama devreye girmez**. Çünkü 2FA giriş anında
+  sorulur; oturum bilgisi ise girişin çoktan yapıldığı anlamına gelir. 2FA yine de son derece
+  değerlidir — ama bu senaryoya karşı değil.
+</Callout>
+
+Bu, "2FA'm vardı, nasıl girdiler?" sorusunun en sık cevabıdır.
+
+## Nasıl ele geçiyor
+
+Birkaç yol var ve hiçbiri sihirli değil.
+
+- **Aracı sayfa üzerinden giriş.** Sahte sayfa sizi gerçek siteye bağlar, siz
+  gerçekten giriş yaparsınız, oturum bilgisi araya giren tarafta da kalır. Bu,
+  bugünkü oltalama kitlerinin standart özelliği.
+- **Cihazdaki zararlı yazılım.** Tarayıcı verilerini toplayan programlar, kayıtlı
+  oturum bilgilerini de toplar. "Crack", "hile", "ücretsiz sürüm" indirmelerinin
+  büyük kısmı bunu yapar.
+- **Kötü niyetli tarayıcı eklentisi.** Bir eklenti, izin verildiği sayfalarda
+  çerezleri okuyabilir. Sahip değiştirmiş bir eklenti, güncellemeyle bir gün
+  bunu yapmaya başlayabilir.
+- **Paylaşılan cihazda açık kalan oturum.** En sıradan yol: internet kafede,
+  okulda, iş yerinde çıkış yapılmamış bir hesap.
+
+<Callout type="dikkat">
+  Bir bağlantıya tıklamak tek başına oturumunuzu **çalmaz**. Tarayıcı, bir sayfanın başka bir
+  sitenin çerezlerini okumasını engeller. Yukarıdaki yolların hepsinde ya siz bir giriş yaptınız, ya
+  cihaza bir yazılım kuruldu, ya da bir eklentiye izin verildi. Ayrıntısı: [Bir bağlantıya tıklamak
+  tek başına ne yapar?](/teknik/link-tiklamak-tek-basina-ne-yapar/)
+</Callout>
+
+## Şifre değiştirmek neden yetmeyebilir
+
+İnsanların yaptığı ilk şey şifre değiştirmek. Doğru bir refleks, ama tek başına
+eksik olabilir.
+
+Bazı sistemler şifre değişiminde tüm oturumları sonlandırır. Bazıları
+sonlandırmaz — ya da sadece bazı oturum türlerini sonlandırır. Yani şifreyi
+değiştirdiğiniz hâlde saldırganın açık oturumu çalışmaya devam edebilir.
+
+<Callout type="kontrol">
+  Bir hesabın gerçekten temizlendiğinden emin olmak için iki adım gerekir: **şifreyi değiştirin** ve
+  **tüm oturumları / bağlı cihazları kapatın**. İkinci adım genellikle hesap ayarlarında "cihazlar",
+  "oturumlar" ya da "giriş etkinliği" başlığı altında bulunur.
+</Callout>
+
+Sıralama da önemli: önce şifreyi değiştirin, sonra tüm oturumları kapatın. Tersi
+sırada, saldırgan hâlâ eski şifreyle yeni bir oturum açabilir.
+
+## Bağlı uygulamaları da unutmayın
+
+Hesabınıza erişim veren üçüncü taraf uygulamalar ayrı bir kapıdır ve şifre
+değişiminden etkilenmez. Bir temizlik yapıyorsanız o listeyi de gözden geçirin.
+
+## Kısa özet
+
+- Oturum bilgisi, girişin kanıtıdır; şifreden daha güçlü bir anahtardır.
+- Çalındığında 2FA bu senaryoyu durdurmaz.
+- Temizlik iki adımdır: şifre **ve** tüm oturumların kapatılması.
+- Şüpheniz varsa bağlı uygulamaları da kaldırın.
+
+## Devamı
+
+- [Instagram hesabınızı nasıl korursunuz?](/rehberler/instagram-hesabinizi-nasil-korursunuz/)
+- [Hiçbir şeye tıklamadan hesabım çalınabilir mi?](/efsane-mi-gercek-mi/hicbir-seye-tiklamadan-hesap-calinir-mi/)

@@ -89,7 +89,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           (hit) => `
           <li class="result">
             <a href="${escapeText(hit.url)}">
-              <span class="result-kind">${escapeText(hit.kind)}</span>
+              <span class="result-kind">${escapeText(hit.kindLabel)}</span>
               <span class="result-title">${escapeText(hit.title)}</span>
               <span class="result-desc">${escapeText(hit.description)}</span>
               <span class="result-cat">${escapeText(hit.categoryName)}</span>

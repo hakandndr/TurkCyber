@@ -7,21 +7,31 @@
  * without a flag or a crescent anywhere.
  *
  * Colour roles:
- *   <  >   muted grey — punctuation, deliberately recessive
- *   T      white — the letterform that carries weight
+ *   <  >   faint grey — punctuation, deliberately recessive
+ *   T      warm white — the letterform that carries weight
  *   C      Turkish red — the identity note
- *   /      cyber green — the only animated element
+ *   /      neutral grey — the only animated element
+ *
+ * The slash is deliberately NOT the brand green. Three saturated colours in a
+ * five-glyph mark read as a badge rather than a wordmark, and a green-white-red
+ * tricolour invites institutional readings this publication has no claim to.
+ * Keeping the slash neutral leaves exactly one accent — the red C.
+ *
+ * Proportions: positive tracking and a lighter bracket weight widen what is
+ * otherwise a tall, narrow monospace stack, so the mark sits closer to square.
  *
  * Rendered as text rather than SVG so it inherits the loaded monospace face and
  * stays crisp at any size. The favicon is a separate hand-built mark — see
  * public/favicon.svg — because at 16px this composition is not legible.
  */
+import { HERITAGE } from '../config/site';
+
 interface Props {
   /** `full` includes the wordmark and heritage line; `compact` is the mark alone. */
   variant?: 'full' | 'compact';
   /** Slow opacity pulse on the slash. Header only. */
   animated?: boolean;
-  /** Show the "2005'ten beri" heritage line. Only meaningful with `full`. */
+  /** Show the "2005'ten bugüne" heritage line. Only meaningful with `full`. */
   heritage?: boolean;
   class?: string;
 }
@@ -40,7 +50,7 @@ const { variant = 'full', animated = false, heritage = false, class: className =
     variant === 'full' && (
       <span class="names">
         <span class="wordmark">TurkCyber</span>
-        {heritage && <span class="heritage">2005'ten beri</span>}
+        {heritage && <span class="heritage">{HERITAGE.badge}</span>}
       </span>
     )
   }
@@ -57,19 +67,21 @@ const { variant = 'full', animated = false, heritage = false, class: className =
   }
 
   .mark {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: 0.02em;
     white-space: nowrap;
   }
 
   .bracket {
-    color: var(--text-muted);
-    font-weight: 500;
+    color: var(--text-faint);
+    font-weight: 400;
+    font-size: 0.92em;
   }
 
   .letter-t {
     color: var(--text);
+    padding-inline-start: 0.04em;
   }
 
   /*
@@ -80,8 +92,11 @@ const { variant = 'full', animated = false, heritage = false, class: className =
     color: var(--brand-red);
   }
 
+  /* Neutral by design — see the colour-roles note at the top of this file. */
   .slash {
-    color: var(--green);
+    color: var(--text-muted);
+    font-weight: 500;
+    padding-inline: 0.02em;
   }
 
   .names {
@@ -129,7 +144,7 @@ const { variant = 'full', animated = false, heritage = false, class: className =
   }
 
   .logo-compact .mark {
-    font-size: 1.35rem;
+    font-size: 1.28rem;
   }
 
   @media (max-width: 520px) {

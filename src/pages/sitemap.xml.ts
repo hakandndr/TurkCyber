@@ -7,14 +7,15 @@
  */
 import type { APIRoute } from 'astro';
 import { CATEGORIES, SITE } from '../config/site';
+import { READY_TOOLS } from '../config/tools';
 import { articlePath, getAllArticles } from '../lib/content';
 
 const STATIC_PATHS = [
   '/',
   '/rehberler/',
   '/efsane-mi-gercek-mi/',
+  '/teknik/',
   '/araclar/',
-  '/araclar/bu-mesaj-sahte-mi/',
   '/haberler/',
   '/konular/',
   '/hakkinda/',
@@ -27,6 +28,9 @@ export const GET: APIRoute = async () => {
 
   const entries: Array<{ loc: string; lastmod?: string }> = [
     ...STATIC_PATHS.map((path) => ({ loc: new URL(path, SITE.url).href })),
+    // Tool pages come from the shared registry, so a new tool cannot ship
+    // without appearing here. `planned` tools have no URL and are excluded.
+    ...READY_TOOLS.map((tool) => ({ loc: new URL(tool.href ?? '/araclar/', SITE.url).href })),
     ...CATEGORIES.map((category) => ({
       loc: new URL(`/konular/${category.id}/`, SITE.url).href,
     })),

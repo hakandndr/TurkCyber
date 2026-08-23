@@ -3,19 +3,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import MythCard from '../components/MythCard.astro';
 import { PRIMARY_CATEGORIES, SECONDARY_CATEGORIES, SITE } from '../config/site';
-import { getFeaturedGuides, getGuides, getMyths, getNews } from '../lib/content';
+import { getFeaturedGuides, getGuides, getMyths, getNews, getTechnical } from '../lib/content';
+import { HOME_TITLE, ldGraph, websiteLd } from '../lib/seo';
 
-const [featured, guides, news, myths] = await Promise.all([
+const [featured, guides, news, myths, technical] = await Promise.all([
   getFeaturedGuides(3),
   getGuides(),
   getNews(),
   getMyths(),
+  getTechnical(),
 ]);
 
 const featuredIds = new Set(featured.map((g) => g.id));
 const latest = guides.filter((g) => !featuredIds.has(g.id)).slice(0, 4);
 const latestNews = news.slice(0, 3);
 const topMyths = myths.slice(0, 3);
+const topTechnical = technical.slice(0, 3);
 
 /**
  * Quick access.
@@ -40,6 +43,18 @@ const QUICK_ACCESS = [
     accent: 'green' as const,
   },
   {
+    href: '/rehberler/parayi-dolandiriciya-gonderdim-ne-yapmaliyim/',
+    label: 'Dolandırıcıya para gönderdim',
+    detail: 'İlk saatlerde sırayla yapılacaklar',
+    accent: 'green' as const,
+  },
+  {
+    href: '/rehberler/guvenli-hesap-dolandiriciligi/',
+    label: 'Bankadan aradıklarını söylüyorlar',
+    detail: '"Güvenli hesaba aktarın" senaryosu ve tek kural',
+    accent: 'cyan' as const,
+  },
+  {
     href: '/konular/hesap-guvenligi/',
     label: 'Hesabımı nasıl güvene alırım?',
     detail: 'Şifre, iki aşamalı doğrulama ve kurtarma ayarları',
@@ -53,18 +68,10 @@ const QUICK_ACCESS = [
   },
 ];
 
-const structuredData = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE.name,
-  url: SITE.url,
-  inLanguage: 'tr-TR',
-  description: SITE.description,
-  publisher: { '@type': 'Organization', name: SITE.owner.name, url: SITE.owner.url },
-};
+const structuredData = ldGraph(websiteLd());
 ---
 
-<BaseLayout title={SITE.name} description={SITE.description} structuredData={structuredData}>
+<BaseLayout title={SITE.name} seoTitle={HOME_TITLE} description={SITE.description} {structuredData}>
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-text">
@@ -187,6 +194,30 @@ status      active
       }
     </ul>
   </section>
+
+  {
+    topTechnical.length > 0 && (
+      <section class="container section" aria-labelledby="technical-heading">
+        <div class="section-head">
+          <h2 id="technical-heading" class="section-title">
+            Nasıl çalışıyor?
+          </h2>
+          <a href="/teknik/" class="section-more">
+            Hepsi →
+          </a>
+        </div>
+        <p class="section-lede">
+          Ne yapmanız gerektiğini değil, neden öyle olduğunu anlatan yazılar.
+          <span class="lane-badge">İLERİ SEVİYE</span>
+        </p>
+        <div class="grid">
+          {topTechnical.map((entry) => (
+            <ArticleCard entry={entry} headingLevel={3} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   <section class="container section" aria-labelledby="latest-heading">
     <h2 id="latest-heading" class="section-title">Yeni rehberler</h2>
@@ -369,6 +400,21 @@ status      active
 
   .section-more:hover {
     color: var(--cyan);
+  }
+
+  /* The technical lane is labelled wherever it is linked, not only on its own
+     page — a reader should know what they are clicking into. */
+  .lane-badge {
+    display: inline-block;
+    margin-left: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    color: var(--cyan);
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    padding: 0.15em 0.45em;
+    vertical-align: middle;
   }
 
   .section-lede {

@@ -82,4 +82,31 @@ const myths = defineCollection({
   }),
 });
 
-export const collections = { guides, news, myths };
+/**
+ * "Nasil calisiyor?" - the technical-depth lane.
+ *
+ * These entries explain the mechanism behind an attack at a level a curious
+ * non-specialist can follow. They are EXPLANATORY, never operational. The
+ * distinction is not stylistic:
+ *
+ *   allowed  - why a session cookie is worth stealing, what an OTP proves,
+ *              why a lookalike domain still passes a TLS check
+ *   excluded - working payloads, phishing-kit walkthroughs, anything that
+ *              reads as instructions for carrying an attack out on someone
+ *
+ * They also keep the rest of the site honest. Reassuring copy drifts towards
+ * absolutes ("a link can never hurt you"), which is false and costs the site
+ * its credibility the first time a reader is harmed by one. This lane is
+ * where the real preconditions get stated.
+ */
+const technical = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/technical' }),
+  schema: baseSchema.extend({
+    /** Minutes. Author-supplied. */
+    readingTime: z.number().int().min(1).max(60),
+    /** What a reader should already understand. Rendered above the body. */
+    prerequisite: z.string().min(10).max(220).optional(),
+  }),
+});
+
+export const collections = { guides, news, myths, technical };

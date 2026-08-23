@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ChecklistTool from '../../components/tools/ChecklistTool.astro';
+import { INSTAGRAM_GUVENLIK_TESTI } from '../../lib/tools/instagram-guvenlik-testi';
+---
+
+<ToolLayout
+  toolId="instagram-guvenlik-testi"
+  note="Instagram'ı yanınıza açın ve gerçekten öyle olanları işaretleyin. Bu sayfa hesabınıza bakmaz, şifrenizi istemez ve işaretlediklerinizi hiçbir yere göndermez."
+>
+  <ChecklistTool definition={INSTAGRAM_GUVENLIK_TESTI} />
+
+  <ul slot="after">
+    <li>
+      <a href="/rehberler/instagram-hesabinizi-nasil-korursunuz/"
+        >Instagram hesabınızı nasıl korursunuz?</a
+      >
+    </li>
+    <li>
+      <a href="/rehberler/2fa-nedir-sms-authenticator-guvenlik-anahtari/"
+        >2FA nedir? SMS, uygulama ve güvenlik anahtarı arasındaki fark</a
+      >
+    </li>
+    <li>
+      <a href="/araclar/hesap-guvenlik-puani/">Hesap güvenlik puanı</a>
+    </li>
+  </ul>
+</ToolLayout>

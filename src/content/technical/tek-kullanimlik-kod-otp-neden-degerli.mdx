@@ -1,0 +1,91 @@
+---
+title: 'Tek Kullanımlık Kod Neden Bu Kadar Değerli?'
+description: 'SMS ile gelen altı hane aslında ne kanıtlıyor, neden dolandırıcıların en çok istediği şey ve neden bir kodu paylaşmak şifrenizi paylaşmaktan daha kötü olabilir.'
+category: nasil-calisiyor
+publishedAt: 2026-08-23
+status: published
+readingTime: 6
+prerequisite: 'İki aşamalı doğrulamanın ne olduğunu kabaca bilmek yeterli.'
+summary: 'Tek kullanımlık kod, girişi yapanın o an sizin telefonunuza erişebildiğini kanıtlar. Kodu birine söylediğinizde o kanıtı ona devretmiş olursunuz — genellikle tam da o anda giriş yapmaya çalışan kişiye.'
+tags: ['2fa', 'otp', 'sms', 'nasıl çalışıyor']
+---
+
+Telefonunuza gelen altı haneli kodun tek bir işi var: **giriş yapmaya çalışan
+kişinin, o anda sizin telefonunuza erişebildiğini kanıtlamak.**
+
+Kodun kendisi bir sır değil. Değeri, ne zaman ve kime ait olduğundan geliyor.
+Kısa ömürlüdür, tek bir işlem içindir ve o işlem şu anda yapılıyordur.
+
+<Callout type="onemli">
+  Bir kodu birine söylediğinizde şifrenizi söylemiş olmazsınız — daha kötüsünü yaparsınız: o kişinin
+  **şu anda** yapmaya çalıştığı işlemi onaylarsınız.
+</Callout>
+
+## Neden isteniyor
+
+Dolandırıcı zaten şifrenizi ele geçirmiştir. Girişe basar, sistem ikinci adımı
+sorar, kod **sizin** telefonunuza gider. Elindeki tek eksik odur.
+
+O yüzden aramanın senaryosu hep aynı yerde biter:
+
+- "Kimliğinizi doğrulamak için size bir kod gönderdik, okur musunuz?"
+- "İşlemi iptal etmek için gelen kodu girmeniz gerekiyor."
+- "Kargonuzu teslim edebilmemiz için doğrulama kodu."
+
+Hepsi aynı şeyi ister. Bahane değişir, istenen şey değişmez.
+
+## Kod gerçekten bankanızdan gelir
+
+Kafa karıştıran kısım burası: kod sahte değildir. Gerçek kurumdan, gerçek
+numaradan gelir.
+
+Çünkü sahte olan mesaj değil, **kodu isteyen kişidir.** Kodu üreten kurum
+gerçektir; kodu isteyen taraf o kurum değildir.
+
+<Callout type="kontrol">
+  Kodu yazmadan önce kod mesajının **metnini** okuyun. İyi tasarlanmış sistemler işlemin ne olduğunu
+  yazar: "giriş", "para transferi", "tutar". Yaptığınızı sandığınız şeyle mesajdaki işlem
+  uyuşmuyorsa, kodu hiçbir yere girmeyin.
+</Callout>
+
+## Kural, istisnasız
+
+Hiçbir kurum sizden telefonda, mesajla, sohbette ya da e-postayla doğrulama kodu
+istemez. Bankalar istemez, platformların destek ekipleri istemez, kamu kurumları
+istemez, kargo firmaları istemez.
+
+Kodu isteyen herkes, o anda sizin adınıza bir işlem yapıyordur.
+
+## Neden SMS en zayıf ikinci adım
+
+SMS, hiç 2FA olmamasından çok daha iyidir — bunu net söylemek gerekiyor. Ama
+seçenek varsa daha iyileri var, çünkü SMS'in iki yapısal zayıflığı var:
+
+- **Yönlendirilebilir.** Numaranızın bir başkasının eline geçmesi (hat
+  taşıma/yenileme yoluyla) kodların ona gitmesi demektir.
+- **Paylaşılabilir.** Bir insan, bir kodu okuyup söyleyebilir. Bu yazının konusu
+  olan saldırının tamamı bunun üzerine kurulu.
+
+Doğrulama uygulaması kodları telefonda üretir, şebekeden geçmez. Güvenlik
+anahtarı ve passkey ise daha ileri gider: onaylama, **sitenin adresine bağlıdır**,
+yani sahte bir siteye yanlışlıkla onay veremezsiniz.
+
+<Callout type="bilgi">
+  Bu, passkey'lerin oltalamaya karşı en güçlü savunma olmasının sebebi: paylaşılabilecek bir "kod"
+  hiç yoktur. Ayrıntısı: [Passkey nedir?](/rehberler/passkey-nedir/)
+</Callout>
+
+## Yanlışlıkla verdiyseniz
+
+Hızlı hareket edin:
+
+1. Şifrenizi **başka bir cihazdan** değiştirin.
+2. Hesabın tüm oturumlarını kapatın —
+   [neden gerektiği burada](/teknik/oturum-cerezi-nedir-ve-neden-calinir/).
+3. Kurumu kendi numarasından arayıp durumu bildirin.
+4. Aynı şifreyi kullandığınız diğer hesapları da değiştirin.
+
+## Devamı
+
+- [2FA nedir? SMS, uygulama ve güvenlik anahtarı](/rehberler/2fa-nedir-sms-authenticator-guvenlik-anahtari/)
+- [Sahte banka SMS'ini nasıl anlarsınız?](/rehberler/sahte-banka-sms-nasil-anlasilir/)

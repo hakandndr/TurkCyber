@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getTechnical } from '../../lib/content';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
+
+/**
+ * "Nasıl çalışıyor?" — the technical-depth lane.
+ *
+ * Kept as its own surface rather than a difficulty filter on the guides,
+ * because the reader's intention is different. A guide answers "what do I
+ * do"; these answer "why does that work". Mixing them makes the guides feel
+ * heavier than they are and buries the explanations.
+ */
+const entries = await getTechnical();
+
+const description =
+  'Bir saldırının arkasında teknik olarak ne olduğunu anlatan yazılar: oturum çerezleri, ' +
+  'tek kullanımlık kodlar, alan adı benzerliği ve uygulama izinleri.';
+
+const structuredData = ldGraph(
+  collectionPageLd('Teknik Derinlik', '/teknik/', description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Teknik Derinlik', path: '/teknik/' },
+  ]),
+);
+---
+
+<BaseLayout title="Teknik Derinlik: Nasıl çalışıyor?" {description} {structuredData}>
+  <div class="container page">
+    <header class="page-head">
+      <p class="eyebrow">İleri seviye</p>
+      <h1>Nasıl çalışıyor?</h1>
+      <p class="lede">
+        Sitenin geri kalanı ne yapmanız gerektiğini anlatıyor. Burası neden öyle olduğunu anlatıyor.
+        Bir saldırının teknik olarak neye ihtiyacı olduğunu bilirseniz, hangi uyarıların ciddiye
+        alınması gerektiğini de kendiniz seçebilirsiniz.
+      </p>
+      <p class="note">
+        Bu yazılar bir saldırının nasıl yapılacağını değil, nasıl işlediğini anlatır. Adım adım
+        saldırı tarifi bulamayacaksınız; amaç savunan tarafı bilgilendirmek.
+      </p>
+    </header>
+
+    {
+      entries.length > 0 ? (
+        <div class="grid">
+          {entries.map((entry) => (
+            <ArticleCard entry={entry} headingLevel={2} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty">Bu bölüm henüz hazırlanıyor.</p>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .page-head {
+    max-width: var(--measure);
+    margin-bottom: var(--sp-7);
+  }
+  .page-head h1 {
+    margin-top: var(--sp-2);
+  }
+  .lede {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+  .note {
+    margin-top: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-4);
+  }
+  .empty {
+    color: var(--text-muted);
+  }
+</style>

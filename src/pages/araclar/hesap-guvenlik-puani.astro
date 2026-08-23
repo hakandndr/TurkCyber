@@ -1,0 +1,22 @@
+---
+import ToolLayout from '../../layouts/ToolLayout.astro';
+import ChecklistTool from '../../components/tools/ChecklistTool.astro';
+import { HESAP_GUVENLIK_PUANI } from '../../lib/tools/hesap-guvenlik-puani';
+---
+
+<ToolLayout
+  toolId="hesap-guvenlik-puani"
+  note="Sonuç bir yüzde vermez. Bunun sebebi ölçebilecek bir şeyin olmaması: burada kendi cevaplarınızı işaretliyorsunuz ve bir ortalama, asıl belirleyici olan tek eksiği görünmez kılar."
+>
+  <ChecklistTool definition={HESAP_GUVENLIK_PUANI} />
+
+  <ul slot="after">
+    <li><a href="/rehberler/guclu-sifre-yetmez/">Güçlü şifre neden yetmez?</a></li>
+    <li><a href="/rehberler/sifre-yoneticisi-guvenli-mi/">Şifre yöneticisi güvenli mi?</a></li>
+    <li>
+      <a href="/rehberler/telefonunuz-kaybolursa-ilk-15-dakika/"
+        >Telefonunuz kaybolursa: ilk 15 dakika</a
+      >
+    </li>
+  </ul>
+</ToolLayout>

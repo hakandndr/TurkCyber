@@ -1,45 +1,38 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TOOLS } from '../../config/tools';
+import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
 
 /**
  * Tools index.
  *
- * Planned tools are listed as planned. Nothing here links to something that
- * does not exist, and nothing is described as available before it is.
+ * The list comes from src/config/tools.ts so the sitemap and the search index
+ * stay in step with it. Planned tools are listed as planned; nothing here
+ * links to something that does not exist.
  */
-const tools = [
-  {
-    href: '/araclar/bu-mesaj-sahte-mi/',
-    title: 'Bu mesaj sahte mi?',
-    description:
-      'Altı gerçekçi mesaj gösterip her biri için ne yapardınız diye soruyoruz. ' +
-      'Sonunda hangi işaretleri kaçırdığınızı görüyorsunuz.',
-    status: 'ready' as const,
-  },
-  {
-    title: 'Instagram Güvenlik Testi',
-    description: 'Hesabınızın ayarlarını adım adım gözden geçiren bir kontrol listesi.',
-    status: 'planned' as const,
-  },
-  {
-    title: 'Hesap güvenlik puanı',
-    description: 'Birkaç soruyla en zayıf halkanızı bulan kısa bir değerlendirme.',
-    status: 'planned' as const,
-  },
-];
+const tools = TOOLS;
+
+const description =
+  'Dijital güvenliğinizi kendiniz test edebileceğiniz kısa, tarayıcıda çalışan araçlar.';
+
+const structuredData = ldGraph(
+  collectionPageLd('Araçlar', '/araclar/', description),
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Araçlar', path: '/araclar/' },
+  ]),
+);
 ---
 
-<BaseLayout
-  title="Araçlar"
-  description="Dijital güvenliğinizi kendiniz test edebileceğiniz kısa, tarayıcıda çalışan araçlar."
->
+<BaseLayout title="Araçlar" {description} {structuredData}>
   <div class="container-narrow page">
     <header class="page-head">
       <p class="eyebrow">Araçlar</p>
       <h1>Kendiniz deneyin</h1>
       <p class="lede">
         Okumak yerine denemek bazen daha iyi öğretir. Bu araçların hepsi tarayıcınızda çalışır —
-        verdiğiniz cevaplar hiçbir yere gönderilmez.
+        verdiğiniz cevaplar hiçbir yere gönderilmez, kaydedilmez ve hiçbir araç sizden gerçek
+        şifrenizi istemez.
       </p>
     </header>
 

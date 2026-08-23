@@ -65,9 +65,14 @@ two sequences never interfere.
 
 ## 4. Categories have one definition
 
-`src/config/site.ts` defines the nine categories. Navigation, category index
-pages, the content schema's `z.enum`, breadcrumbs and the search index all
-derive from it.
+`src/config/site.ts` defines the categories — ten of them, eight `primary` and
+two `secondary`. Navigation, category index pages, the content schema's
+`z.enum`, breadcrumbs and the search index all derive from it.
+
+The same principle now covers the interactive tools: `src/config/tools.ts` is
+the one list, and the tools index, the sitemap and the search index all read it.
+It exists because the tools were previously declared inline on their own index
+page, which meant they were absent from the sitemap and unfindable by search.
 
 **Why.** A category list duplicated across a schema, a nav array and a page is a
 guaranteed future inconsistency. Here, adding a category is one edit and the

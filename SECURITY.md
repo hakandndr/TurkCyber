@@ -126,22 +126,32 @@ three different failure modes at sign-in.
 ## Privacy commitments that are code, not prose
 
 `/gizlilik/` states that full IP addresses are stored in the private analytics
-database, that comments store only a non-reversible hash, that there is **no**
-automatic retention job, and that Google Fonts receives the visitor's IP.
+database, that comments store only a non-reversible hash, that visitor records
+are kept for **at most 90 days**, and that Google Fonts receives the visitor's
+IP.
 
 Each of those statements corresponds to something in the code. If any of them
-changes — a retention job is added, fonts are self-hosted, a field is dropped —
-`src/pages/gizlilik.astro` changes in the same commit. A privacy policy that
-disagrees with the implementation is worse than none.
+changes — retention becomes automatic, fonts are self-hosted, a field is
+dropped — `src/pages/gizlilik.astro` changes in the same commit. A privacy
+policy that disagrees with the implementation is worse than none.
+
+The 90-day line is backed by the manual retention panel on `/boss/system/`:
+`POST /boss/analytics/purge`, same-origin, session-required, confirmation phrase
+required, audited, and scoped to `visitor_events` in ANALYTICS_DB alone. It is
+never presented as a legal requirement — no law is being cited, and claiming one
+would be a fabricated legal assertion on the one page whose entire value is that
+it is accurate.
 
 ---
 
 ## Known gaps
 
-- **No automated retention.** Analytics rows persist until deleted by hand. The
-  privacy page says exactly this rather than promising a window that nothing
-  enforces. Adding a scheduled cleanup is a small, well-scoped change; the
-  privacy text must move with it.
+- **Retention is manual, and that is deliberate.** Nothing schedules the purge.
+  An unattended DELETE against the only copy of the analytics history is one bug
+  away from destroying it, and the legacy import has not landed — a scheduled
+  job would delete those rows the moment they arrived. The trade-off is real:
+  the 90-day commitment on `/gizlilik/` depends on a person running it. If that
+  becomes automatic, the privacy text moves with it.
 - **Google Fonts is a third-party request.** Self-hosting removes it — see
   ARCHITECTURE.md §11.
 - **KV rate limiting is not atomic.** Read-modify-write can undercount under

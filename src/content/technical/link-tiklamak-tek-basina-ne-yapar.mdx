@@ -1,0 +1,130 @@
+---
+title: 'Bir Bağlantıya Tıklamak Tek Başına Ne Yapar?'
+description: 'Yaygın iki cevap da yanlış: “tıklamak hiçbir şey yapmaz” ve “tıkladıysanız her şey bitti”. Bir bağlantının gerçekten neye ihtiyacı olduğu, adım adım.'
+category: nasil-calisiyor
+publishedAt: 2026-08-23
+status: published
+featured: true
+readingTime: 8
+prerequisite: 'Tarayıcı, uygulama ve internet adresi kavramlarını günlük düzeyde bilmeniz yeterli. Kod okumanız gerekmiyor.'
+summary: 'Bir bağlantıya dokunmak genellikle sadece bir sayfayı açar. Zarar için neredeyse her zaman ikinci bir şey gerekir: bilgi girmeniz, bir kodu paylaşmanız, bir izni onaylamanız, bir dosyayı çalıştırmanız — ya da nadiren, yamanmamış bir açık. “Asla bir şey olmaz” demek yanlış; “tıkladıysanız bitti” demek de yanlış.'
+tags: ['phishing', 'tarayıcı', 'güvenlik açığı', 'nasıl çalışıyor']
+---
+
+Bu soruya internette iki cevap dolaşıyor ve ikisi de yanlış.
+
+Birincisi rahatlatıcı olan: "Tıklamak zararsızdır, önemli olan bilgi girmemek."
+İkincisi panik olan: "Tıkladıysanız telefonunuz gitti."
+
+<Callout type="onemli">
+  Doğru cevap ikisinin arasında ve bir koşula bağlı: bir bağlantıya dokunmak **genellikle** sadece
+  bir sayfa açar. Zarar için **neredeyse her zaman ikinci bir şey** gerekir. "Neredeyse" kelimesi
+  burada gerçek istisnalar olduğu için duruyor.
+</Callout>
+
+Bu yazı o ikinci şeyin ne olduğunu anlatıyor. Amacı sizi rahatlatmak değil,
+hangi uyarıyı ciddiye alacağınıza kendiniz karar verebilmeniz.
+
+## Dokunduğunuz anda ne oluyor
+
+Bir bağlantı bir adresten ibarettir. Dokunduğunuzda tarayıcı o adrese bağlanır ve
+gelen içeriği çizer. Bu aşamada olan şeyler:
+
+- Sunucu **sizin bağlandığınızı öğrenir**: IP adresiniz, kabaca konumunuz,
+  tarayıcınız ve işletim sisteminiz.
+- Bağlantı size özel üretilmişse, saldırgan **o e-postayı sizin açtığınızı**
+  öğrenir. Adresinizin canlı olduğunu bilmek onun için değerlidir.
+- Sayfadaki JavaScript **kendi sekmesi içinde** çalışır.
+
+Bu son madde önemli. Tarayıcılar sayfaları bir kum havuzunun içinde çalıştırır: bir
+sayfanın kodu, kendi kaynağı dışındaki verilere ve cihazınızın dosyalarına
+doğrudan erişemez. Bu izolasyon işin büyük kısmını yapar.
+
+## Zarar için gereken ikinci şey
+
+Vakaların ezici çoğunluğunda aşağıdakilerden **biri** olmadan bir şey olmuyor.
+
+### 1. Bilgi girmeniz
+
+En yaygın olanı, açık ara. Sayfa gerçek bir giriş ekranının kopyasıdır; siz
+kullanıcı adı ve şifrenizi yazarsınız, bilgiler doğrudan saldırgana gider.
+
+Burada teknik bir açık kullanılmıyor. Kullanılan şey, sayfanın gerçeğine
+benzemesi.
+
+### 2. Bir kodu paylaşmanız
+
+Modern oltalama sayfaları şifreyi aldıktan sonra **anında gerçek siteye giriş
+yapar** ve size gelen doğrulama kodunu ister. Kodu yazdığınızda giriş onların
+tarafında tamamlanır.
+
+Bu, iki aşamalı doğrulamanın neden hâlâ çok değerli olduğunu ama sihirli
+olmadığını gösterir: [Tek kullanımlık kod neden bu kadar
+değerli?](/teknik/tek-kullanimlik-kod-otp-neden-degerli/)
+
+### 3. Bir izni onaylamanız
+
+Bağlantı bir uygulama yetkilendirme ekranına götürebilir: "Bu uygulama
+hesabınıza erişmek istiyor." Onayladığınızda şifreniz hiç öğrenilmeden erişim
+verilmiş olur.
+
+Bu saldırıda hiçbir şey kırılmaz. Siz izin verirsiniz.
+
+### 4. Bir dosyayı indirip çalıştırmanız
+
+Bağlantı bir dosya indirir. Dosya kendi başına bir şey yapmaz; **çalıştırmanız**
+gerekir. Masaüstünde bu bir kurulum dosyasıdır, telefonda uygulama mağazası
+dışından bir kurulum.
+
+<Callout type="dikkat">
+  Belge dosyaları da bu kategoridedir. Bir ofis belgesindeki makroyu etkinleştirmek, "sadece bir
+  belge açtım" değil, "bir program çalıştırdım" demektir.
+</Callout>
+
+### 5. Yamanmamış bir açık
+
+İşte "asla bir şey olmaz" cümlesini yanlış yapan kısım.
+
+Tarayıcılar ve işletim sistemleri karmaşık yazılımlardır ve içlerinde zaman zaman
+ciddi açıklar bulunur. Bunların bir kısmı, **sadece bir sayfayı görüntülemenin**
+cihazda kod çalıştırmaya yetmesini sağlar.
+
+Bu gerçektir ve bunun için üretici düzenli güvenlik güncellemesi yayımlar.
+
+<Callout type="bilgi">
+  Bu tür açıklar nadirdir, pahalıdır ve genellikle geniş kitleye rastgele atılan mesajlarda
+  kullanılmaz — hedefli saldırılarda kullanılır. Ama "nadir", "imkânsız" değildir. Bu yüzden bu
+  sitede hiçbir yerde "bir bağlantı size asla zarar veremez" cümlesi geçmez.
+</Callout>
+
+Sizi bu riskin dışında tutan tek şey: **güncellemeleri geciktirmemek.** Yamanmış
+bir açık artık bir açık değildir.
+
+## Peki tıkladım, şimdi ne olacak
+
+Sakin bir kontrol listesi:
+
+<Callout type="kontrol">
+  1. **Bir şey yazdınız mı?** Şifre, kart bilgisi, kod — evetse o hesabın şifresini başka bir
+  cihazdan hemen değiştirin. 2. **Bir şey onayladınız mı?** İzin ekranı, "devam et", "erişime izin
+  ver" — evetse hesabınızın bağlı uygulamalar listesinden erişimi kaldırın. 3. **Bir dosya indirip
+  açtınız mı?** Evetse cihazı ciddi ele alın: güvenlik taraması, gerekiyorsa sıfırlama. 4. **Hiçbiri
+  yoksa** — sayfayı kapatın, cihazınızın ve tarayıcınızın güncellemelerini kontrol edin ve devam
+  edin. Panik gerektiren bir durum değildir.
+</Callout>
+
+## Neden bu ayrımı yapıyoruz
+
+Çünkü "her bağlantı ölümcül" demek işe yaramıyor. İnsanlar gün içinde yüzlerce
+bağlantıya dokunuyor; hepsini tehdit ilan eden bir tavsiye, birkaç gün sonra
+tamamen görmezden geliniyor.
+
+Gerçek fayda, **hangi anın kritik olduğunu** bilmekte: bir şey yazarken, bir kodu
+paylaşırken, bir izni onaylarken, bir dosyayı çalıştırırken. Dikkatinizi oraya
+ayırın.
+
+## Devamı
+
+- [Oturum çerezi nedir ve neden çalınır?](/teknik/oturum-cerezi-nedir-ve-neden-calinir/)
+- [Benzer alan adları neden fark edilmiyor?](/teknik/benzer-alan-adlari-neden-fark-edilmiyor/)
+- [Sahte giriş sayfası nasıl anlaşılır?](/rehberler/sahte-giris-sayfasi-nasil-anlasilir/)

@@ -71,6 +71,9 @@ understanding the comment first:
   attacker-controlled.
 - **Comments are moderated before they are public**, and the public query never
   selects `email`.
+- **Analytics retention is manual and ANALYTICS_DB-only.** Nothing schedules
+  the purge, and it deletes from `visitor_events` and nothing else. `/gizlilik/`
+  changes in the same commit if either fact does — see §4.
 - **Turnstile fails closed.**
 - **The draft publication gate defaults to closed** — see §5.
 - **`pnpm scan:secrets` runs first in CI.** The repository is public.
@@ -91,7 +94,20 @@ understanding the comment first:
   the site was dormant for years. `HERITAGE` in `src/config/site.ts` holds the
   approved wordings — use them rather than writing new ones.
 - Interactive tools run entirely in the browser. Answers are never transmitted,
-  never stored, never sent to analytics.
+  never stored, never sent to analytics. **No tool asks for a real password**,
+  and no tool reports a fabricated precision — a checklist result is a band and
+  an ordered list, never "%87,4 güvende".
+- **No page may claim that clicking a link is categorically safe.** It is false,
+  and the site loses its credibility the first time a reader is harmed by one.
+  `/teknik/link-tiklamak-tek-basina-ne-yapar/` states the real preconditions and
+  a test asserts the absolute never comes back.
+- **`/gizlilik/` says visitor records are kept "en fazla 90 gün".** That is a
+  commitment kept by hand through `/boss/system/`. It must never be presented as
+  a legal requirement — no law is being cited, and claiming one would be a
+  fabrication. Tests assert both halves.
+- The mark is defined once, as geometry, in `scripts/brandmark.py`. Do not hand-
+  draw another version of `<TC/>` for an icon — the icons and the OG card derive
+  from the same outlines as the header wordmark, and that is the point.
 
 ---
 
@@ -115,15 +131,34 @@ production build containing draft content. Do not reintroduce that pattern —
 ```bash
 pnpm check    # astro check + worker typecheck
 pnpm lint     # eslint + prettier --check
-pnpm test     # vitest — builds the site itself if dist/ is missing
+pnpm test     # vitest — always builds its own hermetic copy into .test-dist/
 pnpm build
 pnpm scan:secrets
 ```
 
-`pnpm test` has **no ordering dependency** on `pnpm build`:
-`tests/global-setup.ts` builds when `dist/` is absent. Keep it that way —
-filesystem access in `tests/content.test.ts` must stay inside test bodies,
-because `describe.runIf` still evaluates the suite factory.
+### The test run owns its build
+
+`pnpm test` is **hermetic**. It has no ordering dependency on `pnpm build`, and
+it never reads `dist/`.
+
+`tests/global-setup.ts` deletes `.test-dist/` and rebuilds into it on every run.
+`tests/content.test.ts` asserts only against that directory, via the `TEST_DIST`
+constant in `tests/paths.ts`.
+
+Three rules keep it that way. All three have been broken before, and each broke
+the suite in a different way:
+
+1. **Never assert against `dist/`.** It belongs to the developer. It may be
+   absent, stale, or built with different environment variables. A stale `dist/`
+   once made the suite fail on retired category ids that no longer existed in
+   the source.
+2. **Never trust an existing build.** "Build only if missing" is the same bug
+   with an extra step. Always rebuild.
+3. **No filesystem access at module scope in a test file.** Vitest evaluates a
+   suite factory even when it is skipped, so a top-level `readdirSync` throws
+   during collection — before any guard applies and before global setup's output
+   can help. `describe.runIf` does **not** protect a top-level read. Every read
+   goes inside a test body or a `beforeAll`.
 
 Run `pnpm lint` before committing. Prettier formatting drift is the most common
 cause of a red first run on a fresh machine.
@@ -150,9 +185,11 @@ Full runbook: `PRODUCTION_CUTOVER.md`.
 - **Astro 7 migration** is deliberately a separate, isolated task. Do not mix a
   framework upgrade with visual or content changes.
 - Self-hosting the webfonts (removes the Google Fonts third-party request).
-- A retention job for analytics (`/gizlilik/` currently states there is none —
-  if one is added, that page changes in the same commit).
+  `scripts/brandmark.py` already documents how JetBrains Mono was obtained.
 - Per-article OG images.
+
+Analytics retention is **not** deferred work any more — it exists, manually, at
+`/boss/system/`. Making it automatic is a deliberate non-goal; see §3.
 
 ---
 

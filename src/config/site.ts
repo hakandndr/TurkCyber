@@ -65,7 +65,7 @@ export function resolveFormspreeEndpoint(override?: string): string {
 export const HERITAGE = {
   foundedYear: 2005,
   /** Compact badge for the header and the OG card. */
-  badge: "2005'ten beri",
+  badge: "2005'ten bugüne",
   /** One line for the footer. */
   footer:
     "turkcyber.com 2005'te kuruldu ve o dönemde bir siber güvenlik forumu olarak " +
@@ -81,9 +81,11 @@ export type CategoryId =
   | 'hesap-guvenligi'
   | 'instagram-sosyal-medya'
   | 'dolandiricilik-phishing'
+  | 'banka-kamu-dolandiriciligi'
   | 'telefon-cihaz-guvenligi'
   | 'sifreler-2fa'
   | 'gizlilik'
+  | 'nasil-calisiyor'
   | 'web-tarayici-guvenligi'
   | 'guvenlik-haberleri';
 
@@ -136,6 +138,16 @@ export const CATEGORIES: readonly Category[] = [
     prominence: 'primary',
   },
   {
+    id: 'banka-kamu-dolandiriciligi',
+    name: 'Banka & Kamu Dolandırıcılığı',
+    description:
+      'Sahte banka SMS\'leri, "güvenli hesaba para aktarın" senaryosu, kendini polis veya ' +
+      'savcı olarak tanıtan aramalar, uzaktan erişim uygulamaları ve para transferi tuzakları.',
+    question: 'Bankadan aradıklarını söylüyorlar, gerçek mi?',
+    accent: 'green',
+    prominence: 'primary',
+  },
+  {
     id: 'hesap-guvenligi',
     name: 'Hesap Güvenliği',
     description:
@@ -174,6 +186,16 @@ export const CATEGORIES: readonly Category[] = [
     prominence: 'primary',
   },
   {
+    id: 'nasil-calisiyor',
+    name: 'Teknik Derinlik: Nasıl Çalışıyor?',
+    description:
+      'Bir saldırının arkasında teknik olarak ne olduğu — oturum çerezleri, OTP, alan adı ' +
+      'benzerliği, uygulama izinleri. Ne yapılacağını değil, neden öyle olduğunu anlatır.',
+    question: 'Bu iş teknik olarak nasıl yürüyor?',
+    accent: 'cyan',
+    prominence: 'primary',
+  },
+  {
     id: 'web-tarayici-guvenligi',
     name: 'Web & Tarayıcı Güvenliği',
     description: 'Tarayıcı eklentileri, sertifikalar, adres çubuğu kontrolü ve güvenli gezinme.',
@@ -191,7 +213,7 @@ export const CATEGORIES: readonly Category[] = [
   },
 ] as const;
 
-/** The six problem areas that lead every listing surface. */
+/** The problem areas that lead every listing surface. */
 export const PRIMARY_CATEGORIES = CATEGORIES.filter((c) => c.prominence === 'primary');
 export const SECONDARY_CATEGORIES = CATEGORIES.filter((c) => c.prominence === 'secondary');
 
@@ -210,6 +232,7 @@ export function getCategory(id: string): Category | undefined {
 export const NAV = [
   { href: '/rehberler/', label: 'Rehberler' },
   { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi?' },
+  { href: '/teknik/', label: 'Teknik' },
   { href: '/araclar/', label: 'Araçlar' },
   { href: '/haberler/', label: 'Haberler' },
   { href: '/konular/', label: 'Konular' },
@@ -219,6 +242,7 @@ export const NAV = [
 export const FOOTER_LINKS = [
   { href: '/rehberler/', label: 'Rehberler' },
   { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi, gerçek mi?' },
+  { href: '/teknik/', label: 'Nasıl çalışıyor?' },
   { href: '/araclar/', label: 'Araçlar' },
   { href: '/haberler/', label: 'Haberler' },
   { href: '/hakkinda/', label: 'Hakkında' },

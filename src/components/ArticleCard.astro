@@ -1,6 +1,7 @@
 ---
 import { getCategory, DIFFICULTY_LABELS } from '../config/site';
 import { articlePath, formatTurkishDate, type Article } from '../lib/content';
+import { CONTENT_KINDS, kindOfCollection } from '../lib/seo';
 
 interface Props {
   entry: Article;
@@ -23,11 +24,23 @@ const difficulty =
     ? DIFFICULTY_LABELS[entry.data.difficulty as keyof typeof DIFFICULTY_LABELS]
     : null;
 const date = entry.data.updatedAt ?? entry.data.publishedAt;
+
+// Reading time is author-supplied and only exists on the two collections that
+// carry it. Narrow on the collection rather than on a boolean — a boolean
+// cannot narrow the union that `entry.data` resolves to.
+const readingTime =
+  entry.collection === 'guides' || entry.collection === 'technical' ? entry.data.readingTime : null;
+
+const kind = kindOfCollection(entry.collection);
+// The technical lane is the one type a reader can land on by mistake, so it is
+// the one that gets called out on the card.
+const laneBadge = kind === 'teknik' ? CONTENT_KINDS.teknik.badge : null;
 ---
 
 <article class:list={['card', `card-${size}`]}>
   <div class="card-meta">
     {category && <span class:list={['tag', `tag-${category.accent}`]}>{category.name}</span>}
+    {laneBadge && <span class="card-lane">{laneBadge}</span>}
     {difficulty && <span class="card-difficulty">{difficulty}</span>}
   </div>
 
@@ -41,7 +54,7 @@ const date = entry.data.updatedAt ?? entry.data.publishedAt;
 
   <p class="card-foot">
     <time datetime={date.toISOString()}>{formatTurkishDate(date)}</time>
-    {entry.collection === 'guides' && <span>{entry.data.readingTime} dk okuma</span>}
+    {readingTime !== null && <span>{readingTime} dk okuma</span>}
     {entry.data.status !== 'published' && <span class="card-draft">{entry.data.status}</span>}
   </p>
 </article>
@@ -67,6 +80,16 @@ const date = entry.data.updatedAt ?? entry.data.publishedAt;
     gap: var(--sp-3);
     align-items: center;
     flex-wrap: wrap;
+  }
+
+  .card-lane {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    color: var(--cyan);
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    padding: 0.15em 0.45em;
   }
 
   .card-difficulty {

@@ -1,0 +1,117 @@
+---
+/**
+ * Shared shell for a tool page.
+ *
+ * The three tool pages had identical breadcrumbs, headers and stylesheets
+ * copied between them, which is how the privacy line ends up saying something
+ * slightly different on one page than on the others. There is one copy now.
+ *
+ * The title and description come from src/config/tools.ts, the same registry
+ * the tools index, the sitemap and the search index read.
+ */
+import BaseLayout from './BaseLayout.astro';
+import { TOOLS } from '../config/tools';
+import { breadcrumbLd, ldGraph } from '../lib/seo';
+
+interface Props {
+  /** Id of the entry in `TOOLS`. */
+  toolId: string;
+  /** Optional honesty note shown under the lede. */
+  note?: string;
+}
+
+const { toolId, note } = Astro.props;
+
+const tool = TOOLS.find((candidate) => candidate.id === toolId);
+if (!tool) {
+  // A tool page whose id is not in the registry would be invisible to the
+  // sitemap and to search. Failing the build is the only way that stays true.
+  throw new Error(
+    `ToolLayout: no entry with id "${toolId}" in src/config/tools.ts. ` +
+      'Add it there rather than hard-coding the title here.',
+  );
+}
+
+const path = tool.href ?? '/araclar/';
+
+const structuredData = ldGraph(
+  breadcrumbLd([
+    { name: 'Ana sayfa', path: '/' },
+    { name: 'Araçlar', path: '/araclar/' },
+    { name: tool.title, path },
+  ]),
+);
+---
+
+<BaseLayout title={tool.title} description={tool.description} kind="arac" {structuredData}>
+  <div class="container-narrow page">
+    <nav aria-label="Konum" class="breadcrumb">
+      <a href="/">Ana sayfa</a>
+      <span aria-hidden="true">/</span>
+      <a href="/araclar/">Araçlar</a>
+    </nav>
+
+    <header class="head">
+      <h1>{tool.title}</h1>
+      <p class="lede">{tool.description}</p>
+      {note && <p class="note">{note}</p>}
+    </header>
+
+    <slot />
+
+    <aside class="after">
+      <h2>Devamı</h2>
+      <slot name="after" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--sp-6) var(--sp-8);
+  }
+  .breadcrumb {
+    display: flex;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-bottom: var(--sp-5);
+  }
+  .breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: var(--cyan);
+  }
+  .head {
+    margin-bottom: var(--sp-5);
+  }
+  .lede {
+    margin-top: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+  .note {
+    margin-top: var(--sp-3);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+  .after {
+    margin-top: var(--sp-7);
+    padding-top: var(--sp-5);
+    border-top: 1px solid var(--border);
+  }
+  .after h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-3);
+  }
+  .after :global(ul) {
+    padding-left: var(--sp-5);
+  }
+  .after :global(li) {
+    margin-bottom: var(--sp-2);
+  }
+</style>

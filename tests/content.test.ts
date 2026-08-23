@@ -20,7 +20,17 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { CATEGORIES, CATEGORY_IDS, NAV } from '../src/config/site';
-import { normalizeForSearch, searchDocuments, turkishLower } from '../src/lib/search';
+import { READY_TOOLS } from '../src/config/tools';
+import { LEVELS, WEIGHT_ORDER, allItems, evaluateChecklist } from '../src/lib/tools/checklist';
+import { HESAP_GUVENLIK_PUANI } from '../src/lib/tools/hesap-guvenlik-puani';
+import { INSTAGRAM_GUVENLIK_TESTI } from '../src/lib/tools/instagram-guvenlik-testi';
+import { HOME_TITLE, TITLE_MAX, documentTitle } from '../src/lib/seo';
+import {
+  normalizeForSearch,
+  searchDocuments,
+  turkishLower,
+  type SearchDocument,
+} from '../src/lib/search';
 import { TEST_DIST } from './paths';
 
 /** Read a file from the test build, failing with an actionable message. */
@@ -234,8 +244,7 @@ describe('private routes are absent from the static build', () => {
 });
 
 describe('search index', () => {
-  const documents = (): Array<{ slug: string; url: string; category: string }> =>
-    JSON.parse(read('search-index.json'));
+  const documents = (): SearchDocument[] => JSON.parse(read('search-index.json'));
 
   it('contains only published content', () => {
     const docs = documents();
@@ -245,18 +254,231 @@ describe('search index', () => {
 
   it('gives every document a resolvable url and a current category', () => {
     for (const doc of documents()) {
-      expect(doc.url).toMatch(/^\/(rehberler|haberler|efsane-mi-gercek-mi)\/[a-z0-9-]+\/$/);
-      // Catches a retired category id surviving in generated output.
-      expect(CATEGORY_IDS, `retired category id in search index: ${doc.category}`).toContain(
-        doc.category,
+      expect(doc.url).toMatch(
+        /^\/(rehberler|haberler|efsane-mi-gercek-mi|teknik|araclar)\/[a-z0-9-]+\/$/,
       );
+      // Catches a retired category id surviving in generated output. Tools
+      // carry an empty category when they are not filed under one.
+      if (doc.kind !== 'arac' || doc.category) {
+        expect(CATEGORY_IDS, `retired category id in search index: ${doc.category}`).toContain(
+          doc.category,
+        );
+      }
     }
+  });
+
+  /*
+   * The content type used to be derived as "guides ? rehber : haber", so every
+   * myth announced itself as HABER in the result list — the opposite of what
+   * the page is. This pins the mapping to the URL, which cannot drift.
+   */
+  it('labels each document with the content type its url implies', () => {
+    const EXPECTED: Record<string, string> = {
+      rehberler: 'rehber',
+      haberler: 'haber',
+      'efsane-mi-gercek-mi': 'efsane',
+      teknik: 'teknik',
+      araclar: 'arac',
+    };
+
+    for (const doc of documents()) {
+      const section = doc.url.split('/')[1]!;
+      expect(doc.kind, `${doc.url} is labelled ${doc.kind}`).toBe(EXPECTED[section]);
+      expect(doc.kindLabel.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('carries pre-normalised fields for every document', () => {
+    for (const doc of documents()) {
+      expect(doc.n.title, doc.url).toBe(normalizeForSearch(doc.title));
+      // Normalisation folds Turkish characters away; anything left is a bug.
+      expect(doc.n.title).toMatch(/^[a-z0-9 ]*$/);
+    }
+  });
+
+  it('includes the shipped tools so they can be found by name', () => {
+    const tools = documents().filter((doc) => doc.kind === 'arac');
+    expect(tools.length).toBe(READY_TOOLS.length);
+
+    for (const tool of READY_TOOLS) {
+      expect(tools.some((doc) => doc.url === tool.href)).toBe(true);
+    }
+  });
+});
+
+describe('the technical lane', () => {
+  it('publishes every technical entry under /teknik/', () => {
+    const slugs = dirsIn('teknik');
+    expect(slugs.length).toBeGreaterThanOrEqual(4);
+
+    for (const slug of slugs) {
+      expect(read(join('teknik', slug, 'index.html'))).toContain('İLERİ SEVİYE');
+    }
+  });
+
+  it('is reachable from the navigation and listed in the sitemap', () => {
+    expect(NAV.some((item) => item.href === '/teknik/')).toBe(true);
+    expect(sitemapPaths()).toContain('/teknik/');
+  });
+
+  /*
+   * This test checks that the article contains the actual nuance we want:
+   * normal phishing usually needs a second step, while browser/device
+   * vulnerabilities are real exceptions.
+   *
+   * We intentionally do NOT ban phrases such as "asla zarar veremez", because
+   * the article may quote or explicitly reject that absolute claim.
+   */
+  it('explains link-clicking risk without categorical reassurance', () => {
+    const html = read(join('teknik', 'link-tiklamak-tek-basina-ne-yapar', 'index.html'));
+
+    expect(html).toContain('Yamanmamış bir açık');
+    expect(html).toMatch(/neredeyse her zaman ikinci bir şey/i);
+    expect(html).toMatch(/nadir[\s\S]{0,160}imkânsız/i);
+    expect(html).toMatch(/yaygın iki cevap da yanlış/i);
+    expect(html).toMatch(/tıklamak hiçbir şey yapmaz/i);
+  });
+});
+
+describe('the tools registry', () => {
+  it('builds a page for every shipped tool and lists it in the sitemap', () => {
+    const paths = sitemapPaths();
+
+    for (const tool of READY_TOOLS) {
+      const slug = tool.href!.replace(/^\/araclar\/|\/$/g, '');
+      expect(read(join('araclar', slug, 'index.html'))).toContain(tool.title);
+      expect(paths, `${tool.href} missing from sitemap`).toContain(tool.href);
+    }
+  });
+
+  it('never asks for a password and says so on the page', () => {
+    for (const tool of READY_TOOLS) {
+      const slug = tool.href!.replace(/^\/araclar\/|\/$/g, '');
+      const html = read(join('araclar', slug, 'index.html'));
+
+      expect(html, `${tool.href} has a password field`).not.toMatch(/type="password"/);
+      expect(html).toMatch(/gönderilmez/);
+    }
+  });
+
+  it('reports a band rather than a fabricated percentage', () => {
+    const result = evaluateChecklist(HESAP_GUVENLIK_PUANI, new Set());
+    expect(result.level).toBe('zayif');
+    expect(Object.keys(LEVELS)).toContain(result.level);
+    // No percentage anywhere in the result shape — that is the whole point.
+    expect(Object.keys(result)).toEqual(['total', 'checked', 'missing', 'level']);
+  });
+
+  it('orders the advice by consequence, not by position on the page', () => {
+    const result = evaluateChecklist(INSTAGRAM_GUVENLIK_TESTI, new Set());
+    const weights = result.missing.map((item) => item.weight);
+    const sorted = [...weights].sort((a, b) => WEIGHT_ORDER[a] - WEIGHT_ORDER[b]);
+    expect(weights).toEqual(sorted);
+  });
+
+  it('reaches the best level only when nothing is missing', () => {
+    const all = new Set(allItems(HESAP_GUVENLIK_PUANI).map((item) => item.id));
+    expect(evaluateChecklist(HESAP_GUVENLIK_PUANI, all).level).toBe('iyi');
+
+    // One critical gap outweighs everything else being in place.
+    const items = allItems(HESAP_GUVENLIK_PUANI);
+    const critical = items.find((item) => item.weight === 'critical')!;
+    const allButOne = new Set(items.filter((i) => i.id !== critical.id).map((i) => i.id));
+    expect(evaluateChecklist(HESAP_GUVENLIK_PUANI, allButOne).level).toBe('zayif');
+  });
+
+  it('ignores an id that is not in the definition', () => {
+    const result = evaluateChecklist(HESAP_GUVENLIK_PUANI, new Set(['not-a-real-item']));
+    expect(result.checked).toBe(0);
+  });
+});
+
+describe('titles', () => {
+  it('gives the homepage its own descriptive title', () => {
+    expect(read('index.html')).toContain(`<title>${HOME_TITLE}</title>`);
+  });
+
+  it('says what kind of page a content result is', () => {
+    const title = documentTitle({ title: 'Passkey nedir?', kind: 'rehber' });
+    expect(title).toBe('Passkey nedir? · Rehber | TurkCyber');
+  });
+
+  it('drops the brand before it truncates a long title', () => {
+    const long = 'Ç'.repeat(TITLE_MAX - 5);
+    expect(documentTitle({ title: long, kind: 'rehber' })).toBe(long);
+  });
+
+  it('uses a frontmatter override verbatim', () => {
+    expect(documentTitle({ title: 'Bir şey', kind: 'rehber', override: 'Elle yazıldı' })).toBe(
+      'Elle yazıldı',
+    );
+  });
+});
+
+describe('structured data', () => {
+  const ld = (path: string): Record<string, unknown>[] => {
+    const html = read(path);
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+    expect(blocks.length, `no JSON-LD in ${path}`).toBeGreaterThan(0);
+
+    return blocks.flatMap((block) => {
+      const parsed = JSON.parse(block[1]!);
+      return (parsed['@graph'] ?? [parsed]) as Record<string, unknown>[];
+    });
+  };
+
+  it('emits a breadcrumb trail on an article', () => {
+    const nodes = ld(join('rehberler', 'passkey-nedir', 'index.html'));
+    const crumbs = nodes.find((node) => node['@type'] === 'BreadcrumbList');
+    expect(crumbs).toBeDefined();
+
+    const items = crumbs!.itemListElement as Array<{ position: number; item: string }>;
+    expect(items.length).toBeGreaterThanOrEqual(3);
+    expect(items[0]!.item).toBe('https://turkcyber.com/');
+    // Positions must be 1-based and contiguous or the markup is invalid.
+    expect(items.map((i) => i.position)).toEqual(items.map((_, index) => index + 1));
+  });
+
+  it('reviews a myth as a claim rather than as an article', () => {
+    const slug = dirsIn('efsane-mi-gercek-mi')[0]!;
+    const nodes = ld(join('efsane-mi-gercek-mi', slug, 'index.html'));
+    const review = nodes.find((node) => node['@type'] === 'ClaimReview');
+    expect(review).toBeDefined();
+    expect(review!.claimReviewed).toBeTruthy();
+  });
+
+  it('never invents a person as the author', () => {
+    const nodes = ld(join('rehberler', 'passkey-nedir', 'index.html'));
+    const article = nodes.find((node) => String(node['@type']).endsWith('Article'));
+    expect((article!.author as { '@type': string })['@type']).toBe('Organization');
+  });
+});
+
+describe('the privacy page', () => {
+  const html = (): string => read(join('gizlilik', 'index.html'));
+
+  it('states the retention window', () => {
+    expect(html()).toContain('en fazla 90 gün');
+  });
+
+  /*
+   * No law is being cited here. Claiming one would be a fabricated legal
+   * assertion on a page whose entire value is that it is accurate.
+   */
+  it('never presents the retention window as a legal requirement', () => {
+    expect(html()).not.toMatch(/kanun gereği/i);
+    expect(html()).not.toMatch(/yasal zorunluluk/i);
+  });
+
+  it('still discloses that the full IP address is stored', () => {
+    expect(html()).toMatch(/IP adresiniz/);
   });
 });
 
 describe('the contact form', () => {
   it('renders a Formspree form when the endpoint is configured', () => {
     const html = read(join('iletisim', 'index.html'));
+
     // Either a real form or the documented email fallback — never a form
     // pointing at a placeholder, which would discard messages silently.
     const hasForm = /action="https:\/\/formspree\.io\/f\/[A-Za-z0-9]+"/.test(html);
@@ -290,19 +512,49 @@ describe('Turkish text handling', () => {
     expect(normalizeForSearch('İki Aşamalı Doğrulama')).toBe('iki asamali dogrulama');
   });
 
+  /**
+   * Build a search document the way the index builds one.
+   *
+   * Tests used to hand-write the whole shape, which meant every field change
+   * broke six unrelated assertions and tempted the next person to weaken the
+   * type instead of the fixture.
+   */
+  const doc = (fields: {
+    slug: string;
+    title: string;
+    description?: string;
+    tags?: string[];
+    categoryName?: string;
+    body?: string;
+    kind?: SearchDocument['kind'];
+  }): SearchDocument => ({
+    slug: fields.slug,
+    url: `/rehberler/${fields.slug}/`,
+    title: fields.title,
+    description: fields.description ?? '',
+    category: 'sifreler-2fa',
+    categoryName: fields.categoryName ?? '',
+    tags: fields.tags ?? [],
+    kind: fields.kind ?? 'rehber',
+    kindLabel: 'REHBER',
+    n: {
+      title: normalizeForSearch(fields.title),
+      tags: normalizeForSearch((fields.tags ?? []).join(' ')),
+      category: normalizeForSearch(fields.categoryName ?? ''),
+      summary: normalizeForSearch(fields.description ?? ''),
+      body: normalizeForSearch(fields.body ?? ''),
+    },
+  });
+
   it('finds a guide typed without Turkish characters', () => {
     const docs = [
-      {
+      doc({
         slug: 'sifre-yoneticisi-guvenli-mi',
-        url: '/rehberler/sifre-yoneticisi-guvenli-mi/',
         title: 'Şifre Yöneticisi Kullanmak Güvenli mi?',
         description: 'Şifre yöneticileri hakkında.',
-        category: 'sifreler-2fa',
-        categoryName: 'Şifreler, Passkeys & 2FA',
         tags: ['şifre yöneticisi'],
-        kind: 'rehber' as const,
-        haystack: normalizeForSearch('Şifre Yöneticisi Kullanmak Güvenli mi? kasa ana şifre'),
-      },
+        body: 'kasa ana şifre',
+      }),
     ];
 
     expect(searchDocuments(docs, 'sifre').length).toBe(1);
@@ -312,21 +564,51 @@ describe('Turkish text handling', () => {
   });
 
   it('requires every term to match, so two words do not return everything', () => {
-    const docs = [
-      {
-        slug: 'a',
-        url: '/rehberler/a/',
-        title: 'Şifre rehberi',
-        description: '',
-        category: 'sifreler-2fa',
-        categoryName: '',
-        tags: [],
-        kind: 'rehber' as const,
-        haystack: normalizeForSearch('şifre rehberi'),
-      },
-    ];
+    const docs = [doc({ slug: 'a', title: 'Şifre rehberi', body: 'şifre rehberi' })];
     expect(searchDocuments(docs, 'sifre').length).toBe(1);
     expect(searchDocuments(docs, 'sifre passkey').length).toBe(0);
+  });
+
+  /*
+   * The stated priority is exact title, then title-starts-with, then
+   * title-contains, then tags and category, then summary, then body. Each
+   * assertion below pins one boundary of that order — a body-only match used
+   * to be able to outrank an exact title by accumulating enough hits.
+   */
+  it('ranks an exact title match above every other kind of match', () => {
+    const docs = [
+      doc({ slug: 'body', title: 'Tamamen başka bir yazı', body: 'passkey passkey passkey' }),
+      doc({ slug: 'tags', title: 'İlgisiz başlık', tags: ['passkey', 'passkey'] }),
+      doc({ slug: 'contains', title: 'Bir passkey rehberi daha', body: 'passkey' }),
+      doc({ slug: 'prefix', title: 'Passkey nedir ve neden önemlidir', body: 'passkey' }),
+      doc({ slug: 'exact', title: 'Passkey' }),
+    ];
+
+    const order = searchDocuments(docs, 'passkey').map((hit) => hit.slug);
+    expect(order).toEqual(['exact', 'prefix', 'contains', 'tags', 'body']);
+  });
+
+  it('ranks a tag match above a body-only match', () => {
+    const docs = [
+      doc({ slug: 'body', title: 'Bir yazı', body: 'kimlik avı kimlik avı kimlik avı' }),
+      doc({ slug: 'tags', title: 'Başka bir yazı', tags: ['kimlik avı'] }),
+    ];
+
+    expect(searchDocuments(docs, 'kimlik avi').map((hit) => hit.slug)).toEqual(['tags', 'body']);
+  });
+
+  it('ranks a summary match above a body-only match', () => {
+    const docs = [
+      doc({ slug: 'body', title: 'Bir yazı', body: 'oturum çerezi' }),
+      doc({ slug: 'summary', title: 'Başka bir yazı', description: 'oturum çerezi nedir' }),
+    ];
+
+    expect(searchDocuments(docs, 'oturum').map((hit) => hit.slug)).toEqual(['summary', 'body']);
+  });
+
+  it('matches on a category name, not only on the document body', () => {
+    const docs = [doc({ slug: 'a', title: 'Bir yazı', categoryName: 'Hesap Güvenliği' })];
+    expect(searchDocuments(docs, 'hesap').length).toBe(1);
   });
 
   it('ignores a query shorter than two characters', () => {
@@ -339,7 +621,10 @@ describe('category configuration', () => {
   it('keeps ids unique and url-safe', () => {
     const ids = CATEGORIES.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const id of ids) expect(id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+
+    for (const id of ids) {
+      expect(id).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    }
   });
 
   it('gives every category a Turkish name, description and question', () => {

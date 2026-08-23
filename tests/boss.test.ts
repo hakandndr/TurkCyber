@@ -253,3 +253,160 @@ describe('moderation', () => {
     expect(response.status).toBe(400);
   });
 });
+
+/*
+ * Manual analytics retention.
+ *
+ * /gizlilik/ promises visitor records are kept for at most 90 days. These
+ * assertions keep that promise honest AND keep the delete from ever touching
+ * anything it should not.
+ */
+describe('analytics retention', () => {
+  /**
+   * An environment whose analytics database reports `older` rows past the
+   * cutoff. The fakes are returned alongside so the SQL they received can be
+   * inspected — `Env` types them as D1Database, which has no `calls`.
+   */
+  const retentionEnv = async (older: number) => {
+    const analytics = fakeDb({
+      rows: [],
+      first: {
+        total: 500,
+        oldest: '2026-01-01T00:00:00.000Z',
+        newest: '2026-08-01T00:00:00.000Z',
+        older,
+      },
+    });
+    const app = fakeDb({ rows: [], first: { n: 0 } });
+    const env = await makeEnv({
+      ANALYTICS_DB: analytics as unknown as Env['ANALYTICS_DB'],
+      APP_DB: app as unknown as Env['APP_DB'],
+    });
+    return { env, analytics, app };
+  };
+
+  const purgeRequest = async (confirm: string, sameOrigin = true): Promise<Request> => {
+    const cookie = await authedCookie();
+    const body = new FormData();
+    body.set('confirm', confirm);
+    return new Request(`${ORIGIN}/boss/analytics/purge/`, {
+      method: 'POST',
+      headers: sameOrigin ? { origin: ORIGIN, cookie } : { cookie },
+      body,
+    });
+  };
+
+  const hasDelete = (db: ReturnType<typeof fakeDb>): boolean =>
+    db.calls.some((call) => /\bDELETE\b/i.test(call.sql));
+
+  it('refuses anything but POST', async () => {
+    const { env } = await retentionEnv(120);
+    const response = await handleBoss(
+      get('/boss/analytics/purge/', { cookie: await authedCookie() }),
+      env,
+    );
+    expect(response.status).toBe(405);
+    expect(response.headers.get('allow')).toBe('POST');
+  });
+
+  it('requires a session', async () => {
+    const { env, analytics } = await retentionEnv(120);
+    const body = new FormData();
+    body.set('confirm', 'SIL');
+    const response = await handleBoss(
+      new Request(`${ORIGIN}/boss/analytics/purge/`, {
+        method: 'POST',
+        headers: { origin: ORIGIN },
+        body,
+      }),
+      env,
+    );
+    expect(response.status).toBe(401);
+    expect(hasDelete(analytics)).toBe(false);
+  });
+
+  it('refuses a cross-origin submission', async () => {
+    const { env, analytics } = await retentionEnv(120);
+    const response = await handleBoss(await purgeRequest('SIL', false), env);
+    expect(response.status).toBe(403);
+    expect(hasDelete(analytics)).toBe(false);
+  });
+
+  it('deletes nothing when the confirmation phrase does not match', async () => {
+    const { env, analytics } = await retentionEnv(120);
+    const response = await handleBoss(await purgeRequest('evet'), env);
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get('location')).toContain('notice=unconfirmed');
+    expect(hasDelete(analytics)).toBe(false);
+  });
+
+  it('deletes only from visitor_events, and only past the cutoff', async () => {
+    const { env, analytics } = await retentionEnv(120);
+    const response = await handleBoss(await purgeRequest('SIL'), env);
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get('location')).toContain('notice=purged');
+
+    const deletes = analytics.calls.filter((call) => /\bDELETE\b/i.test(call.sql));
+    expect(deletes).toHaveLength(1);
+    expect(deletes[0]!.sql).toContain('visitor_events');
+    // The cutoff is a bound parameter, never interpolated.
+    expect(deletes[0]!.sql).toContain('occurred_at < ?');
+    expect(String(deletes[0]!.params[0])).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  /*
+   * The single most important assertion in this file. APP_DB holds the
+   * comments and the audit trail; the retention promise does not cover them,
+   * and a DELETE aimed there would be unrecoverable.
+   */
+  it('never issues a delete against APP_DB', async () => {
+    const { env, app } = await retentionEnv(120);
+    await handleBoss(await purgeRequest('SIL'), env);
+
+    for (const call of app.calls) {
+      expect(call.sql, `APP_DB received: ${call.sql}`).not.toMatch(/\bDELETE\b/i);
+    }
+  });
+
+  it('writes an audit record naming the operator and the count', async () => {
+    const { env, app } = await retentionEnv(120);
+    await handleBoss(await purgeRequest('SIL'), env);
+
+    const audit = app.calls.find((call) => /INSERT INTO audit_events/i.test(call.sql));
+    expect(audit).toBeDefined();
+    expect(audit!.sql).toContain('analytics_purge');
+    expect(audit!.params).toContain('owner');
+    expect(audit!.params.join(' ')).toContain('120');
+    expect(audit!.params.join(' ')).not.toContain(SECRET);
+  });
+
+  it('does nothing when there is nothing older than the window', async () => {
+    const { env, analytics } = await retentionEnv(0);
+    const response = await handleBoss(await purgeRequest('SIL'), env);
+
+    expect(response.headers.get('location')).toContain('notice=nothing');
+    expect(hasDelete(analytics)).toBe(false);
+  });
+
+  it('shows the retention counts on the system page', async () => {
+    const { env } = await retentionEnv(42);
+    const response = await handleBoss(get('/boss/system/', { cookie: await authedCookie() }), env);
+    const html = await response.text();
+
+    expect(html).toContain('retention');
+    // The count is in the button label, so it cannot be pressed unread.
+    expect(html).toMatch(/42 kaydı sil/);
+  });
+
+  it('offers no delete button when there is nothing to delete', async () => {
+    const { env } = await retentionEnv(0);
+    const html = await (
+      await handleBoss(get('/boss/system/', { cookie: await authedCookie() }), env)
+    ).text();
+
+    expect(html).not.toContain('kaydı sil');
+    expect(html).toContain('Silinecek bir şey bulunmuyor');
+  });
+});

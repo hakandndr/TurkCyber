@@ -11,7 +11,14 @@
  */
 import { escapeHtml } from '../lib/http';
 import { formatPanelTimestamp } from '../lib/time';
-import { PAGE_SIZE, repeatFlag, type BuiltFilters } from '../lib/analytics-query';
+import {
+  PAGE_SIZE,
+  RETENTION_CONFIRM_PHRASE,
+  RETENTION_DAYS,
+  repeatFlag,
+  type BuiltFilters,
+  type RetentionStats,
+} from '../lib/analytics-query';
 
 const STYLE = `
 :root{--bg:#090b0c;--panel:#0c0f10;--raised:#101415;--line:rgba(255,255,255,.08);
@@ -26,7 +33,7 @@ header.bar{display:flex;align-items:center;justify-content:space-between;gap:16p
 flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:20px}
 .brand{font-size:18px;font-weight:600;letter-spacing:-.02em}
 .brand .b{color:var(--muted)}.brand .t{color:var(--text)}
-.brand .c{color:var(--brand-red)}.brand .s{color:var(--green)}
+.brand .c{color:var(--brand-red)}.brand .s{color:var(--muted)}
 nav.sub{display:flex;gap:14px;flex-wrap:wrap}
 nav.sub a{color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
 nav.sub a.on{color:var(--text);border-bottom-color:var(--cyan)}
@@ -83,6 +90,17 @@ padding:12px 14px;margin-bottom:10px}
 .s-pending{color:var(--amber)}.s-approved{color:var(--green)}
 .s-rejected{color:var(--muted)}.s-spam{color:var(--red)}
 @media(max-width:640px){.wrap{padding:14px 10px 48px}input{width:110px}}
+.danger{background:var(--panel);border:1px solid rgba(255,106,94,.35);border-radius:4px;padding:14px}
+.danger h3{margin:0 0 8px;font-size:13px;color:var(--red);font-weight:600}
+.danger p{margin:0 0 10px;color:var(--muted);max-width:70ch}
+.danger form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.danger input{width:120px}
+.danger button{border-color:rgba(255,106,94,.45);color:var(--red)}
+.danger button:hover{background:#1b1211}
+.danger .none{color:var(--muted)}
+.notice{background:var(--raised);border:1px solid var(--line);border-left:2px solid var(--green);
+border-radius:3px;padding:9px 12px;margin-bottom:12px}
+.notice.bad{border-left-color:var(--red)}
 `;
 
 function shell(title: string, active: string, body: string): string {
@@ -396,10 +414,57 @@ ${list}`,
   );
 }
 
+/**
+ * The retention panel.
+ *
+ * Shows what is actually in ANALYTICS_DB — oldest, newest, total, and how many
+ * rows are past the window — then offers one manual delete.
+ *
+ * Three deliberate frictions, all of them load-bearing:
+ *   - the button only appears when there is something to delete;
+ *   - the count is stated in the button's own label, so an operator cannot
+ *     press it without having read the number;
+ *   - a confirmation phrase must be typed, which a stray click cannot produce.
+ */
+export function renderRetention(stats: RetentionStats, timeZone: string): string {
+  const line = (k: string, v: string): string =>
+    `<div><span>${escapeHtml(k)}</span><span class="n">${escapeHtml(v)}</span></div>`;
+
+  const when = (value: string | null): string =>
+    value ? formatPanelTimestamp(value, timeZone) : '—';
+
+  const form =
+    stats.older > 0
+      ? `<form method="post" action="/boss/analytics/purge/">
+<label class="chk" for="confirm">Onaylamak için <b>${RETENTION_CONFIRM_PHRASE}</b> yazın:</label>
+<input id="confirm" name="confirm" autocomplete="off" required>
+<button type="submit">${stats.older} kaydı sil (${RETENTION_DAYS} günden eski)</button>
+</form>`
+      : `<p class="none">${RETENTION_DAYS} günden eski kayıt yok. Silinecek bir şey bulunmuyor.</p>`;
+
+  return `<h2>retention</h2>
+<div class="top">
+${line('total events', String(stats.total))}
+${line('oldest', when(stats.oldest))}
+${line('newest', when(stats.newest))}
+${line(`older than ${RETENTION_DAYS}d`, String(stats.older))}
+</div>
+<div class="danger">
+<h3>Eski ziyaret kayıtlarını sil</h3>
+<p>Bu işlem yalnızca ANALYTICS_DB içindeki <code>visitor_events</code> tablosunu etkiler.
+Yorumlar ve denetim kayıtları ayrı bir veritabanındadır ve bu işlemden etkilenmez.</p>
+<p>Silme geri alınamaz ve otomatik olarak çalışmaz — yalnızca burada, elle yapılır.
+/gizlilik/ sayfasındaki &ldquo;en fazla ${RETENTION_DAYS} gün&rdquo; taahhüdü bu işleme dayanır.</p>
+${form}
+</div>`;
+}
+
 export function renderSystem(
   info: Record<string, string>,
   audit: Array<{ occurred_at: string; actor: string; action: string; entity_id: string }>,
   timeZone: string,
+  retention?: RetentionStats,
+  notice?: { text: string; ok: boolean },
 ): string {
   const rows = Object.entries(info)
     .map(
@@ -415,10 +480,15 @@ export function renderSystem(
         )
         .join('')
     : '<tr><td colspan="4">No audit events.</td></tr>';
+  const noticeHtml = notice
+    ? `<div class="notice${notice.ok ? '' : ' bad'}">${escapeHtml(notice.text)}</div>`
+    : '';
+
   return shell(
     'boss — system',
     '/boss/system/',
-    `<h2>environment</h2><div class="top">${rows}</div>
+    `${noticeHtml}<h2>environment</h2><div class="top">${rows}</div>
+${retention ? renderRetention(retention, timeZone) : ''}
 <h2>recent audit events</h2>
 <div class="tablewrap"><table style="min-width:600px">
 <thead><tr><th>WHEN</th><th>ACTOR</th><th>ACTION</th><th>ENTITY</th></tr></thead>

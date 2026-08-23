@@ -1,0 +1,366 @@
+---
+/**
+ * Generic renderer for a checklist-shaped tool.
+ *
+ * Every item is rendered server-side inside a real form, so the page is
+ * readable and usable without JavaScript: without it the visitor still gets
+ * the full list, the explanations and the actions. The script adds the
+ * summary panel on top of markup that already stands on its own.
+ *
+ * The definition is serialised into a data island because the summary needs
+ * the weights and the action text. Nothing is transmitted, nothing is stored,
+ * and no analytics event carries a tick — see src/lib/tools/checklist.ts.
+ */
+import type { ChecklistDefinition } from '../../lib/tools/checklist';
+
+interface Props {
+  definition: ChecklistDefinition;
+}
+
+const { definition } = Astro.props;
+---
+
+<section class="tool" data-checklist id={definition.id}>
+  <p class="tool-privacy">
+    <svg
+      viewBox="0 0 20 20"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10 2.6 16 5v4.6c0 3.6-2.4 6.4-6 7.8-3.6-1.4-6-4.2-6-7.8V5z"></path>
+      <path d="m7.4 10 1.9 1.9 3.4-3.7"></path>
+    </svg>
+    İşaretledikleriniz tarayıcınızdan çıkmaz. Hiçbir yere gönderilmez, kaydedilmez. Bu araç sizden şifrenizi
+    istemez.
+  </p>
+
+  <form class="checklist-form" data-checklist-form>
+    {
+      definition.groups.map((group) => (
+        <fieldset class="group">
+          <legend>{group.title}</legend>
+          <ul class="items">
+            {group.items.map((item) => (
+              <li class="item">
+                <label>
+                  <input type="checkbox" name={item.id} value="1" />
+                  <span class="item-body">
+                    <span class="item-label">{item.label}</span>
+                    {item.detail && <span class="item-detail">{item.detail}</span>}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      ))
+    }
+
+    <div class="actions">
+      <button type="submit" class="button">Sonucu göster</button>
+      <button type="reset" class="button button-quiet">Sıfırla</button>
+    </div>
+  </form>
+
+  <div class="result" data-checklist-result hidden aria-live="polite" tabindex="-1"></div>
+
+  <script
+    type="application/json"
+    data-checklist-definition
+    is:inline
+    set:html={JSON.stringify(definition)}
+  />
+</section>
+
+<script>
+  import {
+    LEVELS,
+    WEIGHT_LABELS,
+    evaluateChecklist,
+    type ChecklistDefinition,
+    type ChecklistItem,
+    type Weight,
+  } from '../../lib/tools/checklist';
+
+  const root = document.querySelector<HTMLElement>('[data-checklist]');
+  const form = root?.querySelector<HTMLFormElement>('[data-checklist-form]');
+  const panel = root?.querySelector<HTMLElement>('[data-checklist-result]');
+  const island = root?.querySelector<HTMLScriptElement>('[data-checklist-definition]');
+
+  if (root && form && panel && island?.textContent) {
+    const definition = JSON.parse(island.textContent) as ChecklistDefinition;
+
+    // Everything rendered below comes from the definition, which is authored
+    // content — but it is built with textContent rather than innerHTML anyway,
+    // so a future definition containing a stray angle bracket cannot become
+    // markup.
+    const el = <K extends keyof HTMLElementTagNameMap>(
+      tag: K,
+      className?: string,
+      text?: string,
+    ): HTMLElementTagNameMap[K] => {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+
+    const renderMissing = (missing: ChecklistItem[]): HTMLElement => {
+      const list = el('ol', 'todo');
+      let lastWeight: Weight | null = null;
+
+      for (const item of missing) {
+        if (item.weight !== lastWeight) {
+          const heading = el('li', 'todo-heading', WEIGHT_LABELS[item.weight]);
+          list.append(heading);
+          lastWeight = item.weight;
+        }
+        const entry = el('li', 'todo-item');
+        entry.append(el('span', 'todo-action', item.action));
+        if (item.href) {
+          const link = el('a', 'todo-link', item.hrefLabel ?? 'Rehberi aç');
+          link.href = item.href;
+          entry.append(link);
+        }
+        list.append(entry);
+      }
+      return list;
+    };
+
+    const show = (): void => {
+      const data = new FormData(form);
+      const checked = new Set(
+        [...data.keys()].filter((key) => typeof key === 'string'),
+      ) as ReadonlySet<string>;
+
+      const result = evaluateChecklist(definition, checked);
+      const level = LEVELS[result.level];
+
+      panel.replaceChildren();
+      panel.dataset.accent = level.accent;
+
+      panel.append(el('p', 'result-level', level.label));
+      panel.append(
+        el(
+          'p',
+          'result-count',
+          `${result.total} maddeden ${result.checked} tanesi sizde zaten var.`,
+        ),
+      );
+
+      if (result.missing.length === 0) {
+        panel.append(
+          el(
+            'p',
+            'result-note',
+            'Listedeki her madde işaretli. Bu listeyi altı ayda bir tekrar gözden geçirin — ' +
+              'ayarlar ve cihazlar değişir.',
+          ),
+        );
+      } else {
+        panel.append(el('h3', 'result-heading', 'Sırayla yapılacaklar'));
+        panel.append(renderMissing(result.missing));
+      }
+
+      panel.append(el('p', 'result-disclaimer', definition.disclaimer));
+      panel.hidden = false;
+      panel.focus();
+    };
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      show();
+    });
+
+    form.addEventListener('reset', () => {
+      panel.hidden = true;
+      panel.replaceChildren();
+    });
+  }
+</script>
+
+<style>
+  .tool {
+    margin-top: var(--sp-5);
+  }
+
+  .tool-privacy {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: var(--sp-5);
+  }
+
+  .tool-privacy svg {
+    flex: none;
+    margin-top: 0.25em;
+    color: var(--green);
+  }
+
+  .group {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+    padding: var(--sp-5);
+    margin-bottom: var(--sp-4);
+  }
+
+  .group legend {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-inline: var(--sp-2);
+  }
+
+  .items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  .item label {
+    display: flex;
+    gap: var(--sp-3);
+    align-items: flex-start;
+    cursor: pointer;
+  }
+
+  .item input {
+    flex: none;
+    /* Comfortably tappable, and aligned to the first line of the label. */
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.2rem;
+    accent-color: var(--green);
+  }
+
+  .item-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  .item-label {
+    color: var(--text);
+  }
+
+  .item-detail {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+
+  .actions {
+    display: flex;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    margin-top: var(--sp-5);
+  }
+
+  .button-quiet {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-strong);
+  }
+
+  .result {
+    margin-top: var(--sp-6);
+    padding: var(--sp-5);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+  }
+
+  /* Never colour alone — the level is stated in words first. */
+  .result[data-accent='red'] {
+    border-left-color: var(--red);
+  }
+  .result[data-accent='amber'] {
+    border-left-color: var(--amber);
+  }
+  .result[data-accent='green'] {
+    border-left-color: var(--green);
+  }
+
+  .result :global(.result-level) {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .result :global(.result-count) {
+    margin-top: var(--sp-2);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .result :global(.result-heading) {
+    margin-top: var(--sp-5);
+    font-size: var(--step-1);
+  }
+
+  .result :global(.todo) {
+    list-style: none;
+    margin: var(--sp-3) 0 0;
+    padding: 0;
+  }
+
+  .result :global(.todo-heading) {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-top: var(--sp-4);
+    margin-bottom: var(--sp-2);
+  }
+
+  .result :global(.todo-item) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-3) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .result :global(.todo-action) {
+    color: var(--text);
+  }
+
+  .result :global(.todo-link) {
+    font-size: var(--step--1);
+  }
+
+  .result :global(.result-note),
+  .result :global(.result-disclaimer) {
+    margin-top: var(--sp-4);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .result :global(.result-disclaimer) {
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+  }
+</style>
