@@ -115,7 +115,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
   structuredData={structuredData}
   noindex={data.status !== 'published'}
 >
-  <article class="container-reading article">
+  <article class:list={['container-reading', 'article', isTechnical && 'article-technical']}>
     <nav aria-label="Konum" class="breadcrumb">
       <a href="/">Ana sayfa</a>
       <span aria-hidden="true">/</span>
@@ -367,6 +367,15 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     border-top: 1px solid var(--border);
   }
 
+  /* Stronger hierarchy is scoped to long, structural technical entries. */
+  .article-technical .prose :global(h2) {
+    margin-top: var(--sp-8);
+    margin-bottom: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top-color: var(--border-strong);
+    letter-spacing: -0.015em;
+  }
+
   .prose :global(h3) {
     font-size: var(--step-1);
     margin-top: var(--sp-5);
@@ -431,6 +440,222 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
+  }
+
+  /*
+   * Reusable technical vocabulary: an architecture pipeline, explicit attack
+   * paths, wide comparison blocks and locally scrolling code samples.
+   */
+  .prose :global(.arch) {
+    list-style: none;
+    padding: 0;
+    margin: var(--sp-6) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .prose :global(.node) {
+    position: relative;
+    margin: 0;
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  /* The connector. A drawn line between stages, not a gap between cards. */
+  .prose :global(.node + .node) {
+    margin-top: var(--sp-5);
+  }
+
+  .prose :global(.node + .node::before) {
+    content: '';
+    position: absolute;
+    left: var(--sp-6);
+    top: calc(var(--sp-5) * -1);
+    height: var(--sp-5);
+    border-left: 1px solid var(--border-strong);
+  }
+
+  .prose :global(.node-name) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .prose :global(.node-tag) {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border: 1px solid var(--border-strong);
+    border-radius: 3px;
+    padding: 0.15em 0.45em;
+  }
+
+  /* in / checks / out, on one line where there is room. */
+  .prose :global(.node-io) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-4);
+    margin-top: var(--sp-4);
+  }
+
+  .prose :global(.node-io > div) {
+    min-width: 0;
+  }
+
+  .prose :global(.io-label) {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--sp-2);
+  }
+
+  .prose :global(.io-value) {
+    display: block;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+
+  /*
+   * The boundary line is the point of the whole block: the assumption this
+   * stage rests on. It gets its own rule so it never reads as a fourth column
+   * of the same kind of information.
+   */
+  .prose :global(.node-boundary) {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px dashed var(--border-strong);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+
+  .prose :global(.node-boundary b) {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .prose :global(.attack-path) {
+    list-style: none;
+    padding: 0;
+    margin: var(--sp-6) 0;
+  }
+
+  .prose :global(.ap-step) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-2);
+    padding: var(--sp-4) 0 var(--sp-4) var(--sp-5);
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  /* Red marks the departure from the pipeline. It is the only accent here. */
+  .prose :global(.ap-step::before) {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc(var(--sp-4) + 0.55em);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  .prose :global(.ap-name) {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .prose :global(.ap-stage) {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  .prose :global(.ap-why) {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.65;
+  }
+
+  /*
+   * Wide blocks — architecture and comparison tables — are allowed past the
+   * reading measure on a large screen. Constraining a five-column table to
+   * 68ch produces a table nobody can read.
+   *
+   * On a narrow screen the block scrolls INSIDE itself. Verified at 320px:
+   * without this the table painted outside the viewport and the last column
+   * was unreachable. Horizontal overflow therefore stays local to the block.
+   */
+  .prose :global(.wide) {
+    max-width: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .prose :global(.wide table) {
+    min-width: 34rem;
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 72rem) {
+    .prose :global(.wide) {
+      width: calc(100% + 12rem);
+      margin-inline: -6rem;
+      padding-inline: 6rem;
+    }
+  }
+
+  /*
+   * Code samples. `pre` has no intrinsic width limit, so a long
+   * `Set-Cookie` line pushed itself clean out of the reading column — the
+   * text was there and unreachable. It scrolls in its own box instead.
+   */
+  .prose :global(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--sp-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+    margin-bottom: var(--sp-5);
+    /* Comfortable rather than tiny: this is documentation, not a terminal. */
+    font-size: 0.86rem;
+    line-height: 1.7;
+  }
+
+  .prose :global(pre code) {
+    display: block;
+    min-width: 0;
+    white-space: pre;
+  }
+
+  @media (max-width: 44rem) {
+    .prose :global(.node-io) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--sp-3);
+    }
+    .prose :global(.node + .node::before) {
+      left: var(--sp-5);
+    }
   }
 
   .source-line {

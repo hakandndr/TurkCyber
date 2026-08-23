@@ -1,99 +1,423 @@
 ---
-title: 'Oturum Çerezi Nedir ve Neden Çalınmaya Değer?'
-description: 'Şifreniz değişse bile bir hesap açık kalabilir. Tarayıcınızdaki “giriş fişi”nin ne olduğu, neden şifreden daha değerli olduğu ve onu geçersiz kılmanın tek yolu.'
+title: 'Oturum Çerezi Nedir ve Neden Çalınır?'
+description: 'Şifre doğrulamadan oturum çerezine kadar bir girişin mimarisi: hangi bileşen ne yapar, hangi katmanda hangi varsayım çöker ve saldırgan neden şifreyi değil oturumu hedefler.'
 category: nasil-calisiyor
 publishedAt: 2026-08-23
+updatedAt: 2026-08-23
 status: published
-readingTime: 7
-prerequisite: 'Bir siteye giriş yapmak ve çıkış yapmak arasındaki farkı bilmeniz yeterli.'
-summary: 'Giriş yaptığınızda site tarayıcınıza bir oturum bilgisi bırakır. O bilgiyi ele geçiren, şifrenizi hiç bilmeden hesabınıza girmiş sayılır — ve şifre değiştirmek tek başına onu her zaman geçersiz kılmaz. Bu yüzden “tüm oturumları kapat” adımı önemlidir.'
-tags: ['oturum', 'çerez', 'hesap güvenliği', 'nasıl çalışıyor']
+featured: true
+readingTime: 12
+prerequisite: 'Bir siteye giriş yapmak ile çıkış yapmak arasındaki farkı bilmeniz yeterli. HTTP başlıklarını daha önce görmediyseniz de takip edebilirsiniz — her örnek satır satır açıklanıyor.'
+summary: 'Kimlik bilgisi bir girdidir; oturum, o girdinin bir doğrulama hattından geçtikten sonraki çıktısıdır. Hattın sonunda üretilen belirteci taşıyan istek, bütün kontrolleri çoktan geçmiş sayılır. Saldırganların şifre yerine oturumu, kurtarma kanalını veya uygulama iznini hedeflemesinin sebebi tam olarak budur.'
+tags: ['oturum', 'çerez', 'kimlik doğrulama', 'mimari', 'nasıl çalışıyor']
 ---
 
-Bir siteye şifrenizi girip giriş yaptınız. Sayfayı yenilediniz. Site sizi hâlâ
-tanıyor. Neden tekrar şifre sormuyor?
+Bu yazı iki katman hâlinde ilerliyor. Önce hiçbir teknik bilgi gerektirmeyen
+cevap; sonra aynı şeyin mühendislik hâli — hangi bileşen ne yapıyor, hangi
+varsayım nerede çöküyor.
 
-Çünkü giriş anında site tarayıcınıza küçük bir bilgi bıraktı. Bundan sonraki her
-istekte tarayıcınız o bilgiyi de gönderiyor ve site "tamam, bu sen" diyor.
+## Kısa cevap
 
-Buna **oturum çerezi** ya da **oturum belirteci** deniyor. Uygulamalarda adı
-farklı olabilir ama fikir aynı: giriş bir kez yapılır, sonrasında bir fiş
-taşınır.
+Bir siteye giriş yaptığınızda site tarayıcınıza küçük bir bilgi bırakır.
+Sonraki her istekte tarayıcınız o bilgiyi de gönderir ve site "tamam, bu sen"
+der. Şifreniz artık sorulmaz.
 
-## Neden şifreden daha değerli
-
-Şifreniz bir **iddiadır**: "ben oyum". Oturum bilgisi bir **kabuldür**: "seni
-zaten içeri aldık".
-
-Aradaki fark saldırgan için çok büyük:
-
-| Ele geçen      | Sonrasında gereken                              |
-| -------------- | ----------------------------------------------- |
-| Şifre          | Giriş yapmak, çoğu zaman ikinci adımı da geçmek |
-| Oturum bilgisi | Hiçbir şey. Zaten içeride sayılır.              |
+Buna **oturum belirteci** deniyor; tarayıcıda çoğunlukla bir çerez olarak
+durur. Şifreniz bir **iddiadır** — "ben oyum". Oturum belirteci bir
+**kabuldür** — "seni zaten içeri aldık".
 
 <Callout type="onemli">
-  Oturum bilgisi çalındığında **iki aşamalı doğrulama devreye girmez**. Çünkü 2FA giriş anında
-  sorulur; oturum bilgisi ise girişin çoktan yapıldığı anlamına gelir. 2FA yine de son derece
-  değerlidir — ama bu senaryoya karşı değil.
+  Oturum belirteci çalındığında normal istekler **iki aşamalı doğrulamayı yeniden çalıştırmaz**.
+  Çünkü 2FA giriş anında sorulur; belirtecin varlığı girişin çoktan yapıldığı anlamına gelir. Hizmet
+  kritik bir işlemde yeniden doğrulama isteyebilir, ama bu ayrı bir adımdır. 2FA yine de son derece
+  değerlidir — yalnızca çalınmış bir oturumu tek başına durdurmaz.
 </Callout>
 
-Bu, "2FA'm vardı, nasıl girdiler?" sorusunun en sık cevabıdır.
+Bu, "2FA'm vardı, nasıl girdiler?" sorusunun yaygın cevaplarından biridir. Neden böyle
+olduğunu görmek için girişin içine bakmak gerekiyor.
 
-## Nasıl ele geçiyor
+## Şifre bir girdidir, oturum bir çıktı
 
-Birkaç yol var ve hiçbiri sihirli değil.
+Mühendislik açısından tek cümlelik ayrım şudur:
 
-- **Aracı sayfa üzerinden giriş.** Sahte sayfa sizi gerçek siteye bağlar, siz
-  gerçekten giriş yaparsınız, oturum bilgisi araya giren tarafta da kalır. Bu,
-  bugünkü oltalama kitlerinin standart özelliği.
-- **Cihazdaki zararlı yazılım.** Tarayıcı verilerini toplayan programlar, kayıtlı
-  oturum bilgilerini de toplar. "Crack", "hile", "ücretsiz sürüm" indirmelerinin
-  büyük kısmı bunu yapar.
-- **Kötü niyetli tarayıcı eklentisi.** Bir eklenti, izin verildiği sayfalarda
-  çerezleri okuyabilir. Sahip değiştirmiş bir eklenti, güncellemeyle bir gün
-  bunu yapmaya başlayabilir.
-- **Paylaşılan cihazda açık kalan oturum.** En sıradan yol: internet kafede,
-  okulda, iş yerinde çıkış yapılmamış bir hesap.
+<Callout type="bilgi">
+  **Şifreyi bilmek**, kimlik doğrulama hattına bir _girdi_ sağlamaktır. **Oturuma sahip olmak**, o
+  hattın bütün kontrollerinden geçmiş bir _çıktıyı_ elinde tutmaktır. İkisi aynı şey değildir ve
+  saldırı ekonomisinin tamamı bu farkın üzerine kuruludur.
+</Callout>
+
+## Aşama aşama: ne giriyor, ne kontrol ediliyor, ne çıkıyor
+
+Gerçek sistemler bu kontrolleri farklı servislerde, farklı sırada veya paralel
+çalıştırabilir. Aşağıdaki, bileşenlerin sorumluluğunu ve aralarındaki güven
+sınırlarını gösteren basitleştirilmiş bir modeldir; belirli bir şirketin iç
+mimarisini tarif etmez.
+
+<ol class="arch">
+  <li class="node">
+    <span class="node-name">Tarayıcı <span class="node-tag">istemci</span></span>
+    <div class="node-io">
+      <div><span class="io-label">Giren</span><span class="io-value">Kullanıcının yazdığı kimlik bilgisi</span></div>
+      <div><span class="io-label">Kontrol</span><span class="io-value">Yok — istemci hiçbir şeyi doğrulamaz</span></div>
+      <div><span class="io-label">Çıkan</span><span class="io-value">`POST /login`, TLS içinde</span></div>
+    </div>
+    <p class="node-boundary"><b>Sınır:</b> istemciden gelen hiçbir veri güvenilir sayılmaz. Buradaki tek gerçek koruma, taşımanın şifreli olması.</p>
+  </li>
+
+<li class="node">
+  <span class="node-name">
+    CDN / ters vekil <span class="node-tag">kenar</span>
+  </span>
+  <div class="node-io">
+    <div>
+      <span class="io-label">Giren</span>
+      <span class="io-value">TLS ile taşınan istemci isteği</span>
+    </div>
+    <div>
+      <span class="io-label">Kontrol</span>
+      <span class="io-value">TLS sonlandırma, kaba bot filtresi, IP başına kaba hız sınırı</span>
+    </div>
+    <div>
+      <span class="io-label">Çıkan</span>
+      <span class="io-value">Uygulamaya iletilen istek + güvenilen kenarın eklediği bağlam</span>
+    </div>
+  </div>
+  <p class="node-boundary">
+    <b>Varsayım:</b> uygulama yalnızca güvendiği kenarın eklediği istemci IP'si gibi başlıkları
+    kabul eder; istemcinin aynı adla gönderdiği başlıkları güvenilir saymaz. Dağıtık bir IP havuzu
+    ise kaynak başına hız sınırının etkisini azaltır.
+  </p>
+</li>
+
+<li class="node">
+  <span class="node-name">
+    Uygulama / API <span class="node-tag">orkestrasyon</span>
+  </span>
+  <div class="node-io">
+    <div>
+      <span class="io-label">Giren</span>
+      <span class="io-value">Doğrulanmış istek biçimi</span>
+    </div>
+    <div>
+      <span class="io-label">Kontrol</span>
+      <span class="io-value">Alan doğrulama, CSRF, hesap durumu (kilitli/askıda)</span>
+    </div>
+    <div>
+      <span class="io-label">Çıkan</span>
+      <span class="io-value">Kimlik doğrulama servisine yapılan iç çağrı</span>
+    </div>
+  </div>
+  <p class="node-boundary">
+    <b>Sınır:</b> bu modelde uygulama şifre doğrulama kararını ayrı bir bileşene bırakır. Daha küçük
+    sistemlerde bu sorumluluk aynı süreçte olabilir; güven sınırı yine kullanıcı girdisi ile
+    saklanan doğrulayıcı arasındadır.
+  </p>
+</li>
+
+<li class="node">
+  <span class="node-name">
+    Kimlik doğrulama <span class="node-tag">kanıt</span>
+  </span>
+  <div class="node-io">
+    <div>
+      <span class="io-label">Giren</span>
+      <span class="io-value">Kullanıcı kimliği + şifre</span>
+    </div>
+    <div>
+      <span class="io-label">Kontrol</span>
+      <span class="io-value">
+        Saklanan **şifre doğrulayıcıyla** karşılaştırma — bcrypt/scrypt/Argon2id türü, tuzlu ve
+        kasıtlı olarak yavaş bir parola türetme işlevi
+      </span>
+    </div>
+    <div>
+      <span class="io-label">Çıkan</span>
+      <span class="io-value">Yalnızca "eşleşti / eşleşmedi"</span>
+    </div>
+  </div>
+  <p class="node-boundary">
+    <b>Varsayım:</b> doğrulayıcı doğrudan tersine çevrilemez ve çevrimdışı tahmin yeterince
+    pahalıdır. Veritabanı sızıntısı yine de saldırgana sınırsız çevrimdışı tahmin imkânı verir;
+    zayıf parola, düşük maliyet ayarı veya eski bir algoritma bu sınırı düşürür.
+  </p>
+</li>
+
+<li class="node">
+  <span class="node-name">
+    Hız sınırlama <span class="node-tag">bütçe</span>
+  </span>
+  <div class="node-io">
+    <div>
+      <span class="io-label">Giren</span>
+      <span class="io-value">Deneme olayı + hesap ve IP kimliği</span>
+    </div>
+    <div>
+      <span class="io-label">Kontrol</span>
+      <span class="io-value">Pencere başına sayaç; eşik aşılırsa doğru şifre bile reddedilir</span>
+    </div>
+    <div>
+      <span class="io-label">Çıkan</span>
+      <span class="io-value">"Devam et" ya da 429</span>
+    </div>
+  </div>
+  <p class="node-boundary">
+    <b>Varsayım:</b> denemeler sayılabilir bir kimliğe bağlanabilir. Saldırı yeterince dağıtıksa
+    sayaçlar bölünür.
+  </p>
+</li>
+
+<li class="node">
+  <span class="node-name">
+    Risk değerlendirmesi <span class="node-tag">bağlam</span>
+  </span>
+  <div class="node-io">
+    <div>
+      <span class="io-label">Giren</span>
+      <span class="io-value">Cihaz parmak izi, ağ, coğrafya, saat, geçmiş davranış</span>
+    </div>
+    <div>
+      <span class="io-label">Kontrol</span>
+      <span class="io-value">Bu girişin bu hesap için olağan olup olmadığı</span>
+    </div>
+    <div>
+      <span class="io-label">Çıkan</span>
+      <span class="io-value">Bir **karar**: geçir, ek doğrulama iste, ya da reddet</span>
+    </div>
+  </div>
+  <p class="node-boundary">
+    <b>Varsayım:</b> cihaz ve ağ sinyalleri talep sahibini ayırt etmeye yeterlidir. Aracı bir
+    oltalama vekilinde hizmet, kurbandan aktarılan istemci sinyalleri ile vekile ait ağ/TLS
+    sinyallerinin bir karışımını görebilir; hangi sinyalin görüldüğü uygulamaya özeldir.
+  </p>
+</li>
+
+<li class="node">
+  <span class="node-name">
+    Ek doğrulama (MFA) <span class="node-tag">ikinci kanıt</span>
+  </span>
+  <div class="node-io">
+    <div>
+      <span class="io-label">Giren</span>
+      <span class="io-value">Risk kararı + kullanıcının kayıtlı yöntemleri</span>
+    </div>
+    <div>
+      <span class="io-label">Kontrol</span>
+      <span class="io-value">OTP, uygulama onayı, passkey imzası veya e-posta bağlantısı</span>
+    </div>
+    <div>
+      <span class="io-label">Çıkan</span>
+      <span class="io-value">"Kanıtlandı" — ya da akış burada durur</span>
+    </div>
+  </div>
+  <p class="node-boundary">
+    <b>Varsayım:</b> kanıt paylaşılamaz. Bir OTP telefonda söylenebilir; alan adına bağlı bir
+    passkey imzası söylenemez. Fark bu satırdadır.
+  </p>
+</li>
+
+  <li class="node">
+    <span class="node-name">Oturum üretimi <span class="node-tag">çıktı</span></span>
+    <div class="node-io">
+      <div><span class="io-label">Giren</span><span class="io-value">Hattın tamamından geçmiş bir onay</span></div>
+      <div><span class="io-label">Kontrol</span><span class="io-value">Oturum kaydını açar, ömrünü ve kapsamını belirler</span></div>
+      <div><span class="io-label">Çıkan</span><span class="io-value">`Set-Cookie` ile tarayıcıya giden belirteç</span></div>
+    </div>
+    <p class="node-boundary"><b>Sınır:</b> bu, hattın <em>ürünüdür</em>. Belirteci taşıyan istek giriş kontrollerini yeniden çalıştırmaz; sunucu yine de her istekte imzayı veya oturum kaydını, süreyi, kapsamı ve iptal durumunu doğrulamalıdır.</p>
+  </li>
+</ol>
+
+Son satır bu yazının tamamını özetliyor: hattın çıktısını eline geçiren, hattı
+geçmiş sayılır.
+
+## Çerez somut olarak neye benzer
+
+Giriş başarılı olduğunda sunucunun döndürdüğü başlık kabaca şudur:
+
+```
+HTTP/1.1 302 Found
+Location: /
+Set-Cookie: sid=8f3a…c21b; Domain=ornek.com; Path=/;
+            Max-Age=1209600; Secure; HttpOnly; SameSite=Lax
+```
+
+Her öznitelik bir güvenlik işlevi taşır:
+
+<div class="wide">
+
+| Öznitelik  | Ne yapar                                                      | Kaldırılırsa ne olur                                        |
+| ---------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `Secure`   | Çerezi yalnızca HTTPS üzerinden gönderir                      | Şifresiz bir bağlantıda ağdaki biri okuyabilir              |
+| `HttpOnly` | Sayfadaki JavaScript'in çerezi okumasını engeller             | Bir XSS açığı doğrudan oturum hırsızlığına dönüşür          |
+| `SameSite` | Çerezin başka sitelerden gelen isteklere eklenmesini sınırlar | Siteler arası istek sahteciliği (CSRF) kolaylaşır           |
+| `Max-Age`  | Çerezin tarayıcıdaki kalıcılığını sınırlar                    | Sunucu süresi ayrı tutulmuyorsa gereğinden uzun yaşayabilir |
+| `Domain`   | Hangi alan adlarına gönderileceğini belirler                  | Fazla geniş verilirse alt alan isteklerine de eklenir       |
+
+</div>
+
+Sonraki her istek yalnızca şunu taşır:
+
+```
+GET /hesabim HTTP/1.1
+Host: ornek.com
+Cookie: sid=8f3a…c21b
+```
+
+Bu satırda şifre veya ikinci kanıt yoktur. Çerez, isteğin taşıdığı oturum
+kimliğidir; sunucu onu doğruladıktan sonra isteği giriş yapılmış kabul eder.
+Bu, kullanıcının o anda hâlâ cihazın başında olduğunu kanıtlamaz.
+
+<Callout type="bilgi">
+  `HttpOnly` çerezi sayfa JavaScript'inden gizler; cihazdaki zararlı yazılıma karşı tek başına bir
+  güven sınırı değildir. Kullanıcı bağlamında yeterli erişim elde eden bir program, tarayıcının
+  koruduğu veriyi kopyalamaya veya tarayıcı üzerinden kullanmaya çalışabilir. Hangi sınırın neyi
+  koruduğunu bilmenin neden önemli olduğuna iyi bir örnek.
+</Callout>
+
+## Saldırı yolları, tek tek
+
+Yukarıdaki şema hangi noktadan çıkıldığını gösteriyor; burası her yolun neden
+işe yaradığını anlatıyor.
+
+Şifre doğrulama hattın kontrollerinden yalnızca biridir. Onu ele geçiren
+saldırgan hâlâ hız sınırlaması, risk değerlendirmesi ve gerekiyorsa ek
+doğrulama ile karşılaşır. Bu yüzden saldırılar hattı kırmaya değil,
+**hattın dışına çıkmaya** yönelmiştir.
+
+<ol class="attack-path">
+  <li class="ap-step">
+    <span class="ap-name">
+      Şifre hırsızlığı <span class="ap-stage">kimlik doğrulamaya girdi</span>
+    </span>
+    <span class="ap-why">
+      Sızıntı listesi ya da tekrar kullanılan şifre. Hattın ilk aşamasına bir girdi sağlar — ve
+      orada durur. Tek başına yetmeyebilmesinin sebebi, diğer kontrollerin ayrıca uygulanmasıdır.
+    </span>
+  </li>
+  <li class="ap-step">
+    <span class="ap-name">
+      Aracı oltalama (AiTM) <span class="ap-stage">kontroller kurbana tamamlatılır</span>
+    </span>
+    <span class="ap-why">
+      Sahte sayfa giriş akışını gerçek siteye aktarır. Siz gerçekten giriş yapar, gerçekten ek
+      doğrulamayı geçersiniz; üretilen oturum vekil üzerinden kullanılabilir veya ele geçirilebilir.
+      Hizmetin gördüğü cihaz ve ağ sinyalleri vekilin tekniğine göre değişir. Kontroller kırılmaz;
+      kurbana tamamlatılır.
+    </span>
+  </li>
+  <li class="ap-step">
+    <span class="ap-name">
+      OAuth / uygulama izni <span class="ap-stage">ayrı yetkilendirme yolu</span>
+    </span>
+    <span class="ap-why">
+      "Bu uygulama hesabınıza erişsin mi?" ekranını onaylatmak. Kullanıcı zaten giriş yaptıysa
+      parola veya MFA yeniden sorulmadan ayrı bir erişim belirteci verilebilir; sağlayıcı
+      gerektiğinde yeniden doğrulama isteyebilir. Bu erişim çoğu sistemde parola değişiminden ayrı
+      yönetildiği için temizlik sırasında bağlı uygulamalar listesi atlanmamalıdır.
+    </span>
+  </li>
+  <li class="ap-step">
+    <span class="ap-name">
+      Oturum belirteci hırsızlığı <span class="ap-stage">doğrudan çıktı</span>
+    </span>
+    <span class="ap-why">
+      Cihazdaki zararlı yazılım, kötü niyetli bir tarayıcı eklentisi ya da paylaşılan bir cihazda
+      açık bırakılmış oturum. Hattın ürününü doğrudan alır; hiçbir aşama tekrar çalışmaz.
+    </span>
+  </li>
+  <li class="ap-step">
+    <span class="ap-name">
+      Hesap kurtarma <span class="ap-stage">paralel hat</span>
+    </span>
+    <span class="ap-why">
+      Kurtarma akışı, kullanıcı normal giriş kanıtını sunamadığında alternatif kimlik kanıtı kabul
+      eder. Bu yüzden e-posta adresi ve telefon numarası, ana hattın yanında duran ikinci ve bazen
+      daha zayıf bir kapıdır.
+    </span>
+  </li>
+  <li class="ap-step">
+    <span class="ap-name">
+      İnsan <span class="ap-stage">aşama 7, teknik olmayan</span>
+    </span>
+    <span class="ap-why">
+      OTP'yi telefonda söyletmek, hiçbir teknik kontrolü kırmadan MFA'yı geçmektir. Kanıtın
+      paylaşılabilir olması, bu yolun neden hâlâ en verimli yol olduğunu açıklar.
+    </span>
+  </li>
+</ol>
+
+## Örnek: "Sadece şifreyle Meta hesabıma girilebilir mi?"
 
 <Callout type="dikkat">
-  Bir bağlantıya tıklamak tek başına oturumunuzu **çalmaz**. Tarayıcı, bir sayfanın başka bir
-  sitenin çerezlerini okumasını engeller. Yukarıdaki yolların hepsinde ya siz bir giriş yaptınız, ya
-  cihaza bir yazılım kuruldu, ya da bir eklentiye izin verildi. Ayrıntısı: [Bir bağlantıya tıklamak
-  tek başına ne yapar?](/teknik/link-tiklamak-tek-basina-ne-yapar/)
+  Buradan sonrası üç farklı bilgi türünü karıştırmamak için ayrılmıştır. Meta'nın kendi
+  sistemlerinin iç tasarımı **kamuya açık değildir** ve bu yazı onu bildiğini iddia etmez.
 </Callout>
 
-## Şifre değiştirmek neden yetmeyebilir
+**1 — Dışarıdan gözlemlenebilen ve Meta'nın kendi belgelerinde anlattığı
+davranış.** Giriş denemelerinde ek doğrulama istenebiliyor; tanınmayan bir
+cihaz veya konumdan giriş bildirimi gönderiliyor; hesap ayarlarında açık
+oturumların listesi ve bunları sonlandırma seçeneği var; iki faktörlü
+doğrulama, yedek kodlar ve güvenlik anahtarı destekleniyor; hesaba erişim veren
+üçüncü taraf uygulamalar ayrı bir listede tutulup tek tek kaldırılabiliyor.
 
-İnsanların yaptığı ilk şey şifre değiştirmek. Doğru bir refleks, ama tek başına
-eksik olabilir.
+**2 — Bu davranışı açıklayan, sektörde standart olan basitleştirilmiş model.**
+Yukarıdaki hat. Tanınmayan cihazda ek doğrulama istemek için bir bağlam/risk
+kararı; açık oturumları listeleyip sonlandırmak için de oturumları bulmaya ve
+iptal etmeye yetecek sunucu tarafı durum gerekir. Bu, oturumun tamamının
+veritabanında tutulduğunu veya belirtecin biçimini kanıtlamaz.
 
-Bazı sistemler şifre değişiminde tüm oturumları sonlandırır. Bazıları
-sonlandırmaz — ya da sadece bazı oturum türlerini sonlandırır. Yani şifreyi
-değiştirdiğiniz hâlde saldırganın açık oturumu çalışmaya devam edebilir.
+**3 — Bilmediğimiz ve iddia etmediğimiz şeyler.** Meta'nın risk motorunun hangi
+sinyalleri kullandığı, eşiklerin ne olduğu, belirteçlerin nasıl saklandığı,
+oturum ömürlerinin nasıl hesaplandığı. Bunlar kamuya açık değildir. Bir yazı
+bunları kesin bir dille anlatıyorsa, uyduruyordur.
+
+Sorunun cevabı buradan çıkıyor: **sadece şifre bazı girişlerde yeterli olabilir,
+bazılarında olmayabilir.** Hesapta 2FA açık olması, cihazın tanınıp tanınmaması
+ve hizmetin risk kararı sonucu değiştirir. Ek doğrulama istenmemesi tek başına
+bir açık kanıtı değildir; sürtünme riske göre ayarlanabilir.
+
+## Sınırlar ve varsayımlar, bir arada
+
+<div class="wide">
+
+| Katman            | Dayandığı varsayım                          | Varsayım düşerse                                                |
+| ----------------- | ------------------------------------------- | --------------------------------------------------------------- |
+| Şifre doğrulayıcı | Çevrimdışı tahmini yeterince pahalıdır      | Zayıf parola veya düşük maliyet ayarı → hızlı çevrimdışı tahmin |
+| Hız sınırlama     | Denemeler sayılabilir bir kimliğe bağlanır  | Dağıtık IP havuzu sayaçları böler                               |
+| Risk motoru       | Sinyaller talep sahibini ayırt etmeye yeter | AiTM, kurban ve vekil sinyallerini karıştırabilir               |
+| MFA               | Kanıt paylaşılamaz                          | OTP söylenebilir; passkey imzası söylenemez                     |
+| Oturum belirteci  | Yalnızca sahibinin cihazında durur          | Cihazdaki zararlı yazılım onu kopyalar                          |
+| Çıkış             | Belirteci gerçekten geçersiz kılar          | Sunucu tarafı iptal yoksa belirteç süresi dolana kadar yaşar    |
+
+</div>
+
+### Oturum durumu: iki tasarım, iki sonuç
+
+- **Sunucuda kayıtlı oturum.** Çerez yalnızca bir anahtar taşır; asıl kayıt
+  veritabanındadır. İptal anında etkilidir — "tüm oturumları kapat" gerçekten
+  kapatır.
+- **Kendi kendini doğrulayan belirteç (imzalı jeton).** Bilgi belirtecin
+  içindedir; sunucu temel doğrulama için her istekte oturum kaydı aramak zorunda
+  değildir. Anlık iptal ek durum gerektirir: iptal listesi, oturum sürümü,
+  anahtar döndürme veya kısa ömür gibi bir strateji yoksa belirteç süresi dolana
+  kadar geçerli kalabilir.
+
+Bu ayrım, "şifremi değiştirdim ama hâlâ giriyorlar" vakalarının teknik
+açıklamasıdır. Şifre değişimi yeni **girişleri** engeller; mevcut belirteçleri
+ancak sistem onları iptal ediyorsa etkiler.
+
+## Pratikte ne yapmalı
 
 <Callout type="kontrol">
-  Bir hesabın gerçekten temizlendiğinden emin olmak için iki adım gerekir: **şifreyi değiştirin** ve
-  **tüm oturumları / bağlı cihazları kapatın**. İkinci adım genellikle hesap ayarlarında "cihazlar",
-  "oturumlar" ya da "giriş etkinliği" başlığı altında bulunur.
+  Bir hesabı gerçekten temizlemek üç adımdır ve sırası önemlidir: **1.** Şifreyi değiştirin. **2.**
+  Tüm oturumları / bağlı cihazları kapatın. **3.** Bağlı üçüncü taraf uygulamaları gözden geçirin.
+  Ardından kurtarma e-postası ve telefon numarasının hâlâ size ait olduğunu doğrulayın.
 </Callout>
 
-Sıralama da önemli: önce şifreyi değiştirin, sonra tüm oturumları kapatın. Tersi
-sırada, saldırgan hâlâ eski şifreyle yeni bir oturum açabilir.
-
-## Bağlı uygulamaları da unutmayın
-
-Hesabınıza erişim veren üçüncü taraf uygulamalar ayrı bir kapıdır ve şifre
-değişiminden etkilenmez. Bir temizlik yapıyorsanız o listeyi de gözden geçirin.
-
-## Kısa özet
-
-- Oturum bilgisi, girişin kanıtıdır; şifreden daha güçlü bir anahtardır.
-- Çalındığında 2FA bu senaryoyu durdurmaz.
-- Temizlik iki adımdır: şifre **ve** tüm oturumların kapatılması.
-- Şüpheniz varsa bağlı uygulamaları da kaldırın.
+Sıralama şundan önemli: önce oturumları kapatıp sonra şifreyi değiştirirseniz,
+saldırgan eski şifreyle yeni bir oturum açabilir.
 
 ## Devamı
 
-- [Instagram hesabınızı nasıl korursunuz?](/rehberler/instagram-hesabinizi-nasil-korursunuz/)
-- [Hiçbir şeye tıklamadan hesabım çalınabilir mi?](/efsane-mi-gercek-mi/hicbir-seye-tiklamadan-hesap-calinir-mi/)
+- [Tek kullanımlık kod neden bu kadar değerli?](/teknik/tek-kullanimlik-kod-otp-neden-degerli/)
+- [Bir bağlantıya tıklamak tek başına ne yapar?](/teknik/link-tiklamak-tek-basina-ne-yapar/)
+- [Şifremi değiştirdim, hesabım artık temiz](/efsane-mi-gercek-mi/sifremi-degistirdim-artik-guvendeyim/)

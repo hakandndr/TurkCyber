@@ -368,6 +368,26 @@ describe('the technical lane', () => {
     expect(sitemapPaths()).toContain('/teknik/');
   });
 
+  it('uses one detailed authentication architecture and a separate attack-path model', () => {
+    const html = read(join('teknik', 'oturum-cerezi-nedir-ve-neden-calinir', 'index.html'));
+
+    expect(html).toContain('class="arch"');
+    expect(html).toContain('class="attack-path"');
+    expect(html).not.toContain('class="pipe"');
+    expect(html).toContain('Giren');
+    expect(html).toContain('Kontrol');
+    expect(html).toContain('Çıkan');
+    expect(html).toContain('Sınır:');
+  });
+
+  it('separates documented Meta behavior, the simplified model and unknown internals', () => {
+    const html = read(join('teknik', 'oturum-cerezi-nedir-ve-neden-calinir', 'index.html'));
+
+    expect(html).toContain('kamuya açık değildir');
+    expect(html).toContain('sektörde standart olan basitleştirilmiş model');
+    expect(html).toContain('Bilmediğimiz ve iddia etmediğimiz şeyler');
+  });
+
   /*
    * This test checks that the article contains the actual nuance we want:
    * normal phishing usually needs a second step, while browser/device

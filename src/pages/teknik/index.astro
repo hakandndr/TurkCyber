@@ -33,13 +33,21 @@ const structuredData = ldGraph(
       <p class="eyebrow">İleri seviye</p>
       <h1>Nasıl çalışıyor?</h1>
       <p class="lede">
-        Sitenin geri kalanı ne yapmanız gerektiğini anlatıyor. Burası neden öyle olduğunu anlatıyor.
-        Bir saldırının teknik olarak neye ihtiyacı olduğunu bilirseniz, hangi uyarıların ciddiye
-        alınması gerektiğini de kendiniz seçebilirsiniz.
+        Sitenin geri kalanı ne yapmanız gerektiğini anlatıyor. Burası arayüzün arkasında ne olduğunu
+        anlatıyor: bir isteğin hangi bileşenlerden geçtiğini, bir korumanın neden işe yaradığını,
+        hangi katmanda hangi varsayımın çöktüğünü ve saldırganın gerçekte neyi hedeflediğini.
       </p>
+      <ul class="lane-marks">
+        <li>İstek ve yanıt akışları — tarayıcıdan oturum kaydına kadar</li>
+        <li>Gerçek HTTP başlıkları, çerez öznitelikleri ve oturum yaşam döngüsü</li>
+        <li>Kimlik doğrulama, ek doğrulama ve kurtarma akışlarının durum geçişleri</li>
+        <li>Güvenlik sınırları: her katmanın dayandığı varsayım ve düştüğünde olan</li>
+      </ul>
       <p class="note">
-        Bu yazılar bir saldırının nasıl yapılacağını değil, nasıl işlediğini anlatır. Adım adım
-        saldırı tarifi bulamayacaksınız; amaç savunan tarafı bilgilendirmek.
+        İki kural: bu yazılar bir saldırının nasıl yapılacağını değil nasıl işlediğini anlatır —
+        adım adım saldırı tarifi bulamazsınız. Ve bir şirketin kamuya açık olmayan iç tasarımı
+        hakkında iddiada bulunmayız; gözlemlenebilir davranış ile onu açıklayan sektör standardı
+        model ayrı ayrı belirtilir.
       </p>
     </header>
 
@@ -72,6 +80,16 @@ const structuredData = ldGraph(
     margin-top: var(--sp-4);
     color: var(--text-muted);
     font-size: var(--step-1);
+  }
+  .lane-marks {
+    margin-top: var(--sp-4);
+    padding-left: var(--sp-5);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.7;
+  }
+  .lane-marks li {
+    margin-bottom: var(--sp-2);
   }
   .note {
     margin-top: var(--sp-4);
