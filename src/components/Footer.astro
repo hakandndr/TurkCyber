@@ -13,10 +13,15 @@
  * "admin@turkcyber.com" read as one list. Each column now carries its own
  * heading and the contact block is visually distinct from the link list.
  *
- * The vertical rhythm is tighter than it was. The three-group structure
- * survives untouched — the change is spacing only: the footer was taking a
- * screenful on a phone, which pushes the last thing a reader wants (contact,
- * privacy) below yet another scroll.
+ * The vertical rhythm is tight on purpose: the footer was taking a screenful
+ * on a phone, which pushes the last thing a reader wants (contact, privacy)
+ * below yet another scroll.
+ *
+ * The brand column is three lines and stops. It used to carry a tagline, a
+ * paragraph about the domain having been a 2005 forum that went quiet, and a
+ * separate "Kuruluş: 2005" in the base row — three different ways of saying
+ * the same date, one of them leading with an apology. The heritage line now
+ * appears exactly once, in the column, as a continuity line.
  */
 import { FOOTER_LINKS, HERITAGE, SITE } from '../config/site';
 import Logo from './Logo.astro';
@@ -29,8 +34,8 @@ const year = new Date().getFullYear();
     <section class="col col-brand" aria-labelledby="footer-brand-heading">
       <h2 id="footer-brand-heading" class="visually-hidden">TurkCyber</h2>
       <Logo variant="compact" />
-      <p class="footer-tagline">Türkçe dijital güvenlik rehberleri.</p>
-      <p class="footer-heritage">{HERITAGE.footer}</p>
+      <p class="footer-mission">{HERITAGE.mission}</p>
+      <p class="footer-heritage">{HERITAGE.badge}</p>
     </section>
 
     <nav class="col col-nav" aria-labelledby="footer-nav-heading">
@@ -50,16 +55,22 @@ const year = new Date().getFullYear();
       <h2 id="footer-contact-heading" class="col-heading">İletişim</h2>
       <a class="contact-mail" href={`mailto:${SITE.email}`}>{SITE.email}</a>
       <p class="contact-note">Kişisel hesap kurtarma desteği veremiyoruz.</p>
-      <a class="dndr" href={SITE.owner.url} rel="noopener">
-        <span class="dndr-mark" aria-hidden="true"></span>
-        A DNDR Labs Project
-      </a>
     </section>
   </div>
 
+  <!--
+    Two sides, both meaningful. The base row used to repeat the identity twice
+    — a copyright line and the domain — while the DNDR credit sat in the
+    contact column as if it were a way to get in touch. The credit belongs
+    here; the domain was saying nothing the lockup had not already said.
+  -->
   <div class="container footer-base">
-    <span>&copy; {year} TurkCyber</span>
-    <span class="founded">Kuruluş: {HERITAGE.foundedYear}</span>
+    <span>&copy; {HERITAGE.foundedYear}&ndash;{year} TurkCyber</span>
+    <a class="dndr" href={SITE.owner.url} rel="noopener">
+      <span class="dndr-mark" aria-hidden="true"></span>
+      A DNDR Labs Project
+      <span class="dndr-arrow" aria-hidden="true">&#8599;</span>
+    </a>
   </div>
 </footer>
 
@@ -72,19 +83,48 @@ const year = new Date().getFullYear();
     font-size: var(--step--1);
   }
 
+  /*
+   * Start with one column and add columns only when each track has room.
+   * Zero-floor tracks and wrapping keep long content inside the page.
+   */
   .footer-grid {
     display: grid;
-    /* Brand column carries more text, so it takes the wider track. */
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: var(--sp-4) var(--sp-6);
+    grid-template-columns: 1fr;
+    gap: var(--sp-5);
     align-items: start;
+    /* A grid item can always be wider than its track unless this is set. */
+    min-width: 0;
+  }
+
+  /* Medium: navigation and contact pair up, brand takes its own row. */
+  @media (min-width: 40rem) {
+    .footer-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--sp-5) var(--sp-6);
+    }
+    .col-brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Desktop: the three columns, once there is room for all of them. */
+  @media (min-width: 64rem) {
+    .footer-grid {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: var(--sp-4) var(--sp-6);
+    }
+    .col-brand {
+      grid-column: auto;
+    }
   }
 
   .col {
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
+    /* Content may wrap, but must never force the grid wider than the page. */
     min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .col-heading {
@@ -97,7 +137,7 @@ const year = new Date().getFullYear();
     margin-bottom: 0;
   }
 
-  .footer-tagline {
+  .footer-mission {
     color: var(--text-muted);
     max-width: 34ch;
   }
@@ -106,7 +146,6 @@ const year = new Date().getFullYear();
     color: var(--text-faint);
     font-size: 0.8rem;
     line-height: 1.6;
-    max-width: 46ch;
   }
 
   .footer-links {
@@ -131,6 +170,7 @@ const year = new Date().getFullYear();
      address is never mistaken for another navigation item. */
   .contact-mail {
     font-family: var(--font-mono);
+    max-width: 100%;
     color: var(--text);
     text-decoration: none;
     border-bottom: 1px solid var(--border-strong);
@@ -154,7 +194,6 @@ const year = new Date().getFullYear();
     display: inline-flex;
     align-items: center;
     gap: var(--sp-2);
-    margin-top: var(--sp-1);
     color: var(--text-muted);
     text-decoration: none;
     font-family: var(--font-mono);
@@ -173,6 +212,11 @@ const year = new Date().getFullYear();
     color: var(--green);
   }
 
+  .dndr-arrow {
+    font-size: 0.9em;
+    opacity: 0.75;
+  }
+
   .footer-base {
     display: flex;
     justify-content: space-between;
@@ -184,22 +228,5 @@ const year = new Date().getFullYear();
     font-family: var(--font-mono);
     font-size: 0.72rem;
     color: var(--text-faint);
-  }
-
-  @media (max-width: 900px) {
-    .footer-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: var(--sp-4) var(--sp-5);
-    }
-    .col-brand {
-      grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 560px) {
-    .footer-grid {
-      grid-template-columns: 1fr;
-      gap: var(--sp-5);
-    }
   }
 </style>

@@ -225,8 +225,21 @@ describe('draft content', () => {
     expect(existsSync(join(TEST_DIST, 'haberler', 'ornek-haber-sablonu'))).toBe(false);
   });
 
-  it('shows the empty state on the news index', () => {
-    expect(read(join('haberler', 'index.html'))).toContain('Henüz haber yayınlanmadı');
+  /*
+   * With no published news the section must be designed, not absent. A shelf
+   * that silently disappears tells a returning visitor nothing, and the
+   * alternative — inventing a news item to fill it — is forbidden outright.
+   */
+  it('shows a designed empty state on the news index', () => {
+    const html = read(join('haberler', 'index.html'));
+    expect(html).toContain('Henüz yayınlanmış güncel güvenlik haberi yok');
+    expect(html).not.toContain('Haber Şablonu');
+  });
+
+  it('shows the same empty state on the homepage rather than dropping the section', () => {
+    const html = read('index.html');
+    expect(html).toContain('Güncel güvenlik haberleri');
+    expect(html).toContain('Henüz yayınlanmış güncel güvenlik haberi yok');
   });
 });
 

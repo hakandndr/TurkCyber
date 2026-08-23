@@ -90,6 +90,18 @@ const structuredData = ldGraph(websiteLd());
         registration year rather than inventing a command-line tool TurkCyber
         does not ship. Hidden from assistive technology and from narrow
         viewports, where it would only cost vertical space.
+
+        The body is structured records, not prose. It carried sentences split
+        by hand across several `#` comment lines, which meant the wrapping was
+        arbitrary and every wording change re-broke it. Records suit the form:
+        a whois response is a key/value listing, so the card now reads as one
+        instead of as a paragraph wearing a terminal costume. A continuation
+        line indents under the VALUE column, never under the label.
+
+        It also used to say "uzun bir aradan sonra yeniden yayında", which made
+        the first thing a visitor read an apology for a gap nobody asked about.
+        The dormant period is stated honestly on /hakkinda/, where there is
+        room for it and where someone is actually asking.
       */
       }
       <aside class="hero-aside" aria-hidden="true">
@@ -99,14 +111,13 @@ const structuredData = ldGraph(websiteLd());
           </span>
           <pre><span class="p">$</span> whois turkcyber.com
 
-domain      turkcyber.com
-created     <span class="hl">2005</span>
-status      active
-
-<span class="c"># 2005'te bir siber güvenlik</span>
-<span class="c"># forumu olarak kuruldu.</span>
-<span class="c"># Uzun bir aradan sonra</span>
-<span class="c"># yeniden yayında.</span>
+<span class="k">domain</span>      TurkCyber.com
+<span class="k">created</span>     <span class="hl">2005</span>
+<span class="k">status</span>      active
+<span class="k">origin</span>      Siber güvenlik topluluğu
+<span class="k">today</span>       Rehberler · açıklamalar · araçlar
+<span class="k">mission</span>     Dijital güvenliği anlaşılır
+            hale getirmek
 
 <span class="p">$</span> <span class="cursor">_</span></pre>
         </div>
@@ -227,6 +238,32 @@ status      active
   </section>
 
   {
+    /*
+     * The section renders whether or not there is anything in it. An area that
+     * silently disappears when empty tells a returning visitor nothing; a
+     * designed empty state tells them the shelf exists and is not stocked with
+     * filler. Fabricating a news item to fill it is not an option — see
+     * CLAUDE.md, content rules.
+     */
+    latestNews.length === 0 && (
+      <section class="container section" aria-labelledby="news-empty-heading">
+        <div class="section-head">
+          <h2 id="news-empty-heading" class="section-title">
+            Güncel güvenlik haberleri
+          </h2>
+          <a href="/haberler/" class="section-more">
+            Bölüm →
+          </a>
+        </div>
+        <p class="news-empty">
+          Henüz yayınlanmış güncel güvenlik haberi yok. Buraya yalnızca hesaplarınızı veya
+          cihazlarınızı doğrudan ilgilendiren gelişmeleri yazıyoruz.
+        </p>
+      </section>
+    )
+  }
+
+  {
     latestNews.length > 0 && (
       <section class="container section" aria-labelledby="news-heading">
         <h2 id="news-heading" class="section-title">
@@ -331,6 +368,11 @@ status      active
     font-weight: 500;
   }
 
+  /* Record keys. Recessive, so the values are what the eye reads. */
+  .term .k {
+    color: var(--text-faint);
+  }
+
   .term .c {
     color: var(--text-faint);
   }
@@ -415,6 +457,15 @@ status      active
     border-radius: 3px;
     padding: 0.15em 0.45em;
     vertical-align: middle;
+  }
+
+  .news-empty {
+    max-width: 60ch;
+    padding: var(--sp-5);
+    color: var(--text-muted);
+    background: var(--surface-1);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
   }
 
   .section-lede {

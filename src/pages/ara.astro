@@ -126,7 +126,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .page {
     padding-block: var(--sp-6) var(--sp-8);
   }
+  /* Wraps rather than pushing the button past the viewport at 320px. */
   .search-form {
+    flex-wrap: wrap;
     display: flex;
     gap: var(--sp-3);
     margin-top: var(--sp-5);

@@ -64,17 +64,27 @@ export function resolveFormspreeEndpoint(override?: string): string {
  */
 export const HERITAGE = {
   foundedYear: 2005,
-  /** Compact badge for the header and the OG card. */
-  badge: "2005'ten bugüne",
-  /** One line for the footer. */
-  footer:
-    "turkcyber.com 2005'te kuruldu ve o dönemde bir siber güvenlik forumu olarak " +
-    'yayındaydı. Uzun bir aradan sonra yeniden yayında.',
+  /**
+   * Compact line for the header, the footer and the OG card.
+   *
+   * Sentence case, with the ellipsis, exactly as written. It is a continuity
+   * line, not a label — an uppercase transform turns it into a badge and the
+   * ellipsis stops doing its work.
+   */
+  badge: '2005’ten bugüne…',
+  /**
+   * What the site is for, in one line. Replaces the former footer paragraph
+   * about a dormant period: a visitor scanning the footer needs to know what
+   * this is, not the domain's history, and "uzun bir aradan sonra yeniden
+   * yayında" was leading with an apology.
+   */
+  mission: 'Dijital güvenliği anlaşılır hale getiriyoruz.',
   /** Two sentences for the About page, where there is room to be precise. */
   about:
-    'Bu alan adı 2005 yılında kaydedildi ve o dönemde bir siber güvenlik ve ' +
-    'topluluk forumu olarak kullanıldı. Ardından uzun süre yayında olmadı; ' +
-    'bugünkü TurkCyber, aynı alan adı üzerinde kurulan yeni bir yayın projesidir.',
+    'TurkCyber.com 2005 yılında kaydedildi ve o dönemde bir siber güvenlik ve ' +
+    'topluluk forumu olarak kullanıldı. Aradan geçen yıllarda yayın kesintiye ' +
+    'uğradı; bugünkü TurkCyber aynı alan adı üzerinde kurulan yeni bir yayın ' +
+    'projesidir. Kesintisiz bir yayın geçmişi iddia etmiyoruz.',
 } as const;
 
 export type CategoryId =
