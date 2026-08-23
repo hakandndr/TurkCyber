@@ -10,6 +10,9 @@ yarn.lock
 
 # build output
 dist/
+# The test suite's own hermetic build. Deleted and rebuilt on every `pnpm test`
+# so a stale or missing dist/ can never affect an assertion — see tests/paths.ts
+.test-dist/
 .astro/
 .wrangler/
 

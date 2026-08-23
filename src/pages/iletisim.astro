@@ -1,18 +1,22 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../config/site';
+import { CONTACT_FORM, SITE, resolveFormspreeEndpoint } from '../config/site';
 
 /**
  * Contact form.
  *
- * Posts to Formspree, whose endpoint is supplied at build time as
- * PUBLIC_FORMSPREE_ENDPOINT. No endpoint is invented here: when the variable is
- * unset the form is not rendered at all and the page falls back to the email
- * address, so a misconfigured build cannot produce a form that silently
- * discards messages.
+ * Posts to Formspree. The endpoint lives in src/config/site.ts as public
+ * configuration — it appears in the form's `action` attribute and is visible
+ * to every visitor, so it is not a secret. PUBLIC_FORMSPREE_ENDPOINT can
+ * override it per environment.
+ *
+ * `resolveFormspreeEndpoint` returns an empty string for anything that is not
+ * a well-formed Formspree URL, and the page then renders the email address
+ * instead of a form. A form posting to a malformed endpoint would accept
+ * messages and discard them silently, which is worse than no form.
  */
-const formspreeEndpoint = import.meta.env.PUBLIC_FORMSPREE_ENDPOINT ?? '';
-const formEnabled = /^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(formspreeEndpoint);
+const formspreeEndpoint = resolveFormspreeEndpoint(import.meta.env.PUBLIC_FORMSPREE_ENDPOINT);
+const formEnabled = formspreeEndpoint !== '';
 ---
 
 <BaseLayout
@@ -70,8 +74,14 @@ const formEnabled = /^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/.test(formspreeE
             markup fields and skip genuinely hidden inputs.
           */}
           <div class="gotcha" aria-hidden="true">
-            <label for="_gotcha">Bu alanı boş bırakın</label>
-            <input id="_gotcha" type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+            <label for="contact-gotcha">Bu alanı boş bırakın</label>
+            <input
+              id="contact-gotcha"
+              type="text"
+              name={CONTACT_FORM.honeypotField}
+              tabindex="-1"
+              autocomplete="off"
+            />
           </div>
 
           <div class="actions">

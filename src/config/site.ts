@@ -24,6 +24,35 @@ export const SITE = {
 } as const;
 
 /**
+ * Contact form configuration.
+ *
+ * The Formspree endpoint is PUBLIC configuration, not a secret: it appears in
+ * the rendered form's `action` attribute and is visible to every visitor. It
+ * lives here so there is one authoritative value, and it can still be
+ * overridden per environment with `PUBLIC_FORMSPREE_ENDPOINT` (useful for
+ * pointing a staging build at a separate form).
+ *
+ * `resolveFormspreeEndpoint` validates whatever it is given against the real
+ * Formspree URL shape and returns an empty string otherwise. `/iletisim/` then
+ * renders the email address instead of a form — a form posting to a malformed
+ * endpoint would accept messages and discard them silently, which is worse
+ * than having no form.
+ */
+export const CONTACT_FORM = {
+  /** Production endpoint. Public by nature. */
+  formspreeEndpoint: 'https://formspree.io/f/mljrvker',
+  /** Honeypot field name. Formspree drops a submission when this is non-empty. */
+  honeypotField: '_gotcha',
+} as const;
+
+const FORMSPREE_URL_PATTERN = /^https:\/\/formspree\.io\/f\/[A-Za-z0-9]+$/;
+
+export function resolveFormspreeEndpoint(override?: string): string {
+  const candidate = (override ?? '').trim() || CONTACT_FORM.formspreeEndpoint;
+  return FORMSPREE_URL_PATTERN.test(candidate) ? candidate : '';
+}
+
+/**
  * Heritage.
  *
  * turkcyber.com was registered in 2005 and ran as a cybersecurity and community

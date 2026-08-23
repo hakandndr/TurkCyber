@@ -153,3 +153,42 @@ Full runbook: `PRODUCTION_CUTOVER.md`.
 - A retention job for analytics (`/gizlilik/` currently states there is none —
   if one is added, that page changes in the same commit).
 - Per-article OG images.
+
+---
+
+## 9. Execution policy (permanent)
+
+Implementation is the job. Debugging Claude's own environment is not.
+
+- **Do not spend large portions of a session fighting command execution**,
+  classifier, sandbox, proxy or shell problems.
+- **If a command makes no meaningful progress for ~90–120 seconds, stop it.**
+- **Try at most two materially different execution methods.** Not the same
+  command ten times.
+- If execution is still unavailable, **stop retrying** and hand over the exact
+  Windows PowerShell command to run locally.
+- **Never spend 10–20+ minutes repeatedly attempting the same test/build/tool
+  command.** This has happened; it wasted a session.
+- **Never claim verification unless a real command completed successfully on
+  the relevant tree.** If it did not, say exactly:
+  `verification pending on owner's Windows machine`.
+- **Do not create `.tar.gz`, `.zip`, `_to_delete`, transfer archives, stale
+  lock collections, or alternate repository copies** unless explicitly asked.
+- **Never maintain a second divergent codebase.** The mounted Windows project
+  at `D:\IT\turkcyber\turkcyber.com` is the only source of truth. Confirm a
+  change exists _there_ before reporting it. A cloud-container copy is not the
+  project, and a result from it is not a result.
+- **Do not repeatedly reread the whole `reference/` folder.** Use `CLAUDE.md`,
+  `CURRENT_STATE.md` and `HANDOFF.md` first; open a reference document only
+  when a specific answer requires it.
+- **Reconcile documentation once, near task completion** — not after every
+  intermediate experiment.
+
+### Why this rule exists
+
+A previous session extracted a tarball over the mounted working tree, piped
+`tar` through `head`, and checked `head`'s exit status instead of `tar`'s. The
+transfer was partial and unverified, so the reported fix never reached the
+machine that was failing. A later session then spent more than twenty minutes
+re-attempting a single hung command. Both are the same underlying error:
+trusting an unverified environment over the project itself.

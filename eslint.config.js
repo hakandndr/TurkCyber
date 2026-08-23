@@ -4,7 +4,17 @@ import tseslint from 'typescript-eslint';
 import astro from 'eslint-plugin-astro';
 
 export default [
-  { ignores: ['dist/**', '.astro/**', '.wrangler/**', 'node_modules/**', '*.d.ts'] },
+  {
+    ignores: [
+      'dist/**',
+      // The test suite's hermetic build output.
+      '.test-dist/**',
+      '.astro/**',
+      '.wrangler/**',
+      'node_modules/**',
+      '*.d.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   ...astro.configs.recommended,

@@ -1,5 +1,9 @@
 # Handoff
 
+> **Current status:** the test-pipeline rework and Formspree integration are
+> `verification pending on owner's Windows machine`. See CURRENT_STATE.md for
+> the exact commands.
+
 Everything needed to continue TurkCyber with no prior conversation context.
 
 Read [CURRENT_STATE.md](CURRENT_STATE.md) first for where things stand; this
@@ -63,7 +67,9 @@ migrations/analytics/     0001 visitor_events
 
 scripts/                  hash-password.mjs · import-legacy-analytics.mjs
                           scan-secrets.mjs · generate-icons.py · generate-og-default.py
-tests/                    111 tests across 5 files
+tests/                    132 it() declarations across 6 files (static count)
+tests/paths.ts            TEST_DIST — the suite's own build directory
+tests/global-setup.ts     deletes .test-dist/ and rebuilds it every run
 ```
 
 ---
@@ -84,8 +90,28 @@ pnpm db:app:local
 pnpm db:analytics:local
 ```
 
-`tests/content.test.ts` asserts against `dist/`, so the build must precede the
-tests. CI enforces that order.
+### The test suite is hermetic — keep it that way
+
+`pnpm test` **never reads `dist/`**. `tests/global-setup.ts` deletes
+`.test-dist/` and rebuilds into it on every run; `tests/content.test.ts`
+asserts only against that directory via `TEST_DIST` in `tests/paths.ts`.
+
+Three rules. Each has been broken before, each broke the suite differently:
+
+1. **Never assert against `dist/`.** It is the developer's build — possibly
+   absent, possibly stale, possibly built with different environment
+   variables. A stale `dist/` failed the suite on retired category ids that no
+   longer existed anywhere in the source.
+2. **Never trust an existing build.** "Build only if missing" is the same bug
+   with an extra step. Always rebuild.
+3. **No filesystem access at module scope in a test file.** Vitest evaluates a
+   suite factory even when it is skipped, so a top-level `readdirSync` throws
+   during collection, before any guard applies. **`describe.runIf` does not
+   protect a top-level read** — this was tried and it does not work. Every read
+   belongs inside a test body or a `beforeAll`.
+
+Also confirm `globalSetup` is registered in `vitest.config.ts`. It was once
+written but never wired, which made the whole mechanism inert.
 
 ---
 
@@ -208,6 +234,27 @@ in JS.
 same-origin, authenticated, and writes an `audit_events` row.
 
 ---
+
+## 8a. Contact form
+
+`/iletisim/` posts to Formspree. The endpoint lives in `src/config/site.ts` as
+`CONTACT_FORM.formspreeEndpoint` — currently `https://formspree.io/f/mljrvker`.
+
+It is **public configuration, not a secret**: it is rendered into the form's
+`action` attribute and is visible to every visitor. It is committed
+deliberately. `PUBLIC_FORMSPREE_ENDPOINT` overrides it per environment (for
+example to point a staging build at a different form).
+
+`resolveFormspreeEndpoint()` validates the value against the Formspree URL
+shape and returns an empty string for anything else, in which case the page
+renders the plain email address instead of a form. Never bypass that check: a
+form posting to a malformed endpoint accepts messages and discards them
+silently, which is worse than having no form.
+
+Preserved and not to be removed: the four fields (name, email, subject,
+message), the off-screen `_gotcha` honeypot, the Turkish success/error states,
+and the statement that TurkCyber does not provide personal account-recovery
+support. `/gizlilik/` discloses that Formspree processes submissions.
 
 ## 9. Environment variables
 

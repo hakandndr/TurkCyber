@@ -135,3 +135,166 @@ Resolution, chosen to preserve the owner's work:
 
 Lesson recorded: transfers into a working repository must check for local
 commits first. A tarball extraction is not a merge.
+
+---
+
+## 2026-08-22 — Hermetic test pipeline + real Formspree endpoint
+
+Worked directly on the mounted Windows project. `D:\IT\turkcyber\turkcyber.com`
+is the only source of truth for this entry.
+
+Starting state verified before any edit: `bbd2195 chore: remove local transfer
+artifacts`, working tree clean.
+
+### The previous "fix" never reached this repository
+
+The mounted tree still contained, exactly as the owner reported:
+
+- `tests/content.test.ts` with `describe.runIf(built)` and a module-scope
+  `readdirSync(...)` at line 59,
+- `vitest.config.ts` with **no** `globalSetup` registered,
+- `tests/global-setup.ts` present but orphaned — never invoked by anything.
+
+So the earlier claim of a working fix described a cloud-container copy whose
+files were never applied here. The root cause was a partial `tar` extraction
+over a live working tree whose exit status was never checked (the pipeline
+checked `head`'s status, not `tar`'s). **A change that is not confirmed on the
+mounted project does not exist.**
+
+### The two Windows failures, and why the old design produced them
+
+**Stale `dist/` → wrong assertions.** The suite read `dist/`. When that
+directory came from an earlier checkout it still contained retired category
+ids (`sosyal-medya`, `sifreler-passkeys`), so `search index` and `sitemap`
+assertions failed against output that had nothing to do with the current
+source. "Build only if `dist/` is missing" is the same bug with an extra step:
+it trusts whatever is already on disk.
+
+**Missing `dist/` → ENOENT.** `readdirSync` sat at module scope. Vitest
+evaluates a suite factory _even when `describe.runIf` skips it_, so the read
+threw during collection — before any guard applied and before a setup step
+could have helped. `describe.runIf` cannot protect a top-level filesystem read.
+
+### Final implementation
+
+The test run owns its build.
+
+- **`tests/paths.ts`** (new) — exports `TEST_DIST` = `<cwd>/.test-dist`. Setup
+  and tests import the same constant, so there is no env var to plumb between
+  processes and no way for the two to disagree.
+- **`tests/global-setup.ts`** (rewritten) — deletes `.test-dist/` and rebuilds
+  into it on **every** run. Never inspects `dist/`, never conditionally skips.
+  Resolves the Astro entry via `createRequire` and runs it with
+  `process.execPath`, avoiding the `.cmd` shim, shell quoting and PATH
+  differences that make child processes behave differently on Windows. Forces
+  `NODE_ENV=production`. Throws a named error if the CLI or `index.html` is
+  missing.
+- **`vitest.config.ts`** — registers `globalSetup` (this was the missing wire),
+  `hookTimeout` 180 s, `teardownTimeout` 30 s.
+- **`tests/content.test.ts`** (rewritten) — zero filesystem access at module
+  scope, zero `describe.runIf` (the only remaining mention is a comment saying
+  why it must not be used). All reads go through helpers called inside test
+  bodies and read only `TEST_DIST`. A `beforeAll` gives one actionable failure
+  if the build is missing. New assertions: the build under test is
+  `.test-dist` and not `dist/`; sitemap and search index contain only current
+  category ids (catching precisely the retired-id failure); myths render their
+  verdict; the contact form exposes its four fields and honeypot, or falls back
+  to the email address.
+- **`.gitignore`, `.prettierignore`, `eslint.config.js`** — ignore `.test-dist/`.
+
+### Formspree integration
+
+- **`src/config/site.ts`** — added `CONTACT_FORM` holding the production
+  endpoint `https://formspree.io/f/mljrvker` and the honeypot field name, plus
+  `resolveFormspreeEndpoint(override)`. The endpoint is public configuration,
+  not a secret: it is rendered into the form's `action` and visible to every
+  visitor. `PUBLIC_FORMSPREE_ENDPOINT` still overrides it per environment.
+  Anything not matching the Formspree URL shape resolves to an empty string and
+  the page falls back to the email address, because a form posting to a
+  malformed endpoint accepts messages and discards them silently.
+- **`src/pages/iletisim.astro`** — consumes the config helper. Fields (name,
+  email, subject, message), the off-screen honeypot and the Turkish
+  success/error states are unchanged. The account-recovery boundary
+  ("Kişisel hesap kurtarma desteği veremiyoruz.") is preserved.
+- **`.env.example`** — documents the override and states it is optional.
+- **`/gizlilik/`** — already disclosed Formspree processing accurately; no
+  change was needed, and none was made.
+
+### Execution policy added to CLAUDE.md §9
+
+Permanent rule: stop a command that makes no progress in ~90–120 s, try at most
+two materially different execution methods, never claim verification without a
+completed run on the relevant tree, never maintain a second codebase, no
+transfer archives.
+
+### Verification — NOT DONE HERE
+
+**verification pending on owner's Windows machine.**
+
+Attempted, and stopped under the new policy:
+
+1. Resolving the toolchain from the Linux bridge against the mounted project —
+   `node -e "require.resolve('astro/package.json')"` → `MODULE_NOT_FOUND` for
+   both `astro` and `vitest`. The `node_modules` tree is a Windows pnpm install
+   and does not resolve from this bridge. Bounded to 30 s, one attempt.
+2. Running the suite in the cloud container — **refused**: that is a different
+   tree, and a result from it is not a result for this repository. This is the
+   exact error that produced the previous false report.
+
+No further attempts were made. Total time spent on execution: under a minute.
+
+**Static inventory of the mounted tests** (a count of `it(` declarations, _not_
+a run result): analytics 31 · content 30 · comments 24 · auth 17 · boss 17 ·
+tools 13 = **132**. The number the run reports is the authoritative one and
+replaces this.
+
+### Commands the owner must run
+
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
+
+# Case 1 — completely clean checkout
+Remove-Item -Recurse -Force dist, .astro, .test-dist -ErrorAction SilentlyContinue
+pnpm test
+
+# Case 2 — deliberately stale build directory
+Remove-Item -Recurse -Force dist, .test-dist -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path dist\konular\sosyal-medya | Out-Null
+New-Item -ItemType Directory -Force -Path dist\haberler\ornek-haber-sablonu | Out-Null
+'<html>stale</html>' | Set-Content dist\index.html
+'<?xml version="1.0"?><urlset><url><loc>https://turkcyber.com/konular/sifreler-passkeys/</loc></url></urlset>' | Set-Content dist\sitemap.xml
+'[]' | Set-Content dist\search-index.json
+pnpm test
+
+# Full pipeline
+pnpm check
+pnpm lint
+pnpm test
+pnpm build
+pnpm scan:secrets
+```
+
+Both test runs must pass. Case 2 is the regression test for the stale-`dist/`
+failure: the suite must be completely unaffected by that corrupt directory.
+
+### Housekeeping
+
+`git status` run over the bridge leaves a `.git/index.lock` that this mount
+will not let a non-Windows process unlink. **Delete `.git\index.lock` before
+your first local git command.**
+
+### Git state
+
+`bbd2195` at start, clean. Changes left **uncommitted** in the working tree for
+the owner to review and commit after verification passes: 10 modified files and
+1 new file (`tests/paths.ts`).
+
+### Staging / production state
+
+Untouched by instruction. No Cloudflare resource; `turkcyber.com` still serves
+the legacy Hostinger site; `env.production.routes` still `[]`. Astro not
+upgraded.
+
+### Next action
+
+Delete `.git\index.lock`, run the PowerShell block above, then commit if green.

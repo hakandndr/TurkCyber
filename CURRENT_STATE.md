@@ -31,26 +31,68 @@ test/build ordering dependency removed.
 
 ## Verification
 
-Last run, from a **clean tree with no `dist/`**:
+> **Status: `verification pending on owner's Windows machine`.**
+>
+> The test-pipeline rework and the Formspree integration have **not** been
+> executed. The Linux bridge cannot resolve the Windows pnpm `node_modules`
+> (`MODULE_NOT_FOUND` for astro and vitest), and running the suite in a cloud
+> container was refused — that is a different tree, and a result from it is not
+> a result for this repository. See PROCESS.md, entry
+> "Hermetic test pipeline + real Formspree endpoint".
 
-| Command             | Result                            |
-| ------------------- | --------------------------------- |
-| `pnpm check`        | 0 errors, 0 warnings, **0 hints** |
-| `pnpm lint`         | clean (eslint + prettier)         |
-| `pnpm build`        | 33 pages                          |
-| `pnpm test`         | **132 passed**, 6 files           |
-| `pnpm scan:secrets` | clean                             |
+**Run these, then replace this section with the real output:**
 
-Tests: auth 17 · analytics 31 · comments 29 · boss 17 · content 25 · tools 13.
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
 
-`pnpm test` no longer depends on `pnpm build` — `tests/global-setup.ts` builds
-when `dist/` is absent.
+# Delete the stale lock left by a bridge-side git status
+Remove-Item -Force .git\index.lock -ErrorAction SilentlyContinue
 
-Browser checks (Playwright, built output): no horizontal overflow on 10 routes ×
-{1440, 1024, 768, 390}; quiz works end to end; comments-API-down degrades to the
-Turkish notice with the article fully readable.
+# Case 1 — completely clean checkout
+Remove-Item -Recurse -Force dist, .astro, .test-dist -ErrorAction SilentlyContinue
+pnpm test
 
----
+# Case 2 — deliberately stale build directory
+Remove-Item -Recurse -Force dist, .test-dist -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path dist\konular\sosyal-medya | Out-Null
+New-Item -ItemType Directory -Force -Path dist\haberler\ornek-haber-sablonu | Out-Null
+'<html>stale</html>' | Set-Content dist\index.html
+'<?xml version="1.0"?><urlset><url><loc>https://turkcyber.com/konular/sifreler-passkeys/</loc></url></urlset>' | Set-Content dist\sitemap.xml
+'[]' | Set-Content dist\search-index.json
+pnpm test
+
+pnpm check ; pnpm lint ; pnpm test ; pnpm build ; pnpm scan:secrets
+```
+
+### Expected test inventory
+
+Static count of `it(` declarations in the mounted tests — **not** a run result:
+
+| Suite     | Cases   |
+| --------- | ------- |
+| analytics | 31      |
+| content   | 30      |
+| comments  | 24      |
+| auth      | 17      |
+| boss      | 17      |
+| tools     | 13      |
+| **total** | **132** |
+
+Replace with the number the run reports. Do not quote this figure as verified.
+
+### Why earlier counts disagreed (132 vs 124)
+
+Both were real counts of **different trees**. A partial tarball extraction left
+this repository's `tests/content.test.ts` and `tests/comments.test.ts` at their
+original versions while a cloud copy had newer ones. The lesson is recorded as
+policy in CLAUDE.md §9: a change is only real once confirmed on the mounted
+project.
+
+### The hermetic rule
+
+`pnpm test` never reads `dist/`. `tests/global-setup.ts` deletes `.test-dist/`
+and rebuilds into it on every run, so neither a missing nor a stale `dist/` can
+affect an assertion. `pnpm build` still writes `dist/` and is unrelated.
 
 ## Routes
 
@@ -115,11 +157,11 @@ The public comments API never selects it — asserted by test.
 
 ## Configuration
 
-| Variable                    | State                                                    |
-| --------------------------- | -------------------------------------------------------- |
-| `PUBLIC_FORMSPREE_ENDPOINT` | **unset** — contact form falls back to the email address |
-| `SHOW_UNPUBLISHED`          | `.env.development` only; defaults closed everywhere else |
-| All secrets                 | unset; no environment provisioned                        |
+| Variable                    | State                                                                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `PUBLIC_FORMSPREE_ENDPOINT` | optional override; the production endpoint `https://formspree.io/f/mljrvker` is committed in `src/config/site.ts` as public configuration |
+| `SHOW_UNPUBLISHED`          | `.env.development` only; defaults closed everywhere else                                                                                  |
+| All secrets                 | unset; no environment provisioned                                                                                                         |
 
 ---
 
