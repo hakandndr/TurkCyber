@@ -18,7 +18,7 @@ const { entry, headingLevel = 2 } = Astro.props;
 const Heading = `h${headingLevel}` as 'h2' | 'h3';
 ---
 
-<article class="myth">
+<article class="myth trace-surface">
   <Heading class="myth-claim">
     <a href={articlePath(entry)}>&ldquo;{entry.data.title}&rdquo;</a>
   </Heading>
@@ -31,7 +31,7 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
 
 <style>
   .myth {
-    position: relative;
+    --trace-border-hover: var(--interaction-accent);
     display: flex;
     flex-direction: column;
     gap: var(--sp-3);
@@ -41,11 +41,6 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
        column of answers, not as another grid of articles. */
     border-left: 2px solid var(--border-strong);
     border-radius: 0 var(--radius) var(--radius) 0;
-  }
-
-  .myth:hover {
-    background: var(--surface-2);
-    border-left-color: var(--cyan);
   }
 
   .myth-claim {
@@ -66,10 +61,6 @@ const Heading = `h${headingLevel}` as 'h2' | 'h3';
     content: '';
     position: absolute;
     inset: 0;
-  }
-
-  .myth:hover .myth-claim a {
-    color: var(--text);
   }
 
   .myth-answer {

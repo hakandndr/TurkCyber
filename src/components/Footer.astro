@@ -76,11 +76,35 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer {
+    position: relative;
     margin-top: auto;
     border-top: 1px solid var(--border);
     background: var(--surface-1);
     padding-block: var(--sp-5) var(--sp-4);
     font-size: var(--step--1);
+  }
+
+  .site-footer::before,
+  .site-footer::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    pointer-events: none;
+  }
+
+  .site-footer::before {
+    left: 0;
+    width: clamp(7rem, 22vw, 20rem);
+    height: 1px;
+    background: linear-gradient(90deg, var(--interaction-accent), var(--interaction-confirm));
+  }
+
+  .site-footer::after {
+    left: clamp(7rem, 22vw, 20rem);
+    width: var(--trace-node-size);
+    height: var(--trace-node-size);
+    background: var(--interaction-confirm);
+    transform: translateY(-1px);
   }
 
   /*
@@ -228,5 +252,12 @@ const year = new Date().getFullYear();
     font-family: var(--font-mono);
     font-size: 0.72rem;
     color: var(--text-faint);
+  }
+
+  @media (forced-colors: active) {
+    .site-footer::before,
+    .site-footer::after {
+      background: CanvasText;
+    }
   }
 </style>

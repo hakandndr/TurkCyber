@@ -11,6 +11,12 @@ import { breadcrumbLd, collectionPageLd, ldGraph } from '../../lib/seo';
  * links to something that does not exist.
  */
 const tools = TOOLS;
+const readyCount = tools.filter((tool) => tool.status === 'ready').length;
+const TOOL_IO: Record<string, { input: string; output: string }> = {
+  'bu-mesaj-sahte-mi': { input: '6 karar', output: 'Kaçırılan işaretler' },
+  'instagram-guvenlik-testi': { input: 'Ayar işaretleri', output: 'Kontrol listesi' },
+  'hesap-guvenlik-puani': { input: 'Kısa yanıtlar', output: 'Öncelik listesi' },
+};
 
 const description =
   'Dijital güvenliğinizi kendiniz test edebileceğiniz kısa, tarayıcıda çalışan araçlar.';
@@ -34,24 +40,56 @@ const structuredData = ldGraph(
         verdiğiniz cevaplar hiçbir yere gönderilmez, kaydedilmez ve hiçbir araç sizden gerçek
         şifrenizi istemez.
       </p>
+      <dl class="system-strip tool-strip">
+        <div><dt>Kullanım</dt><dd>{readyCount} araç açık</dd></div>
+        <div><dt>Çalışma</dt><dd>Tarayıcı içi</dd></div>
+        <div><dt>Veri</dt><dd>Gönderilmez</dd></div>
+      </dl>
     </header>
 
     <ul class="tool-list">
       {
-        tools.map((tool) => (
+        tools.map((tool, index) => (
           <li class:list={['tool-item', tool.status === 'planned' && 'is-planned']}>
             {tool.status === 'ready' ? (
-              <a href={tool.href}>
-                <span class="tool-title">{tool.title}</span>
-                <span class="tool-desc">{tool.description}</span>
+              <a href={tool.href} class="trace-surface">
+                <span class="tool-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span class="tool-main">
+                  <span class="tool-title">{tool.title}</span>
+                  <span class="tool-desc">{tool.description}</span>
+                </span>
+                <span class="tool-ops">
+                  <span>
+                    <b>Durum</b>Kullanıma açık
+                  </span>
+                  <span>
+                    <b>Girdi</b>
+                    {TOOL_IO[tool.id]?.input}
+                  </span>
+                  <span>
+                    <b>Çıktı</b>
+                    {TOOL_IO[tool.id]?.output}
+                  </span>
+                  <span>
+                    <b>Rota</b>
+                    {tool.href}
+                  </span>
+                </span>
               </a>
             ) : (
               <div>
-                <span class="tool-title">
-                  {tool.title}
-                  <span class="badge">Hazırlanıyor</span>
+                <span class="tool-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
                 </span>
-                <span class="tool-desc">{tool.description}</span>
+                <span class="tool-main">
+                  <span class="tool-title">
+                    {tool.title}
+                    <span class="badge">Hazırlanıyor</span>
+                  </span>
+                  <span class="tool-desc">{tool.description}</span>
+                </span>
               </div>
             )}
           </li>
@@ -68,6 +106,9 @@ const structuredData = ldGraph(
   .page-head {
     margin-bottom: var(--sp-6);
   }
+  .tool-strip {
+    margin-top: var(--sp-5);
+  }
   .page-head h1 {
     margin-top: var(--sp-2);
   }
@@ -82,22 +123,21 @@ const structuredData = ldGraph(
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--sp-3);
+    gap: 0;
+    border-bottom: 1px solid var(--border);
   }
   .tool-item > * {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2);
-    padding: var(--sp-5);
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr) minmax(14rem, 0.78fr);
+    gap: var(--sp-4);
+    align-items: start;
+    padding: var(--sp-5) var(--sp-4);
+    background: color-mix(in srgb, var(--surface-1) 74%, transparent);
+    border: 0;
+    border-top: 1px solid var(--border);
     text-decoration: none;
   }
-  .tool-item a:hover {
-    border-color: var(--green);
-    background: var(--surface-2);
-  }
+
   .is-planned > * {
     opacity: 0.55;
     border-style: dashed;
@@ -112,6 +152,45 @@ const structuredData = ldGraph(
     font-weight: 600;
     color: var(--text);
   }
+  .tool-index {
+    align-self: stretch;
+    padding-top: 0.2rem;
+    border-right: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--cyan);
+  }
+  .tool-main {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+  .tool-ops {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+  .tool-ops span {
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+  .tool-ops b {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--text-faint);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .tool-ops span:first-child {
+    color: var(--green);
+  }
   .badge {
     font-family: var(--font-mono);
     font-size: 0.65rem;
@@ -125,5 +204,19 @@ const structuredData = ldGraph(
   .tool-desc {
     color: var(--text-muted);
     font-size: var(--step--1);
+  }
+  @media (max-width: 48rem) {
+    .tool-item > * {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      padding-inline: 0;
+    }
+    .tool-ops {
+      grid-column: 2;
+    }
+  }
+  @media (max-width: 25rem) {
+    .tool-ops {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

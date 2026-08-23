@@ -75,7 +75,7 @@ const structuredData = ldGraph(websiteLd());
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-text">
-        <p class="eyebrow">Türkçe dijital güvenlik rehberleri</p>
+        <p class="eyebrow">Dijital güvenlik rehberleri</p>
         <h1>{SITE.tagline}</h1>
         <p class="hero-lede">{SITE.description}</p>
         <div class="hero-actions">
@@ -106,22 +106,35 @@ const structuredData = ldGraph(websiteLd());
       }
       <aside class="hero-aside" aria-hidden="true">
         <div class="term">
-          <span class="term-bar">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="dossier-bar">
+            <span>KAMUSAL KAYIT / TURKCYBER.COM</span>
+            <span class="record-state"><span class="state-node"></span>DURUM / AKTİF</span>
           </span>
-          <pre><span class="p">$</span> whois turkcyber.com
+          <pre><span class="k">sorgu</span>       whois turkcyber.com
 
 <span class="k">domain</span>      TurkCyber.com
 <span class="k">created</span>     <span class="hl">2005</span>
 <span class="k">status</span>      active
 <span class="k">origin</span>      Siber güvenlik topluluğu
 <span class="k">today</span>       Rehberler · açıklamalar · araçlar
-<span class="k">mission</span>     Dijital güvenliği anlaşılır
-            hale getirmek
-
-<span class="p">$</span> <span class="cursor">_</span></pre>
+<span class="k">mission</span>     Dijital güvenliği sadeleştirmek</pre>
         </div>
       </aside>
+
+      <dl class="hero-rail" aria-label="Yayın bilgileri">
+        <div>
+          <dt>Odak</dt>
+          <dd>Dijital güvenlik</dd>
+        </div>
+        <div>
+          <dt>Köken</dt>
+          <dd>2005</dd>
+        </div>
+        <div>
+          <dt>Yapı</dt>
+          <dd>Rehber · Teknik · Araç</dd>
+        </div>
+      </dl>
     </div>
   </section>
 
@@ -129,12 +142,21 @@ const structuredData = ldGraph(websiteLd());
        someone with an urgent problem should not have to scroll past a shelf of
        articles to find the door marked with their situation. -->
   <section class="container quick" aria-labelledby="quick-heading">
-    <h2 id="quick-heading" class="section-title">Sık karşılaşılan durumlar</h2>
+    <header class="system-heading">
+      <p class="section-locator" aria-hidden="true">
+        <span class="locator-index">01</span><span>Sık durumlar</span>
+      </p>
+      <h2 id="quick-heading" class="section-title">Sık karşılaşılan durumlar</h2>
+      <p class="section-state">{QUICK_ACCESS.length} doğrulanmış rota</p>
+    </header>
     <ul class="quick-grid">
       {
         QUICK_ACCESS.map((item) => (
           <li>
-            <a href={item.href} class:list={['quick-card', `quick-${item.accent}`]}>
+            <a
+              href={item.href}
+              class:list={['quick-card', 'trace-surface', `quick-${item.accent}`]}
+            >
               <span class="quick-label">{item.label}</span>
               <span class="quick-detail">{item.detail}</span>
               <span class="quick-arrow" aria-hidden="true">
@@ -148,7 +170,13 @@ const structuredData = ldGraph(websiteLd());
   </section>
 
   <section class="container section" aria-labelledby="featured-heading">
-    <h2 id="featured-heading" class="section-title">Öne çıkan rehberler</h2>
+    <header class="system-heading">
+      <p class="section-locator" aria-hidden="true">
+        <span class="locator-index">02</span><span>Seçki</span>
+      </p>
+      <h2 id="featured-heading" class="section-title">Öne çıkan rehberler</h2>
+      <p class="section-state">{featured.length} seçili yayın</p>
+    </header>
     <div class="grid grid-lead">
       {
         featured.map((entry, index) => (
@@ -161,6 +189,12 @@ const structuredData = ldGraph(websiteLd());
   {
     topMyths.length > 0 && (
       <section class="container section myths-section" aria-labelledby="myths-heading">
+        <p class="section-locator" aria-hidden="true">
+          <>
+            <span class="locator-index">03</span>
+            <span>İddia kontrolü</span>
+          </>
+        </p>
         <div class="section-head">
           <h2 id="myths-heading" class="section-title">
             Efsane mi, gerçek mi?
@@ -182,6 +216,9 @@ const structuredData = ldGraph(websiteLd());
   }
 
   <section class="container section" aria-labelledby="topics-heading">
+    <p class="section-locator" aria-hidden="true">
+      <span class="locator-index">04</span><span>Taksonomi</span>
+    </p>
     <h2 id="topics-heading" class="section-title">Konular</h2>
     <ul class="topics">
       {
@@ -208,7 +245,13 @@ const structuredData = ldGraph(websiteLd());
 
   {
     topTechnical.length > 0 && (
-      <section class="container section" aria-labelledby="technical-heading">
+      <section class="container section section-technical" aria-labelledby="technical-heading">
+        <p class="section-locator" aria-hidden="true">
+          <>
+            <span class="locator-index">05</span>
+            <span>Teknik derinlik</span>
+          </>
+        </p>
         <div class="section-head">
           <h2 id="technical-heading" class="section-title">
             Nasıl çalışıyor?
@@ -231,6 +274,9 @@ const structuredData = ldGraph(websiteLd());
   }
 
   <section class="container section" aria-labelledby="latest-heading">
+    <p class="section-locator" aria-hidden="true">
+      <span class="locator-index">06</span><span>Son yayınlar</span>
+    </p>
     <h2 id="latest-heading" class="section-title">Yeni rehberler</h2>
     <div class="grid">
       {latest.map((entry) => <ArticleCard entry={entry} />)}
@@ -247,6 +293,12 @@ const structuredData = ldGraph(websiteLd());
      */
     latestNews.length === 0 && (
       <section class="container section" aria-labelledby="news-empty-heading">
+        <p class="section-locator" aria-hidden="true">
+          <>
+            <span class="locator-index">07</span>
+            <span>Haber akışı</span>
+          </>
+        </p>
         <div class="section-head">
           <h2 id="news-empty-heading" class="section-title">
             Güncel güvenlik haberleri
@@ -266,6 +318,12 @@ const structuredData = ldGraph(websiteLd());
   {
     latestNews.length > 0 && (
       <section class="container section" aria-labelledby="news-heading">
+        <p class="section-locator" aria-hidden="true">
+          <>
+            <span class="locator-index">07</span>
+            <span>Haber akışı</span>
+          </>
+        </p>
         <h2 id="news-heading" class="section-title">
           Güncel güvenlik haberleri
         </h2>
@@ -300,7 +358,22 @@ const structuredData = ldGraph(websiteLd());
 
   @media (min-width: 1040px) {
     .hero-inner {
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      grid-template-columns: 5.5rem minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: var(--sp-6);
+    }
+
+    .hero-text {
+      grid-column: 2;
+    }
+
+    .hero-aside {
+      grid-column: 3;
+    }
+
+    .hero-rail {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: stretch;
     }
   }
 
@@ -313,6 +386,58 @@ const structuredData = ldGraph(websiteLd());
 
   .hero-aside {
     display: none;
+  }
+
+  .hero-rail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding-block: var(--sp-3);
+    border-block: 1px solid var(--border);
+  }
+
+  .hero-rail > div {
+    min-width: 0;
+    padding-inline: var(--sp-3);
+    border-left: 1px solid var(--border);
+  }
+
+  .hero-rail dt,
+  .hero-rail dd {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    line-height: 1.5;
+  }
+
+  .hero-rail dt {
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .hero-rail dd {
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 1040px) {
+    .hero-rail {
+      grid-template-columns: 1fr;
+      padding-block: 0;
+      border-block: 0;
+      border-left: 1px solid var(--border);
+    }
+
+    .hero-rail > div {
+      padding: var(--sp-3) 0 var(--sp-3) var(--sp-3);
+      border-left: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .hero-rail > div:first-child {
+      border-top-color: var(--frame-node);
+    }
   }
 
   @media (min-width: 1040px) {
@@ -332,19 +457,32 @@ const structuredData = ldGraph(websiteLd());
     box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
   }
 
-  .term-bar {
+  .dossier-bar {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
     padding: var(--sp-3) var(--sp-4);
     border-bottom: 1px solid var(--border);
     background: var(--surface-2);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
   }
 
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border-strong);
+  .record-state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    color: var(--interaction-confirm);
+  }
+
+  .state-node {
+    width: var(--trace-node-size);
+    height: var(--trace-node-size);
+    background: currentColor;
   }
 
   .term pre {
@@ -359,10 +497,6 @@ const structuredData = ldGraph(websiteLd());
     overflow-x: auto;
   }
 
-  .term .p {
-    color: var(--green);
-  }
-
   .term .hl {
     color: var(--text);
     font-weight: 500;
@@ -375,23 +509,6 @@ const structuredData = ldGraph(websiteLd());
 
   .term .c {
     color: var(--text-faint);
-  }
-
-  .term .cursor {
-    color: var(--green);
-    animation: blink 1.3s steps(2, start) infinite;
-  }
-
-  @keyframes blink {
-    50% {
-      opacity: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .term .cursor {
-      animation: none;
-    }
   }
 
   .hero-lede {
@@ -419,6 +536,45 @@ const structuredData = ldGraph(websiteLd());
   .section-title {
     font-size: var(--step-2);
     margin-bottom: var(--sp-5);
+  }
+
+  .system-heading {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    gap: var(--sp-4);
+    align-items: end;
+    margin-bottom: var(--sp-5);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border);
+  }
+
+  .system-heading .section-title {
+    margin-bottom: 0;
+  }
+
+  .section-locator {
+    margin-bottom: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+
+  .locator-index {
+    color: var(--cyan);
+  }
+
+  .section-state {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .section-head {
@@ -474,6 +630,23 @@ const structuredData = ldGraph(websiteLd());
     max-width: 60ch;
   }
 
+  .section-technical {
+    display: grid;
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 2.18fr);
+    column-gap: var(--sp-7);
+  }
+
+  .section-technical > .section-locator,
+  .section-technical > .section-head,
+  .section-technical > .section-lede {
+    grid-column: 1;
+  }
+
+  .section-technical > .grid {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
   /* --- quick access --- */
 
   .quick {
@@ -490,7 +663,6 @@ const structuredData = ldGraph(websiteLd());
   }
 
   .quick-card {
-    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
@@ -500,26 +672,15 @@ const structuredData = ldGraph(websiteLd());
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     text-decoration: none;
-    transition: transform 0.14s ease;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .quick-card {
-      transition: none;
-    }
+  .quick-green {
+    --trace-color: var(--interaction-confirm);
+    --trace-border-hover: rgba(33, 230, 122, 0.5);
   }
 
-  .quick-card:hover {
-    background: var(--surface-2);
-    border-color: var(--border-strong);
-    transform: translateY(-2px);
-  }
-
-  .quick-green:hover {
-    border-color: rgba(33, 230, 122, 0.5);
-  }
-  .quick-cyan:hover {
-    border-color: rgba(0, 200, 255, 0.45);
+  .quick-cyan {
+    --trace-border-hover: rgba(0, 200, 255, 0.45);
   }
 
   .quick-label {
@@ -542,10 +703,6 @@ const structuredData = ldGraph(websiteLd());
     right: var(--sp-5);
     color: var(--text-faint);
     font-size: var(--step-0);
-  }
-
-  .quick-card:hover .quick-arrow {
-    color: var(--green);
   }
 
   /* --- shelves --- */
@@ -571,6 +728,90 @@ const structuredData = ldGraph(websiteLd());
   @media (max-width: 720px) {
     .grid-lead {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .section-technical {
+      display: block;
+    }
+
+    .system-heading {
+      grid-template-columns: 5rem minmax(0, 1fr);
+    }
+
+    .system-heading .section-state {
+      grid-column: 2;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .system-heading {
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+      gap: var(--sp-3);
+    }
+
+    .section-state {
+      white-space: normal;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .hero-inner {
+      gap: var(--sp-5);
+      padding-bottom: var(--sp-7);
+    }
+
+    .hero-rail {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      padding-block: var(--sp-2);
+    }
+
+    .hero-rail > div {
+      padding-inline: var(--sp-2);
+    }
+
+    .hero-rail dt,
+    .hero-rail dd {
+      font-size: 0.6rem;
+      line-height: 1.4;
+    }
+
+    .system-heading {
+      margin-bottom: var(--sp-4);
+    }
+
+    .section-locator {
+      gap: 0.15rem;
+      margin-bottom: var(--sp-1);
+      font-size: 0.58rem;
+      line-height: 1.3;
+      letter-spacing: 0.1em;
+    }
+
+    .locator-index {
+      font-size: 0.64rem;
+    }
+
+    .section-state {
+      font-size: 0.58rem;
+      line-height: 1.4;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  @media (max-width: 27rem) {
+    .hero-rail {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-rail > div:last-child {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--sp-2);
+      border-top: 1px solid var(--border);
+      padding-top: var(--sp-2);
     }
   }
 
@@ -662,5 +903,11 @@ const structuredData = ldGraph(websiteLd());
   .topics-secondary a:hover {
     color: var(--cyan);
     border-color: var(--border-strong);
+  }
+
+  @media (forced-colors: active) {
+    .state-node {
+      background: CanvasText;
+    }
   }
 </style>

@@ -39,8 +39,8 @@ body {
    * card surfaces.
    */
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px);
   background-size: 64px 64px;
   background-attachment: fixed;
   color: var(--text);
@@ -97,14 +97,11 @@ a {
   text-underline-offset: 3px;
 }
 
-a:hover {
-  color: var(--green);
-}
-
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: var(--focus-ring);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 2px;
+  transition: none !important;
 }
 
 code,
@@ -158,6 +155,45 @@ hr {
   max-width: var(--container-reading);
   margin-inline: auto;
   padding-inline: var(--sp-4);
+}
+
+/* Compact, factual instrumentation shared by system-oriented surfaces. */
+.system-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+  gap: 0;
+  margin: 0;
+  padding-block: var(--sp-3);
+  border-block: 1px solid var(--border);
+}
+
+.system-strip > div {
+  min-width: 0;
+  padding: var(--sp-1) var(--sp-4);
+  border-left: 1px solid var(--border);
+}
+
+.system-strip > div:first-child {
+  border-left-color: var(--frame-node);
+}
+
+.system-strip dt,
+.system-strip dd {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.system-strip dt {
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.system-strip dd {
+  margin: 0;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 640px) {
@@ -230,6 +266,9 @@ hr {
 }
 
 .button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
@@ -246,9 +285,20 @@ hr {
   min-height: 44px;
 }
 
-.button:hover {
-  background: var(--surface-2);
-  color: var(--text);
+.button::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--trace-thickness);
+  background: var(--interaction-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+
+.button:focus-visible::before {
+  transform: scaleX(1);
+  transition: none;
 }
 
 .button-primary {
@@ -256,9 +306,59 @@ hr {
   color: var(--green);
 }
 
-.button-primary:hover {
-  background: var(--green-wash);
-  color: var(--green);
+/* Shared interactive surface: cards, content rows and tool entries all use
+   the same stationary boundary response. */
+.trace-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.trace-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--trace-thickness);
+  background: var(--trace-color, var(--interaction-accent));
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+
+.trace-surface::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--trace-node-size);
+  height: var(--trace-node-size);
+  background: var(--trace-color, var(--interaction-accent));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trace-surface.trace-surface:is(:focus-visible, :focus-within) {
+  border-color: var(--trace-border-hover, var(--border-strong));
+  background: var(--surface-2);
+  transition: none;
+}
+
+.trace-surface:is(:focus-visible, :focus-within)::before {
+  transform: scaleX(1);
+  transition: none;
+}
+
+.trace-surface:is(:focus-visible, :focus-within)::after {
+  opacity: 1;
+  transition: none;
+}
+
+.trace-surface:is(:focus-visible, :focus-within) .card-title a,
+.trace-surface:is(:focus-visible, :focus-within) .myth-claim a,
+.trace-surface:is(:focus-visible, :focus-within) .quick-label,
+.trace-surface:is(:focus-visible, :focus-within) .area-name,
+.trace-surface:is(:focus-visible, :focus-within) .tool-title {
+  color: var(--interaction-accent);
 }
 
 /* --- callouts ---
@@ -326,4 +426,202 @@ hr {
 }
 .callout-onemli .callout-label {
   color: var(--red);
+}
+
+/* --- boundary acquisition -------------------------------------------------
+ * The page is fully readable from first paint. Motion only establishes the
+ * top boundary and settles the first structural block by four pixels. */
+#main {
+  position: relative;
+  isolation: isolate;
+}
+
+#main::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: var(--trace-thickness);
+  background: linear-gradient(90deg, var(--interaction-confirm), var(--interaction-accent));
+  transform-origin: left;
+  pointer-events: none;
+}
+
+/* The content canvas is bounded by the same centered rails as the header and
+   footer. They are framing, not decoration: the rails disappear when the
+   viewport can no longer afford their negative space. */
+#main::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  z-index: 0;
+  width: min(calc(100% - 2rem), var(--container));
+  border-inline: 1px solid var(--frame-rail);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+#main > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #main::before {
+    animation: boundary-acquire var(--surface-duration) var(--trace-ease) both;
+  }
+
+  #main > :first-child {
+    animation: boundary-settle var(--surface-duration) var(--trace-ease) both;
+  }
+
+  .button::before {
+    transition: transform var(--trace-duration) var(--trace-ease);
+  }
+
+  @keyframes boundary-acquire {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes boundary-settle {
+    from {
+      clip-path: inset(0 0 4px 0);
+      transform: translateY(4px);
+    }
+    to {
+      clip-path: inset(0);
+      transform: none;
+    }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    color: var(--green);
+  }
+
+  .button {
+    transition:
+      color var(--trace-duration) var(--trace-ease),
+      border-color var(--trace-duration) var(--trace-ease),
+      background-color var(--surface-duration) var(--trace-ease);
+  }
+
+  .button:hover {
+    background: var(--surface-2);
+    border-color: var(--interaction-accent);
+    color: var(--text);
+  }
+
+  .button:hover::before {
+    transform: scaleX(1);
+  }
+
+  .button-primary:hover {
+    background: var(--green-wash);
+    border-color: var(--interaction-confirm);
+    color: var(--green);
+  }
+
+  .button-primary:hover::before {
+    background: var(--interaction-confirm);
+  }
+
+  .trace-surface.trace-surface:hover {
+    border-color: var(--trace-border-hover, var(--border-strong));
+    background: var(--surface-2);
+  }
+
+  .trace-surface:hover::before {
+    transform: scaleX(1);
+  }
+
+  .trace-surface:hover::after {
+    opacity: 1;
+  }
+
+  .trace-surface:hover .card-title a,
+  .trace-surface:hover .myth-claim a,
+  .trace-surface:hover .quick-label,
+  .trace-surface:hover .area-name,
+  .trace-surface:hover .tool-title {
+    color: var(--interaction-accent);
+  }
+
+  .trace-surface:hover .quick-arrow {
+    color: var(--interaction-confirm);
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .trace-surface {
+    transition:
+      border-color var(--surface-duration) var(--trace-ease),
+      background-color var(--surface-duration) var(--trace-ease);
+  }
+
+  .trace-surface::before {
+    transition: transform var(--trace-duration) var(--trace-ease);
+  }
+
+  .trace-surface::after {
+    transition: opacity var(--trace-duration) var(--trace-ease);
+  }
+
+  .trace-surface .quick-arrow {
+    transition:
+      color var(--trace-duration) var(--trace-ease),
+      transform var(--trace-duration) var(--trace-ease);
+  }
+}
+
+@media (max-width: 48rem), (hover: none), (pointer: coarse) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 48rem) {
+  #main::after {
+    display: none;
+  }
+
+  .system-strip > div:nth-child(odd) {
+    border-left-color: var(--frame-node);
+  }
+}
+
+@media (max-width: 25rem) {
+  .system-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .system-strip > div {
+    border-left-color: var(--frame-node);
+  }
+}
+
+@media (forced-colors: active) {
+  #main::before,
+  .button::before,
+  .trace-surface::before,
+  .trace-surface::after {
+    background: CanvasText;
+  }
+
+  .button,
+  :where(.card, .myth, .quick-card, .areas a, .tool-item > *) {
+    border-color: CanvasText;
+  }
+
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline-color: Highlight;
+  }
 }

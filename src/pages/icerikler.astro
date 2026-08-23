@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { CONTENT_AREAS } from '../config/site';
+import { CATEGORIES, CONTENT_AREAS } from '../config/site';
 import { breadcrumbLd, collectionPageLd, ldGraph } from '../lib/seo';
 import { getAllArticles } from '../lib/content';
 import { READY_TOOLS } from '../config/tools';
@@ -25,6 +25,7 @@ const COUNTS: Record<string, string> = {
   '/rehberler/': `${countOf('guides')} rehber`,
   '/efsane-mi-gercek-mi/': `${countOf('myths')} iddia`,
   '/araclar/': `${READY_TOOLS.length} araç`,
+  '/konular/': `${CATEGORIES.length} konu`,
   '/haberler/': countOf('news') > 0 ? `${countOf('news')} haber` : 'Henüz yayın yok',
 };
 
@@ -49,18 +50,33 @@ const structuredData = ldGraph(
         Sitedeki her şey beş başlık altında. Bir sorununuz varsa rehberlerle, bir cümlenin doğru
         olup olmadığını merak ediyorsanız efsanelerle başlayın.
       </p>
+      <dl class="system-strip hub-strip">
+        <div><dt>Yapı</dt><dd>{CONTENT_AREAS.length} içerik alanı</dd></div>
+        <div><dt>Sayım</dt><dd>Derleme anında güncel</dd></div>
+        <div><dt>Teknik rota</dt><dd>/teknik/</dd></div>
+      </dl>
     </header>
 
     <ul class="areas">
       {
-        CONTENT_AREAS.map((area) => (
+        CONTENT_AREAS.map((area, index) => (
           <li>
-            <a href={area.href}>
-              <span class="area-head">
-                <span class="area-name">{area.label}</span>
-                {COUNTS[area.href] && <span class="area-count">{COUNTS[area.href]}</span>}
+            <a href={area.href} class="trace-surface">
+              <span class="area-index" aria-hidden="true">
+                {String(index + 1).padStart(2, '0')}
               </span>
-              <span class="area-blurb">{area.blurb}</span>
+              <span class="area-main">
+                <span class="area-name">{area.label}</span>
+                <span class="area-blurb">{area.blurb}</span>
+              </span>
+              <span class="area-meta">
+                <span class="area-status">Rota açık</span>
+                <span class="area-count">{COUNTS[area.href]}</span>
+                <span class="area-route">{area.href}</span>
+                <span class="area-arrow" aria-hidden="true">
+                  →
+                </span>
+              </span>
             </a>
           </li>
         ))
@@ -81,6 +97,9 @@ const structuredData = ldGraph(
   .page-head {
     margin-bottom: var(--sp-6);
   }
+  .hub-strip {
+    margin-top: var(--sp-5);
+  }
   .page-head h1 {
     margin-top: var(--sp-2);
   }
@@ -95,28 +114,48 @@ const structuredData = ldGraph(
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--sp-3);
+    gap: 0;
+    border-bottom: 1px solid var(--border);
   }
   .areas a {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2);
-    padding: var(--sp-5);
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr) minmax(10rem, auto);
+    gap: var(--sp-4);
+    align-items: center;
+    padding: var(--sp-5) var(--sp-4);
+    background: color-mix(in srgb, var(--surface-1) 74%, transparent);
+    border: 0;
+    border-top: 1px solid var(--border);
     text-decoration: none;
   }
-  .areas a:hover {
-    border-color: var(--green);
-    background: var(--surface-2);
-  }
-  .area-head {
+
+  .area-index {
+    align-self: stretch;
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: flex-start;
+    padding-top: 0.18rem;
+    border-right: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--cyan);
+  }
+  .area-main,
+  .area-meta {
+    display: flex;
+    min-width: 0;
+  }
+  .area-main {
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+  .area-meta {
+    justify-content: flex-end;
+    align-items: center;
     gap: var(--sp-3);
     flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-align: right;
   }
   .area-name {
     font-family: var(--font-display);
@@ -125,10 +164,18 @@ const structuredData = ldGraph(
     color: var(--text);
   }
   .area-count {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
     color: var(--text-faint);
+  }
+  .area-status {
+    color: var(--green);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .area-route {
+    color: var(--text-muted);
+  }
+  .area-arrow {
+    color: var(--cyan);
   }
   .area-blurb {
     color: var(--text-muted);
@@ -139,5 +186,18 @@ const structuredData = ldGraph(
     margin-top: var(--sp-6);
     color: var(--text-muted);
     font-size: var(--step--1);
+  }
+
+  @media (max-width: 44rem) {
+    .areas a {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      padding-inline: 0;
+    }
+
+    .area-meta {
+      grid-column: 2;
+      justify-content: flex-start;
+      text-align: left;
+    }
   }
 </style>

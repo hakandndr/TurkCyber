@@ -132,6 +132,14 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
 
     <header class="article-head">
       {
+        isTechnical && (
+          <p class="technical-classification">
+            <span>Mühendislik notu</span>
+            <span>{category?.name ?? section.label}</span>
+          </p>
+        )
+      }
+      {
         myth && (
           <div class="verdict-row">
             <VerdictBadge verdict={myth.verdict as Verdict} size="large" />
@@ -145,21 +153,60 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
       </h1>
       <p class="article-lede">{data.description}</p>
 
-      <div class="article-meta">
-        <time datetime={data.publishedAt.toISOString()}>
-          {formatTurkishDate(data.publishedAt)}
-        </time>
-        {
-          data.updatedAt && (
-            <span class="updated">Güncellendi: {formatTurkishDate(data.updatedAt)}</span>
-          )
-        }
-        {guide && <span>{guide.readingTime} dk okuma</span>}
-        {guide && <span>{DIFFICULTY_LABELS[guide.difficulty]}</span>}
-        {technical && <span>{technical.readingTime} dk okuma</span>}
-        {isTechnical && <span class="level-badge">İLERİ SEVİYE</span>}
-        {data.status !== 'published' && <span class="draft-badge">{data.status}</span>}
-      </div>
+      {
+        technical ? (
+          <dl class="technical-meta">
+            <div>
+              <dt>Kategori</dt>
+              <dd>{category?.name ?? section.label}</dd>
+            </div>
+            <div>
+              <dt>Yayın</dt>
+              <dd>
+                <time datetime={data.publishedAt.toISOString()}>
+                  {formatTurkishDate(data.publishedAt)}
+                </time>
+              </dd>
+            </div>
+            {data.updatedAt && (
+              <div class="is-updated">
+                <dt>Güncelleme</dt>
+                <dd>
+                  <time datetime={data.updatedAt.toISOString()}>
+                    {formatTurkishDate(data.updatedAt)}
+                  </time>
+                </dd>
+              </div>
+            )}
+            <div>
+              <dt>Okuma</dt>
+              <dd>{technical.readingTime} dakika</dd>
+            </div>
+            <div>
+              <dt>Derinlik</dt>
+              <dd>İLERİ SEVİYE</dd>
+            </div>
+            {data.status !== 'published' && (
+              <div>
+                <dt>Durum</dt>
+                <dd class="draft-badge">{data.status}</dd>
+              </div>
+            )}
+          </dl>
+        ) : (
+          <div class="article-meta">
+            <time datetime={data.publishedAt.toISOString()}>
+              {formatTurkishDate(data.publishedAt)}
+            </time>
+            {data.updatedAt && (
+              <span class="updated">Güncellendi: {formatTurkishDate(data.updatedAt)}</span>
+            )}
+            {guide && <span>{guide.readingTime} dk okuma</span>}
+            {guide && <span>{DIFFICULTY_LABELS[guide.difficulty]}</span>}
+            {data.status !== 'published' && <span class="draft-badge">{data.status}</span>}
+          </div>
+        )
+      }
     </header>
 
     {
@@ -189,6 +236,13 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
       )
     }
 
+    {
+      isTechnical && (
+        <p class="body-boundary" aria-hidden="true">
+          Analiz gövdesi / başlangıç
+        </p>
+      )
+    }
     <div class="prose">
       <slot />
     </div>
@@ -226,6 +280,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
 <style>
   .article {
     padding-block: var(--sp-6) var(--sp-8);
+    background: var(--surface-0);
   }
 
   .breadcrumb {
@@ -249,6 +304,22 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
 
   .article-head h1 {
     margin-bottom: var(--sp-4);
+  }
+
+  .technical-classification {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--sp-4);
+    padding: var(--sp-2) 0 var(--sp-2) var(--sp-4);
+    border-left: var(--trace-thickness) solid var(--interaction-accent);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.11em;
+    color: var(--text-faint);
+    text-transform: uppercase;
   }
 
   /* A myth's headline is a quoted claim, so it is set apart from the
@@ -298,6 +369,48 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     color: var(--green);
   }
 
+  .technical-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
+    gap: 0;
+    margin-top: var(--sp-5);
+    padding-block: var(--sp-3);
+    border-block: 1px solid var(--border);
+  }
+
+  .technical-meta > div {
+    min-width: 0;
+    padding: var(--sp-1) var(--sp-4);
+    border-left: 1px solid var(--border);
+  }
+
+  .technical-meta > div:first-child {
+    border-left-color: var(--frame-node);
+  }
+
+  .technical-meta dt,
+  .technical-meta dd {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    line-height: 1.55;
+  }
+
+  .technical-meta dt {
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .technical-meta dd {
+    margin: 0;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .technical-meta .is-updated dd {
+    color: var(--green);
+  }
+
   /*
    * The technical lane is labelled on the page, not just in navigation. A
    * reader who arrived from search should be able to tell in one glance that
@@ -344,6 +457,28 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     margin-top: var(--sp-2);
   }
 
+  .body-boundary {
+    position: relative;
+    margin-top: var(--sp-7);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--border-strong);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+
+  .body-boundary::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: var(--trace-node-size);
+    height: var(--trace-node-size);
+    background: var(--interaction-accent);
+  }
+
   .ui-verified {
     margin-top: var(--sp-4);
     font-size: var(--step--1);
@@ -357,6 +492,10 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     max-width: var(--measure);
     font-size: var(--step-0);
     line-height: 1.75;
+  }
+
+  .article-technical .body-boundary + .prose {
+    margin-top: var(--sp-4);
   }
 
   .prose :global(h2) {
@@ -424,6 +563,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     border-collapse: collapse;
     font-size: var(--step--1);
     margin-bottom: var(--sp-5);
+    background: var(--surface-0);
   }
 
   .prose :global(th),
@@ -440,6 +580,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);
+    background: var(--surface-2);
   }
 
   /*
@@ -502,14 +643,32 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
 
   /* in / checks / out, on one line where there is room. */
   .prose :global(.node-io) {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--sp-4);
     margin-top: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top: var(--trace-thickness) solid color-mix(in srgb, var(--cyan) 45%, transparent);
   }
 
   .prose :global(.node-io > div) {
+    position: relative;
     min-width: 0;
+  }
+
+  .prose :global(.node-io > div::before) {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--sp-4) - 2px);
+    left: 0;
+    width: var(--trace-node-size);
+    height: var(--trace-node-size);
+    background: var(--cyan);
+  }
+
+  .prose :global(.node-io > div:nth-child(2)::before) {
+    background: var(--green);
   }
 
   .prose :global(.io-label) {
@@ -518,8 +677,12 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     font-size: 0.66rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-faint);
+    color: var(--cyan);
     margin-bottom: var(--sp-2);
+  }
+
+  .prose :global(.node-io > div:nth-child(2) .io-label) {
+    color: var(--green);
   }
 
   .prose :global(.io-value) {
@@ -608,6 +771,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     max-width: none;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: var(--surface-0);
   }
 
   .prose :global(.wide table) {

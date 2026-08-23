@@ -10,7 +10,7 @@ const used = new Set(guides.map((g) => g.data.category));
 const categories = CATEGORIES.filter((c) => used.has(c.id));
 
 const description =
-  'Hesap güvenliği, şifreler, iki aşamalı doğrulama ve dolandırıcılık konularında adım adım Türkçe rehberler.';
+  'Hesap güvenliği, şifreler, iki aşamalı doğrulama ve dolandırıcılık konularında adım adım rehberler.';
 
 const structuredData = ldGraph(
   collectionPageLd('Rehberler', '/rehberler/', description),

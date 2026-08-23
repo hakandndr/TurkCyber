@@ -52,12 +52,23 @@ const structuredData = ldGraph(
     </nav>
 
     <header class="head">
+      <p class="eyebrow" aria-hidden="true">SİSTEM / ARAÇ</p>
       <h1>{tool.title}</h1>
       <p class="lede">{tool.description}</p>
       {note && <p class="note">{note}</p>}
     </header>
 
-    <slot />
+    <dl class="system-strip tool-scope">
+      <div>
+        <dt>Durum</dt><dd>{tool.status === 'ready' ? 'Kullanıma açık' : 'Hazırlanıyor'}</dd>
+      </div>
+      <div><dt>Çalışma</dt><dd>Tarayıcı içi</dd></div>
+      <div><dt>Veri sınırı</dt><dd>Gönderilmez</dd></div>
+    </dl>
+
+    <div class="tool-boundary">
+      <slot />
+    </div>
 
     <aside class="after">
       <h2>Devamı</h2>
@@ -69,6 +80,7 @@ const structuredData = ldGraph(
 <style>
   .page {
     padding-block: var(--sp-6) var(--sp-8);
+    background: var(--surface-0);
   }
   .breadcrumb {
     display: flex;
@@ -88,6 +100,11 @@ const structuredData = ldGraph(
   }
   .head {
     margin-bottom: var(--sp-5);
+    padding-left: var(--sp-4);
+    border-left: var(--trace-thickness) solid var(--interaction-accent);
+  }
+  .head h1 {
+    margin-top: var(--sp-2);
   }
   .lede {
     margin-top: var(--sp-4);
@@ -98,6 +115,28 @@ const structuredData = ldGraph(
     margin-top: var(--sp-3);
     font-size: var(--step--1);
     color: var(--text-faint);
+  }
+  .tool-scope {
+    margin-bottom: var(--sp-6);
+  }
+  .tool-scope > div:first-child dd {
+    color: var(--green);
+  }
+  .tool-boundary {
+    position: relative;
+    padding: var(--sp-5);
+    border: 1px solid var(--border);
+    border-top-color: var(--frame-node);
+    background: color-mix(in srgb, var(--surface-1) 62%, transparent);
+  }
+  .tool-boundary::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: var(--sp-5);
+    width: var(--trace-node-size);
+    height: var(--trace-node-size);
+    background: var(--interaction-accent);
   }
   .after {
     margin-top: var(--sp-7);
@@ -113,5 +152,10 @@ const structuredData = ldGraph(
   }
   .after :global(li) {
     margin-bottom: var(--sp-2);
+  }
+  @media (max-width: 30rem) {
+    .tool-boundary {
+      padding: var(--sp-4);
+    }
   }
 </style>

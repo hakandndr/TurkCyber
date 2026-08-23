@@ -37,7 +37,7 @@ const kind = kindOfCollection(entry.collection);
 const laneBadge = kind === 'teknik' ? CONTENT_KINDS.teknik.badge : null;
 ---
 
-<article class:list={['card', `card-${size}`]}>
+<article class:list={['card', 'trace-surface', `card-${size}`, `card-${kind}`]}>
   <div class="card-meta">
     {category && <span class:list={['tag', `tag-${category.accent}`]}>{category.name}</span>}
     {laneBadge && <span class="card-lane">{laneBadge}</span>}
@@ -71,8 +71,13 @@ const laneBadge = kind === 'teknik' ? CONTENT_KINDS.teknik.badge : null;
     gap: var(--sp-3);
   }
 
-  .card:hover {
-    border-color: var(--border-strong);
+  .card-teknik {
+    border-left: 2px solid color-mix(in srgb, var(--cyan) 58%, var(--border));
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  }
+
+  .card-haber {
+    border-top-color: color-mix(in srgb, var(--green) 42%, var(--border));
   }
 
   .card-meta {
@@ -149,14 +154,6 @@ const laneBadge = kind === 'teknik' ? CONTENT_KINDS.teknik.badge : null;
     content: '';
     position: absolute;
     inset: 0;
-  }
-
-  .card {
-    position: relative;
-  }
-
-  .card:hover .card-title a {
-    color: var(--cyan);
   }
 
   .card-desc {
