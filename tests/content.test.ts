@@ -279,6 +279,7 @@ describe('release configuration', () => {
   it('routes the complete staging hostname while leaving production unrouted', () => {
     const config = readFileSync(join(process.cwd(), 'wrangler.jsonc'), 'utf8');
     expect(config).toContain('"pattern": "turkcyber-staging.dndr.net/*"');
+    expect(config).toContain('"run_worker_first": true');
     expect(config).toMatch(/"production"\s*:\s*\{[\s\S]*?"routes"\s*:\s*\[\]/);
   });
 });

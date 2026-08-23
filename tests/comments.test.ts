@@ -108,6 +108,11 @@ describe('same-origin enforcement', () => {
   it('accepts a matching origin and refuses everything else', () => {
     expect(isSameOrigin(post({}, { origin: ORIGIN }))).toBe(true);
     expect(isSameOrigin(post({}, { origin: 'https://evil.example' }))).toBe(false);
+    expect(isSameOrigin(post({}, { origin: 'null', referer: `${ORIGIN}/boss/login/` }))).toBe(true);
+    expect(
+      isSameOrigin(post({}, { origin: 'null', referer: 'https://evil.example/boss/login/' })),
+    ).toBe(false);
+    expect(isSameOrigin(post({}, { origin: 'null' }))).toBe(false);
     // No Origin and no Referer: refuse rather than assume.
     const bare = new Request(`${ORIGIN}/api/comments`, { method: 'POST' });
     expect(isSameOrigin(bare)).toBe(false);

@@ -10,6 +10,7 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
+    "run_worker_first": true,
     "not_found_handling": "404-page",
   },
 
@@ -56,19 +57,19 @@
         {
           "binding": "APP_DB",
           "database_name": "turkcyber-app-staging",
-          "database_id": "REPLACE_WITH_STAGING_APP_DB_ID",
+          "database_id": "b5b90da3-0620-46e5-be5c-0efabff7ce68",
           "migrations_dir": "migrations/app",
           "migrations_table": "app_migrations",
         },
         {
           "binding": "ANALYTICS_DB",
           "database_name": "turkcyber-analytics-staging",
-          "database_id": "REPLACE_WITH_STAGING_ANALYTICS_DB_ID",
+          "database_id": "6ed98f3d-e168-4e98-9741-9bd2fb7749ac",
           "migrations_dir": "migrations/analytics",
           "migrations_table": "analytics_migrations",
         },
       ],
-      "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "REPLACE_WITH_STAGING_THROTTLE_KV_ID" }],
+      "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "fdc6c7f6db5e45638f59629b253c66ad" }],
     },
 
     // Production is defined but deliberately NOT routed. Adding the routes

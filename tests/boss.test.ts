@@ -71,7 +71,7 @@ describe('anonymous access', () => {
     const env = await makeEnv();
     const response = await handleBoss(get(), env);
     expect(response.headers.get('cache-control')).toBe('no-store');
-    expect(response.headers.get('referrer-policy')).toBe('no-referrer');
+    expect(response.headers.get('referrer-policy')).toBe('same-origin');
     expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow');
   });
 });

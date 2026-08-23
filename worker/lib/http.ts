@@ -20,7 +20,9 @@ export function escapeHtml(value: unknown): string {
 /** Headers required on every private response. */
 export const PRIVATE_HEADERS: Record<string, string> = {
   'cache-control': 'no-store',
-  'referrer-policy': 'no-referrer',
+  // Preserve the origin signal for same-origin form submissions without
+  // disclosing private paths to cross-origin destinations.
+  'referrer-policy': 'same-origin',
   'x-robots-tag': 'noindex, nofollow',
 };
 
@@ -64,7 +66,9 @@ export function clientIp(request: Request): string {
 export function isSameOrigin(request: Request): boolean {
   const target = new URL(request.url).origin;
   const origin = request.headers.get('origin');
-  if (origin) return origin === target;
+  // Browsers may serialize an opaque form-navigation origin as the literal
+  // string "null". Treat it as unavailable and fall back to Referer.
+  if (origin && origin !== 'null') return origin === target;
 
   const referer = request.headers.get('referer');
   if (referer) {
