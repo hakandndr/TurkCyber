@@ -1595,3 +1595,149 @@ This addendum is documentation-only. It records that final error and health resu
 production, staging, routes, DNS, secrets and data remained untouched. Its commit is
 the final branch HEAD, leaving the branch 15 commits ahead of local `main` and still
 unpushed.
+
+---
+
+## 2026-08-24 — Pre-public history sanitation
+
+### Request and stop condition
+
+The owner authorized final GitHub publication, but the mandatory all-history audit
+found the retired `turkcyber-pass2.tar.gz` blob
+`f965e889cbad5c3d52e4507c2908b1562dce1a34` (946,791 bytes). It was introduced
+by `39b0f392969bceacf897e77d2e2cb47ebfa87a7e` and deleted by
+`bbd21950b2656c7b3bdee5625bf0ffe52bce2b17`, so it was absent from the working
+tree but would still have entered the public repository.
+
+The archive contained an old working copy, nested `.git` metadata and
+`.env.development`. A no-values audit confirmed that the env file contained only
+the `SHOW_UNPUBLISHED` key. A content scan found no credential-shaped material and
+the archived Git URL contained no userinfo. Even so, the first recovery-branch push
+was rejected before any network write because publishing the unnecessary archive
+would be permanent. Work stopped until the owner explicitly authorized a narrowly
+scoped rewrite of the still-unpublished local history.
+
+### External safeguards
+
+The original forensic snapshot remains intact:
+
+`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-git-finalization-snapshot-2026-08-24-025513`
+
+Before rewriting, an additional all-refs Git bundle and text state record were
+created at:
+
+`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-pre-public-history-rewrite-2026-08-24-033727`
+
+`pre-rewrite-all-refs.bundle` passed `git bundle verify`, is 5,936,731 bytes,
+and has SHA-256
+`18E50A82647A3FD7A87DFBD4CADFE87A385DE252D688BBC9B96ACE8E16A72848`.
+It records the original recovery HEAD
+`edfb2689102ffa0c60b16e70e456108c59e44839`, original local `main`
+`fffedced2e3d99eba39ebc7be13670b6eaa015de`, and the complete pre-rewrite graph.
+
+### Exact rewrite
+
+With the remote still empty, the authorized filter was:
+
+```powershell
+$env:FILTER_BRANCH_SQUELCH_WARNING='1'
+git filter-branch --force `
+  --index-filter "git rm --cached --ignore-unmatch -- turkcyber-pass2.tar.gz" `
+  --prune-empty --tag-name-filter cat -- --all
+```
+
+No path other than `turkcyber-pass2.tar.gz` was named by the filter. The two
+temporary `refs/original/refs/heads/*` references were deleted after the external
+bundle was verified, so they could not keep the archive reachable.
+
+A detached deployment worktree still referenced the old equivalent of
+`fix(release): resolve CSP, clean-checkout and staging blockers`. Its old and new
+commit trees were identical. That worktree had a pre-existing dirty
+`wrangler.jsonc` hunk, so only its detached HEAD moved from `2e4ca22` to
+`45b70c9`; the dirty binary-diff hash remained exactly
+`dec78c05ce7142c03aaf34d063356825b94d56ff`. No deployment or configuration
+mutation occurred.
+
+### Rewritten history and preservation proof
+
+The rewritten branch has the same 21 commit subjects in the same order. Key refs:
+
+- local `main`: `ae13097de0bd6d56e29812f4fc91c82794059db8`
+- recovery proof before this entry:
+  `0a11ce94464b1a968fea4ad315da137e5feb0ac3`
+- exact live implementation source:
+  `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`
+- brand: `00e68ac473b46cc6e7db36ca328fe8ad2748f508`
+- comments/notifications:
+  `1625657b9949891da70dfcf9acafa2e87f624ede`
+- analytics importer: `5f5aa2e2f7fb77e4d26a34d1b14bbe4ee3db9790`
+
+The final recovery tree remains
+`2563d88fbcaa03c064be7936557d96240ae0f7fc`; the local-main tree remains
+`c38bcfc2398cca5edc0c107669194ba303b31d23`. Direct diffs between old and new
+final recovery, `main`, and live-source commits were empty. Comparing the old and
+new introducing commits showed exactly one deletion:
+`turkcyber-pass2.tar.gz`.
+
+### Public-history and size verification
+
+- 21 commits are reachable through `--all`.
+- 169 unique historical paths remain.
+- archive paths: 0.
+- nested `.git` paths: 0.
+- tracked historical `.env.development`: 0.
+- private-path findings: 0.
+- reachable-history content scan: 0 high-confidence findings across 364 unique
+  blob/path pairs.
+- current ignored `.env.development`, `.env.staging.local` and
+  `.env.production.local` remain untracked; `.dev.vars` is ignored and absent.
+- the largest remaining reachable blob is the 1,906,946-byte owner dark
+  presentation master, far below GitHub's 100 MB hard limit.
+- no `node_modules`, build output, recovery snapshot, private analytics export,
+  generated private SQL, database dump or binary transfer archive is tracked.
+
+### Verification
+
+The known pnpm store/non-TTY issue was avoided without changing `node_modules`;
+the documented pinned project binaries were used.
+
+- Astro check: 66 files, 0 errors/warnings/hints
+- Worker TypeScript: pass
+- ESLint: pass
+- Prettier: pass
+- Vitest: 215/215 across 9 files
+- build: 57 pages
+- current-tree secret scan: clean, 167 tracked files
+- `git diff --check`: pass
+
+Expected fail-closed stderr from Turnstile, D1 and authentication tests remained
+present while every assertion passed.
+
+### Errors and failed approaches
+
+1. The first push attempt was rejected before any network write because the
+   historical archive would have become public. Publication correctly stopped.
+2. `git filter-branch` warned that three internal Codex refs were trees rather
+   than commits and did not rewrite them. They point to archive-free trees.
+3. The first read of the detached worktree failed Git's dubious-ownership guard.
+   No global configuration was changed; subsequent read/write commands used a
+   one-command `safe.directory` override.
+4. The first post-filter `--all` audit still found the archive through the old
+   detached worktree HEAD. Moving that HEAD to its byte-identical rewritten commit
+   removed the final reachable path without altering its dirty file.
+
+### Git and live state
+
+The rewritten recovery line remains strictly ahead of local `main`, not divergent,
+and is ready for the already-authorized recovery-first publication sequence. At the
+time of this entry the GitHub remote is still empty and no upstream exists.
+
+Production remains on `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3`; staging remains on
+`a854e11b-df2c-422b-a009-adf93cc72949`. No deploy, Cloudflare, DNS, route, secret,
+database, analytics or comment mutation was performed.
+
+### Exact next action
+
+Commit only this mandatory documentation reconciliation, re-run the documentation
+diff/secret checks, then push the recovery branch first and verify its exact remote
+SHA before fast-forwarding `main`.

@@ -81,10 +81,11 @@ Repository: `D:\IT\turkcyber\turkcyber.com`
 
 Current branch: `codex/recovery-2026-08-23`
 
-Live implementation parent:
-`741332ad26f7b9f01d029f35be50cb7f5d38cd7a`
-(`chore(release): record live production routing`). Documentation finalization
-commit `c491027` and its final proof addendum follow it; the addendum is branch HEAD.
+Rewritten live implementation commit:
+`800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`
+(`chore(release): record live production routing`). The rewritten recovery proof
+before the archive-removal documentation is
+`0a11ce94464b1a968fea4ad315da137e5feb0ac3`.
 
 The deployed post-launch source has been recovered into coherent commits and the
 working tree is clean after finalization. A fresh checkout of this branch therefore
@@ -92,9 +93,18 @@ contains the brand masters/outputs, migrations, moderation and notification runt
 legacy importer, live route configuration, tests and current documentation needed to
 reproduce the live source state.
 
-The branch is 15 commits ahead of local `main`, has no upstream and has not been
-pushed. Do not push until the owner explicitly authorizes it. The external forensic
-snapshots are not part of the clone and are retained only as local recovery evidence.
+Before the archive-removal documentation commit, the branch is 15 commits ahead of
+rewritten local `main` at
+`ae13097de0bd6d56e29812f4fc91c82794059db8`. The remote is still empty and no
+upstream exists, but the owner has explicitly authorized the guarded publication
+sequence.
+
+The first push attempt was stopped before any remote write because historical
+`turkcyber-pass2.tar.gz` contained a nested working copy. The unpublished history
+was then rewritten only to remove that path. All reachable commits are now free of
+the archive, nested `.git` paths and tracked `.env.development`; the source trees
+and logical commit sequence were preserved. The pre-rewrite graph is recoverable
+from the verified external bundle under the Codex visualization snapshot area.
 
 ## 5. Repository map
 
@@ -515,7 +525,8 @@ path.
 
 ## 23. Immediate next work
 
-1. review `git log --oneline main..codex/recovery-2026-08-23`;
-2. push or merge only after explicit owner authorization;
+1. push `codex/recovery-2026-08-23` first and verify the exact remote SHA;
+2. fast-forward local `main`, publish it without force and make it the GitHub
+   default branch;
 3. confirm Search Console sitemap submission if not already done;
 4. continue moderation and manual retention operations.

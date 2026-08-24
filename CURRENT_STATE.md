@@ -1,7 +1,7 @@
 # Current state
 
-Authoritative snapshot of TurkCyber as observed on **2026-08-24 03:04 PDT**
-(10:04 UTC). Repository and live runtime checks supersede earlier planning
+Authoritative snapshot of TurkCyber as observed on **2026-08-24 03:43 PDT**
+(10:43 UTC). Repository and live runtime checks supersede earlier planning
 documents and historical `PROCESS.md` entries.
 
 ## Headline
@@ -11,24 +11,28 @@ static Astro site and dynamic services at both environments. Production data,
 comments, moderation, analytics, Turnstile and Resend notifications are active.
 
 The deployed post-launch brand, runtime, migration, notification, importer and
-routing source is now represented by coherent local commits. The recovery tree
-is clean after the documentation finalization commit; the remaining source-control
-boundary is that the branch has no upstream and has not been pushed.
+routing source is represented by coherent local commits. Before the first public
+push, a narrowly authorized rewrite removed the retired
+`turkcyber-pass2.tar.gz` transfer archive from every reachable commit. The
+rewritten source trees are byte-identical to their pre-rewrite counterparts and
+the public-history audit is clean. The branch still has no upstream and has not
+been pushed.
 
 ## Repository and Git
 
-| Item                       | Current value                                        |
-| -------------------------- | ---------------------------------------------------- |
-| Repository                 | `D:\IT\turkcyber\turkcyber.com`                      |
-| Branch                     | `codex/recovery-2026-08-23`                          |
-| Live implementation parent | `741332ad26f7b9f01d029f35be50cb7f5d38cd7a`           |
-| Parent subject             | `chore(release): record live production routing`     |
-| Final HEAD                 | the documentation proof addendum following `c491027` |
-| Relation to local `main`   | 15 commits ahead, 0 behind after the proof addendum  |
-| Staged changes             | none after finalization                              |
-| Working tree               | clean after finalization                             |
-| Remote                     | `https://github.com/hakandndr/turkcyber.git`         |
-| Push state                 | branch has no upstream and has not been pushed       |
+| Item                         | Current value                                          |
+| ---------------------------- | ------------------------------------------------------ |
+| Repository                   | `D:\IT\turkcyber\turkcyber.com`                        |
+| Branch                       | `codex/recovery-2026-08-23`                            |
+| Rewritten recovery proof     | `0a11ce94464b1a968fea4ad315da137e5feb0ac3`             |
+| Rewritten live source commit | `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`             |
+| Live source subject          | `chore(release): record live production routing`       |
+| Local `main`                 | `ae13097de0bd6d56e29812f4fc91c82794059db8`             |
+| Relation to local `main`     | 15 commits ahead, 0 behind before this documentation   |
+| Staged changes               | none before this documentation reconciliation          |
+| Working tree                 | only the mandatory rewrite documentation while editing |
+| Remote                       | `https://github.com/hakandndr/turkcyber.git`           |
+| Push state                   | remote empty; no upstream; no successful push yet      |
 
 The committed history now reproduces the live source state. Recovery snapshots
 remain external to the repository; ignored `.env.*` and `.dev.vars` files remain
@@ -340,8 +344,9 @@ Latest completed local verification after the notification-timezone fix:
 
 ## Remaining real work
 
-1. Review the recovered commit sequence and push or merge it only with explicit
-   owner authorization; the branch currently has no upstream.
+1. Complete the already-authorized GitHub finalization: publish the rewritten
+   recovery branch first, verify its remote SHA, then fast-forward and publish
+   `main` without force.
 2. Owner may refine the current logo masters later; integrations should remain
    metadata-driven and must not introduce independent geometry.
 3. Confirm Search Console property ownership and submit the live sitemap if the
