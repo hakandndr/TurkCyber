@@ -72,12 +72,12 @@ const laneBadge = kind === 'teknik' ? CONTENT_KINDS.teknik.badge : null;
   }
 
   .card-teknik {
-    border-left: 2px solid color-mix(in srgb, var(--cyan) 58%, var(--border));
+    border-left: 2px solid color-mix(in srgb, var(--brand-accent) 58%, var(--border));
     border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   }
 
   .card-haber {
-    border-top-color: color-mix(in srgb, var(--green) 42%, var(--border));
+    border-top-color: color-mix(in srgb, var(--brand-accent) 34%, var(--border));
   }
 
   .card-meta {
@@ -91,7 +91,7 @@ const laneBadge = kind === 'teknik' ? CONTENT_KINDS.teknik.badge : null;
     font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.14em;
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
     border: 1px solid var(--border-strong);
     border-radius: 3px;
     padding: 0.15em 0.45em;

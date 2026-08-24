@@ -92,7 +92,7 @@ li {
 }
 
 a {
-  color: var(--cyan);
+  color: var(--brand-accent-strong);
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
@@ -217,7 +217,7 @@ hr {
   background: var(--surface-2);
   color: var(--text);
   padding: var(--sp-3) var(--sp-4);
-  border: 1px solid var(--cyan);
+  border: 1px solid var(--brand-accent-strong);
   border-radius: 0 0 var(--radius) 0;
 }
 
@@ -262,7 +262,7 @@ hr {
   color: var(--green);
 }
 .tag-cyan {
-  color: var(--cyan);
+  color: var(--brand-accent-strong);
 }
 
 .button {
@@ -302,8 +302,8 @@ hr {
 }
 
 .button-primary {
-  border-color: rgba(33, 230, 122, 0.45);
-  color: var(--green);
+  border-color: var(--brand-accent-border);
+  color: var(--brand-accent-strong);
 }
 
 /* Shared interactive surface: cards, content rows and tool entries all use
@@ -480,7 +480,7 @@ hr {
 
 @media (hover: hover) and (pointer: fine) {
   a:hover {
-    color: var(--green);
+    color: var(--brand-accent-strong);
   }
 
   .button {
@@ -501,13 +501,13 @@ hr {
   }
 
   .button-primary:hover {
-    background: var(--green-wash);
-    border-color: var(--interaction-confirm);
-    color: var(--green);
+    background: var(--brand-accent-soft);
+    border-color: var(--brand-accent-strong);
+    color: var(--brand-accent-strong);
   }
 
   .button-primary:hover::before {
-    background: var(--interaction-confirm);
+    background: var(--interaction-accent);
   }
 
   .trace-surface.trace-surface:hover {
@@ -532,7 +532,7 @@ hr {
   }
 
   .trace-surface:hover .quick-arrow {
-    color: var(--interaction-confirm);
+    color: var(--interaction-accent);
     transform: translateX(2px);
   }
 }

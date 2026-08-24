@@ -34,7 +34,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
 <header class="site-header">
   <div class="container header-inner">
     <a href="/" class="logo-link" aria-label="TurkCyber ana sayfa">
-      <Logo animated heritage />
+      <Logo heritage />
     </a>
 
     <nav class="desktop-nav" aria-label="Ana menü">
@@ -540,11 +540,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     position: absolute;
     inset: 1px 0 auto;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--interaction-confirm) 28%, var(--border-strong)),
-      color-mix(in srgb, var(--interaction-accent) 18%, var(--border-strong))
-    );
+    background: linear-gradient(90deg, var(--boundary-start), var(--boundary-end));
     transform: scaleX(var(--scroll-remaining, 1));
     transform-origin: left;
     will-change: transform;
@@ -556,7 +552,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     left: calc((100% - var(--trace-node-size)) * var(--scroll-remaining, 1));
     width: var(--trace-node-size);
     height: var(--trace-node-size);
-    background: color-mix(in srgb, var(--interaction-accent) 18%, var(--border-strong));
+    background: var(--boundary-end);
     transform: translateX(-50%);
   }
 
@@ -565,12 +561,15 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     display: flex;
     align-items: center;
     gap: var(--sp-5);
-    min-height: 62px;
+    min-height: 68px;
   }
 
+  /* The lockup owns its space and is never compressed toward the edge. */
   .logo-link {
     text-decoration: none;
     margin-right: auto;
+    flex: none;
+    padding-block: var(--sp-2);
   }
 
   .nav {
@@ -615,7 +614,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
 
   .nav > li > a[aria-current='page']::after,
   .group-link[aria-current='page']::after {
-    background: var(--interaction-confirm);
+    background: var(--interaction-accent);
     transform: scaleX(1);
   }
 
@@ -886,7 +885,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
 
   .search-results :global(.search-result-kind),
   .search-results :global(.search-result-cat) {
-    color: var(--interaction-confirm);
+    color: var(--interaction-accent);
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.12em;
@@ -963,7 +962,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
   }
 
   .mobile-nav a[aria-current='page'] {
-    color: var(--cyan);
+    color: var(--interaction-accent);
   }
 
   .mobile-children {
@@ -1032,6 +1031,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
 
     .header-inner {
       gap: var(--sp-3);
+      min-height: 62px;
     }
 
     .search-label {

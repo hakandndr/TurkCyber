@@ -1,85 +1,91 @@
 #!/usr/bin/env python3
-"""
-Generate the default OpenGraph card, public/og/default.png.
+"""Generate the existing OG card using the owner-approved horizontal lockup."""
 
-Per-article OG generation was deliberately NOT automated: a build-time
-rasteriser is an extra toolchain dependency and a fragile one, and a broken
-generator is worse than one good default card. See ARCHITECTURE.md,
-"Social images".
+from __future__ import annotations
 
-The MARK is drawn from scripts/brandmark.py — the same JetBrains Mono Bold
-outlines the header renders as live text — so the card carries the real
-wordmark rather than a monospace impersonation of it. The card has room for
-all five glyphs, so it uses the full <TC/> rather than the icons' reduced TC/.
-
-The COPY is set in DejaVu Sans, which has complete Turkish coverage and ships
-with the image toolchain. The site's own text faces are webfonts and are not
-worth a toolchain dependency for one static card.
-"""
-import os
 import sys
+from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import brandmark as bm  # noqa: E402
+import brandmark as bm
 
-W, H = 1200, 630
-BG = (9, 11, 12)
-TEXT = (241, 245, 244)
-MUTED = (142, 153, 149)
-GREEN = (33, 230, 122)
-CYAN = (0, 200, 255)
+WIDTH, HEIGHT = 1200, 630
 
-BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-MONO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf"
 
-img = Image.new("RGB", (W, H), BG)
-d = ImageDraw.Draw(img)
+def font_path(*candidates: str) -> str:
+    for candidate in candidates:
+        if Path(candidate).exists():
+            return candidate
+    raise FileNotFoundError(f"none of the required system fonts exist: {candidates}")
 
-# Soft accent glow, top-left — the same restrained depth the hero uses.
-glow = Image.new("RGB", (W, H), BG)
-gd = ImageDraw.Draw(glow)
-gd.ellipse([-260, -340, 640, 360], fill=(14, 26, 21))
-gd.ellipse([760, -300, 1400, 240], fill=(10, 22, 28))
-img = Image.blend(img, glow, 0.55)
-d = ImageDraw.Draw(img)
 
-# Left accent rule. The brand green survives here, in furniture rather than
-# inside the mark itself.
-d.rectangle([0, 0, 8, H], fill=GREEN)
-
-x = 92
-
-# <TC/> — real outlines, drawn at 4x and downsampled so the curves stay clean.
-SS = 4
-EM = 116
-mark_w = int(bm.mark_width(bm.FULL, EM)) + 8
-mark_h = 200
-layer = Image.new("RGBA", (mark_w * SS, mark_h * SS), (0, 0, 0, 0))
-bm.draw_mark(ImageDraw.Draw(layer), bm.FULL, 4.0, 150.0, EM, scale=SS)
-img.paste(
-    layer.resize((mark_w, mark_h), Image.LANCZOS),
-    (x, 78),
-    layer.resize((mark_w, mark_h), Image.LANCZOS),
+BOLD_FONT = font_path(
+    "C:/Windows/Fonts/seguisb.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
 )
-d = ImageDraw.Draw(img)
+REGULAR_FONT = font_path(
+    "C:/Windows/Fonts/segoeui.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+)
+MONO_FONT = font_path(
+    "C:/Windows/Fonts/consola.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/System/Library/Fonts/Supplemental/Courier New.ttf",
+)
 
-title = ImageFont.truetype(BOLD, 62)
-sub = ImageFont.truetype(REG, 30)
-foot = ImageFont.truetype(MONO, 26)
 
-d.text((x, 268), "Dijital güvenlik", font=title, fill=TEXT)
-d.text((x, 344), "karmaşık olmak zorunda değil.", font=title, fill=TEXT)
+def metadata() -> PngImagePlugin.PngInfo:
+    info = PngImagePlugin.PngInfo()
+    info.add_text("TurkCyberIdentity", bm.IDENTITY["metadata"]["fingerprint"])
+    info.add_text("TurkCyberIdentityVersion", bm.IDENTITY["version"])
+    info.add_text("TurkCyberCanonicalMaster", bm.IDENTITY["masters"]["lockup"]["path"])
+    return info
 
-d.text((x, 452), "Türkçe dijital güvenlik rehberleri · 2005'ten bugüne", font=sub, fill=MUTED)
 
-d.line([x, 528, W - 92, 528], fill=(38, 45, 44), width=1)
-d.text((x, 556), "turkcyber.com", font=foot, fill=CYAN)
+def render() -> Image.Image:
+    field = bm.IDENTITY["colors"]["field"]
+    accent = bm.IDENTITY["colors"]["accent"]
+    image = Image.new("RGBA", (WIDTH, HEIGHT), field)
+    draw = ImageDraw.Draw(image)
 
-label = "A DNDR Labs Project"
-d.text((W - 92 - d.textlength(label, font=foot), 556), label, font=foot, fill=MUTED)
+    # Preserve the approved editorial OG composition. The complete owner
+    # lockup is composited directly; no replacement wordmark is typeset.
+    draw.rectangle((0, 0, 3, HEIGHT), fill=accent)
+    x = 92
+    lockup = bm.master_artwork("lockup")
+    lockup.thumbnail((540, 112), Image.Resampling.LANCZOS)
+    image.alpha_composite(lockup, (x, 62))
+    draw = ImageDraw.Draw(image)
 
-img.save(os.path.join(sys.argv[1] if len(sys.argv) > 1 else "public/og", "default.png"), optimize=True)
-print("wrote og/default.png")
+    title = ImageFont.truetype(BOLD_FONT, 62)
+    subtitle = ImageFont.truetype(REGULAR_FONT, 30)
+    footer = ImageFont.truetype(MONO_FONT, 26)
+    ink = (240, 240, 237, 255)
+    muted = (169, 174, 173, 255)
+    line = (50, 56, 58, 255)
+
+    draw.text((x, 272), "Dijital güvenlik", font=title, fill=ink)
+    draw.text((x, 346), "karmaşık olmak zorunda değil.", font=title, fill=ink)
+    draw.text((x, 456), "Rehber · Teknik · Araç", font=subtitle, fill=muted)
+    draw.line((x, 528, WIDTH - 92, 528), fill=line, width=1)
+    draw.text((x, 556), "turkcyber.com", font=footer, fill=ink)
+
+    project = "A DNDR Labs Project"
+    project_width = draw.textlength(project, font=footer)
+    draw.text((WIDTH - 92 - project_width, 556), project, font=footer, fill=muted)
+    return image
+
+
+def generate(output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    destination = output_dir / "default.png"
+    render().convert("RGB").save(destination, optimize=True, pnginfo=metadata())
+    print("wrote", destination)
+
+
+if __name__ == "__main__":
+    destination = Path(sys.argv[1]) if len(sys.argv) > 1 else bm.ROOT / "public" / "og"
+    generate(destination)

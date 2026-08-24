@@ -1,155 +1,79 @@
 ---
 /**
- * The TurkCyber mark: <TC/>
+ * TurkCyber “Kod Parantezi” identity.
  *
- * `TC` reads two ways on purpose — TurkCyber's initials, and the country code.
- * The white T and the Turkish-flag-red C carry that second reading quietly,
- * without a flag or a crescent anywhere.
- *
- * Colour roles:
- *   <  >   faint grey — punctuation, deliberately recessive
- *   T      warm white — the letterform that carries weight
- *   C      Turkish red — the identity note
- *   /      neutral grey — the only animated element
- *
- * The slash is deliberately NOT the brand green. Three saturated colours in a
- * five-glyph mark read as a badge rather than a wordmark, and a green-white-red
- * tricolour invites institutional readings this publication has no claim to.
- * Keeping the slash neutral leaves exactly one accent — the red C.
- *
- * Proportions: positive tracking and a lighter bracket weight widen what is
- * otherwise a tall, narrow monospace stack, so the mark sits closer to square.
- *
- * Rendered as text rather than SVG so it inherits the loaded monospace face and
- * stays crisp at any size. The favicon is a separate hand-built mark — see
- * public/favicon.svg — because at 16px this composition is not legible.
+ * Owner raster masters are canonical. This component renders only their
+ * generated, hash-locked display derivatives and applies layout sizing.
  */
-import { HERITAGE } from '../config/site';
+import identity from '../brand/identity.json';
 
 interface Props {
-  /** `full` includes the wordmark and heritage line; `compact` is the mark alone. */
   variant?: 'full' | 'compact';
-  /** Slow opacity pulse on the slash. Header only. */
-  animated?: boolean;
-  /** Show the "2005'ten bugüne" heritage line. Only meaningful with `full`. */
+  /** Compatibility prop: the full SVG already contains the approved signature. */
   heritage?: boolean;
   class?: string;
 }
 
-const { variant = 'full', animated = false, heritage = false, class: className = '' } = Astro.props;
+const { variant = 'full', class: className = '' } = Astro.props;
+const isCompact = variant === 'compact';
+const asset = isCompact ? identity.derived.emblem : identity.derived.lockup;
 ---
 
-<span class:list={['logo', `logo-${variant}`, className]} aria-label="TurkCyber">
-  <span class="mark" aria-hidden="true">
-    <span class="bracket">&lt;</span><span class="letter-t">T</span><span class="letter-c">C</span
-    ><span class:list={['slash', animated && 'slash-pulse']}>/</span><span class="bracket"
-      >&gt;</span
-    >
-  </span>
-  {
-    variant === 'full' && (
-      <span class="names">
-        <span class="wordmark">TurkCyber</span>
-        {heritage && <span class="heritage">{HERITAGE.badge}</span>}
-      </span>
-    )
-  }
+<span
+  class:list={['brand-lockup', `brand-lockup-${variant}`, className]}
+  role="img"
+  aria-label="TurkCyber"
+  data-brand-version={identity.version}
+  data-brand-fingerprint={identity.metadata.fingerprint}
+>
+  <img
+    class="brand-artwork"
+    src={asset.publicPath}
+    width={asset.dimensions[0]}
+    height={asset.dimensions[1]}
+    alt=""
+    decoding="async"
+  />
 </span>
 
 <style>
-  .logo {
+  .brand-lockup {
     display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: var(--font-mono);
+    flex-direction: column;
+    align-items: flex-start;
     line-height: 1;
     text-decoration: none;
+    min-width: 0;
   }
 
-  .mark {
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+  .brand-artwork {
+    display: block;
+    height: 1.72rem;
+    width: auto;
+    line-height: 0;
+    flex: none;
+    object-fit: contain;
   }
 
-  .bracket {
-    color: var(--text-faint);
-    font-weight: 400;
-    font-size: 0.92em;
+  .brand-lockup-compact .brand-artwork {
+    height: 1.42rem;
   }
 
-  .letter-t {
-    color: var(--text);
-    padding-inline-start: 0.04em;
-  }
-
-  /*
-   * Turkish red. Only used at this size and weight — see the contrast note on
-   * --brand-red in tokens.css before reusing it anywhere smaller.
-   */
-  .letter-c {
-    color: var(--brand-red);
-  }
-
-  /* Neutral by design — see the colour-roles note at the top of this file. */
-  .slash {
-    color: var(--text-muted);
-    font-weight: 500;
-    padding-inline: 0.02em;
-  }
-
-  .names {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .wordmark {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: var(--text);
-  }
-
-  .heritage {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-  }
-
-  /* Slow and quiet. The mark should read as alive, not as a notification. */
-  .slash-pulse {
-    animation: slash-pulse 3.2s ease-in-out infinite;
-  }
-
-  @keyframes slash-pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.35;
+  @media (max-width: 768px) {
+    .brand-artwork {
+      height: 1.4rem;
     }
   }
 
-  /* Motion is decorative here; removing it costs nothing. */
-  @media (prefers-reduced-motion: reduce) {
-    .slash-pulse {
-      animation: none;
+  @media (max-width: 380px) {
+    .brand-artwork {
+      height: 1.28rem;
     }
   }
 
-  .logo-compact .mark {
-    font-size: 1.28rem;
-  }
-
-  @media (max-width: 520px) {
-    .heritage {
-      display: none;
+  @media (forced-colors: active) {
+    .brand-artwork {
+      forced-color-adjust: auto;
     }
   }
 </style>

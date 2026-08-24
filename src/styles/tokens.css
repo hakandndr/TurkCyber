@@ -18,6 +18,10 @@
   /* --- accents --- */
   --green: #21e67a; /* recommended / safe / verified */
   --cyan: #00c8ff; /* information / technical detail */
+  --brand-accent: #d71920; /* Kod Parantezi identity */
+  --brand-accent-strong: #ff5259; /* accessible brand text/focus on the dark shell */
+  --brand-accent-soft: rgba(215, 25, 32, 0.1);
+  --brand-accent-border: rgba(255, 82, 89, 0.42);
   --amber: #ffb54a; /* caution */
   --red: #ff6a5e; /* danger — used sparingly */
 
@@ -30,7 +34,8 @@
    * Do not reuse it for small text or for UI state; --red is the danger colour
    * and clears 4.5:1.
    */
-  --brand-red: #e30a17;
+  /* Strong logo red. It is a brand role, not the semantic danger token. */
+  --brand-red: var(--brand-accent);
 
   /* Dimmed accent fills for callout backgrounds. */
   --green-wash: rgba(33, 230, 122, 0.07);
@@ -85,11 +90,11 @@
   /* Article shell: wider than the measure so asides and figures can breathe. */
   --container-reading: 940px;
   --frame-rail: color-mix(in srgb, var(--border-strong) 58%, transparent);
-  --frame-node: color-mix(in srgb, var(--cyan) 70%, transparent);
+  --frame-node: color-mix(in srgb, var(--brand-accent) 34%, var(--border-strong));
   --radius: 4px;
   --radius-lg: 6px;
 
-  --focus-ring: 2px solid var(--cyan);
+  --focus-ring: 2px solid var(--brand-accent-strong);
 
   /* --- boundary trace interaction language --- */
   --trace-duration: 160ms;
@@ -97,9 +102,12 @@
   --trace-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --trace-thickness: 1px;
   --trace-node-size: 4px;
-  --interaction-accent: var(--cyan);
-  --interaction-accent-soft: var(--cyan-wash);
+  --interaction-accent: var(--brand-accent-strong);
+  --interaction-accent-soft: var(--brand-accent-soft);
   --interaction-confirm: var(--green);
+  /* Brand structure stays red; green is reserved for semantic state. */
+  --boundary-start: color-mix(in srgb, var(--brand-accent) 48%, var(--border-strong));
+  --boundary-end: color-mix(in srgb, var(--brand-accent) 18%, var(--border-strong));
 }
 
 /* The site is dark by design; we still declare the scheme so form controls,

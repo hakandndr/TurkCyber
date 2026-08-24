@@ -299,7 +299,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
   }
 
   .breadcrumb a:hover {
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
   }
 
   .article-head h1 {
@@ -417,7 +417,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
    * this explains a mechanism rather than giving them steps to follow.
    */
   .level-badge {
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
     letter-spacing: 0.12em;
   }
 
@@ -449,7 +449,7 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     padding: var(--sp-4) var(--sp-5);
     background: var(--surface-1);
     border: 1px solid var(--border);
-    border-left: 3px solid var(--cyan);
+    border-left: 3px solid var(--brand-accent-strong);
     border-radius: var(--radius);
   }
 
@@ -649,7 +649,8 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     gap: var(--sp-4);
     margin-top: var(--sp-4);
     padding-top: var(--sp-4);
-    border-top: var(--trace-thickness) solid color-mix(in srgb, var(--cyan) 45%, transparent);
+    border-top: var(--trace-thickness) solid
+      color-mix(in srgb, var(--brand-accent) 45%, transparent);
   }
 
   .prose :global(.node-io > div) {
@@ -664,11 +665,11 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     left: 0;
     width: var(--trace-node-size);
     height: var(--trace-node-size);
-    background: var(--cyan);
+    background: var(--brand-accent-strong);
   }
 
   .prose :global(.node-io > div:nth-child(2)::before) {
-    background: var(--green);
+    background: var(--border-strong);
   }
 
   .prose :global(.io-label) {
@@ -677,12 +678,12 @@ const structuredData = ldGraph(articleNode, breadcrumbLd(crumbs));
     font-size: 0.66rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
     margin-bottom: var(--sp-2);
   }
 
   .prose :global(.node-io > div:nth-child(2) .io-label) {
-    color: var(--green);
+    color: var(--text-muted);
   }
 
   .prose :global(.io-value) {

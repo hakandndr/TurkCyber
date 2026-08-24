@@ -49,3 +49,4 @@ npm-debug.log*
 # local transfer / temporary artifacts
 _to_delete/
 *.tar.gz
+__pycache__/

@@ -96,14 +96,14 @@ const year = new Date().getFullYear();
     left: 0;
     width: clamp(7rem, 22vw, 20rem);
     height: 1px;
-    background: linear-gradient(90deg, var(--interaction-accent), var(--interaction-confirm));
+    background: linear-gradient(90deg, var(--brand-accent-strong), var(--boundary-end));
   }
 
   .site-footer::after {
     left: clamp(7rem, 22vw, 20rem);
     width: var(--trace-node-size);
     height: var(--trace-node-size);
-    background: var(--interaction-confirm);
+    background: var(--brand-accent-strong);
     transform: translateY(-1px);
   }
 
@@ -187,7 +187,7 @@ const year = new Date().getFullYear();
   }
 
   .footer-links a:hover {
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
   }
 
   /* The contact column is deliberately styled unlike the link list, so the
@@ -204,8 +204,8 @@ const year = new Date().getFullYear();
   }
 
   .contact-mail:hover {
-    color: var(--cyan);
-    border-bottom-color: var(--cyan);
+    color: var(--brand-accent-strong);
+    border-bottom-color: var(--brand-accent-strong);
   }
 
   .contact-note {
@@ -228,12 +228,12 @@ const year = new Date().getFullYear();
     width: 6px;
     height: 6px;
     border-radius: 1px;
-    background: var(--green);
+    background: var(--brand-accent-strong);
     flex: none;
   }
 
   .dndr:hover {
-    color: var(--green);
+    color: var(--brand-accent-strong);
   }
 
   .dndr-arrow {

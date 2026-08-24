@@ -344,8 +344,8 @@ const structuredData = ldGraph(websiteLd());
     overflow: hidden;
     /* Two soft pools of accent rather than a gradient wash across the band. */
     background:
-      radial-gradient(64ch 40ch at 8% -20%, rgba(33, 230, 122, 0.08), transparent 68%),
-      radial-gradient(52ch 34ch at 92% -10%, rgba(0, 200, 255, 0.06), transparent 68%);
+      radial-gradient(64ch 40ch at 8% -20%, rgba(215, 25, 32, 0.04), transparent 68%),
+      radial-gradient(52ch 34ch at 92% -10%, rgba(215, 25, 32, 0.018), transparent 68%);
   }
 
   .hero-inner {
@@ -565,7 +565,7 @@ const structuredData = ldGraph(websiteLd());
   }
 
   .locator-index {
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
   }
 
   .section-state {
@@ -597,7 +597,7 @@ const structuredData = ldGraph(websiteLd());
   }
 
   .section-more:hover {
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
   }
 
   /* The technical lane is labelled wherever it is linked, not only on its own
@@ -608,7 +608,7 @@ const structuredData = ldGraph(websiteLd());
     font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.14em;
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
     border: 1px solid var(--border-strong);
     border-radius: 3px;
     padding: 0.15em 0.45em;
@@ -675,12 +675,12 @@ const structuredData = ldGraph(websiteLd());
   }
 
   .quick-green {
-    --trace-color: var(--interaction-confirm);
-    --trace-border-hover: rgba(33, 230, 122, 0.5);
+    --trace-color: var(--interaction-accent);
+    --trace-border-hover: var(--brand-accent-border);
   }
 
   .quick-cyan {
-    --trace-border-hover: rgba(0, 200, 255, 0.45);
+    --trace-border-hover: var(--brand-accent-border);
   }
 
   .quick-label {
@@ -817,7 +817,7 @@ const structuredData = ldGraph(websiteLd());
 
   .myths-section {
     border-block: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(0, 200, 255, 0.03), transparent 60%);
+    background: linear-gradient(180deg, rgba(215, 25, 32, 0.025), transparent 60%);
   }
 
   .myth-list {
@@ -851,10 +851,10 @@ const structuredData = ldGraph(websiteLd());
   }
 
   .topic-green {
-    border-left-color: var(--green);
+    border-left-color: var(--brand-accent-strong);
   }
   .topic-cyan {
-    border-left-color: var(--cyan);
+    border-left-color: var(--brand-accent-strong);
   }
 
   .topic:hover {
@@ -901,7 +901,7 @@ const structuredData = ldGraph(websiteLd());
   }
 
   .topics-secondary a:hover {
-    color: var(--cyan);
+    color: var(--brand-accent-strong);
     border-color: var(--border-strong);
   }
 

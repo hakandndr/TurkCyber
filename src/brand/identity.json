@@ -1,0 +1,93 @@
+{
+  "name": "TurkCyber Kod Parantezi",
+  "version": "4.0.0",
+  "status": "owner-visual-master-pack",
+  "metadata": {
+    "canonical": true,
+    "fingerprintAlgorithm": "sha256-owner-raster-master-pack",
+    "fingerprint": "sha256:d614fa5c3bc5ecbfb73710b83efa78d5e30e552ee66daaf0c416d1122a693314"
+  },
+  "masters": {
+    "emblem": {
+      "role": "primary-emblem",
+      "sourceFilename": "ChatGPT Image Aug 23, 2026, 08_03_30 PM (1).png",
+      "path": "src/brand/masters/turkcyber-emblem-master.png",
+      "dimensions": [1254, 1254],
+      "sha256": "sha256:2073ce4b8a9b60f1d30675e0e151c1693f6cd6302527c56a8d1f9d70d396c976"
+    },
+    "lockup": {
+      "role": "horizontal-lockup",
+      "sourceFilename": "ChatGPT Image Aug 23, 2026, 08_03_30 PM (2).png",
+      "path": "src/brand/masters/turkcyber-horizontal-lockup-master.png",
+      "dimensions": [2172, 724],
+      "sha256": "sha256:db422ef8af2b8c74b6a45077f3facea6f9a10ef656a4762ae51b6efa487dbca6"
+    },
+    "presentation": {
+      "role": "dark-presentation-reference",
+      "sourceFilename": "ChatGPT Image Aug 23, 2026, 08_03_30 PM (3).png",
+      "path": "src/brand/masters/turkcyber-dark-presentation-master.png",
+      "dimensions": [1672, 941],
+      "sha256": "sha256:1c9015f8a659d22cce16d98fce3a3508ddcd69fc16cd279c9a8b66c48dba78be"
+    },
+    "opticalEmblem": {
+      "role": "small-size-optical-reference",
+      "sourceFilename": "ChatGPT Image Aug 23, 2026, 08_03_31 PM (4).png",
+      "path": "src/brand/masters/turkcyber-emblem-optical-master.png",
+      "dimensions": [1254, 1254],
+      "sha256": "sha256:0f1c760fce10e5d41c9940cc174b1622e51feb23cef822eae3bc1d97575b95bc"
+    }
+  },
+  "derived": {
+    "lockup": {
+      "path": "public/brand/turkcyber-lockup.webp",
+      "publicPath": "/brand/turkcyber-lockup.webp",
+      "dimensions": [2077, 286],
+      "sha256": "sha256:010d57e2acc4d395781b7121ab5be31dc9d290f5b6439ff911589f8c96940bca"
+    },
+    "emblem": {
+      "path": "public/brand/turkcyber-emblem.webp",
+      "publicPath": "/brand/turkcyber-emblem.webp",
+      "dimensions": [1146, 389],
+      "sha256": "sha256:e431916b318e33b07eb92c5d01ce3c0410e1fca28e1995d3694e21e94b033938"
+    },
+    "favicon16": {
+      "path": "public/favicon-16.png",
+      "publicPath": "/favicon-16.png",
+      "dimensions": [16, 16],
+      "sha256": "sha256:c14d931dc4bdb73a1921ae50d075073addddce77ca615719e3b174b309251d5b"
+    },
+    "favicon32": {
+      "path": "public/favicon-32.png",
+      "publicPath": "/favicon-32.png",
+      "dimensions": [32, 32],
+      "sha256": "sha256:f967718bbde3a4a7e0fa93ebcb1ff008376a585049423718f8313c9db11bc027"
+    },
+    "appleTouch": {
+      "path": "public/apple-touch-icon.png",
+      "publicPath": "/apple-touch-icon.png",
+      "dimensions": [180, 180],
+      "sha256": "sha256:6b8fc762826d3d86d2bbc772dd5d8bfa3d4dc456e7aba28416a8335bafcadc69"
+    },
+    "icon192": {
+      "path": "public/icon-192.png",
+      "publicPath": "/icon-192.png",
+      "dimensions": [192, 192],
+      "sha256": "sha256:03a611563da452e10f3284ac8c03190832dd4b6ab852724a016f5f007290dd03"
+    },
+    "icon512": {
+      "path": "public/icon-512.png",
+      "publicPath": "/icon-512.png",
+      "dimensions": [512, 512],
+      "sha256": "sha256:10649c6ed71377c6350b515a2d287b246b9e5612c14976bf5f13d2e2d0a2adaa"
+    },
+    "openGraph": {
+      "path": "public/og/default.png",
+      "publicPath": "/og/default.png",
+      "dimensions": [1200, 630],
+      "sha256": "sha256:d3bc4d9ae058d749bb27f2ee3b63c7ea2b63d30dfd594e36e702ea61e9f8048a"
+    }
+  },
+  "colors": { "field": "#071016", "accent": "#D71920" },
+  "tagline": "2005'TEN BUGÜNE...",
+  "safeAreas": { "faviconRatio": 0.98, "appIconRatio": 0.92 }
+}
