@@ -17,18 +17,18 @@ boundary is that the branch has no upstream and has not been pushed.
 
 ## Repository and Git
 
-| Item                       | Current value                                                  |
-| -------------------------- | -------------------------------------------------------------- |
-| Repository                 | `D:\IT\turkcyber\turkcyber.com`                                |
-| Branch                     | `codex/recovery-2026-08-23`                                    |
-| Live implementation parent | `741332ad26f7b9f01d029f35be50cb7f5d38cd7a`                     |
-| Parent subject             | `chore(release): record live production routing`               |
-| Final HEAD                 | the documentation finalization commit containing this snapshot |
-| Relation to local `main`   | 14 commits ahead, 0 behind after the documentation commit      |
-| Staged changes             | none after finalization                                        |
-| Working tree               | clean after finalization                                       |
-| Remote                     | `https://github.com/hakandndr/turkcyber.git`                   |
-| Push state                 | branch has no upstream and has not been pushed                 |
+| Item                       | Current value                                        |
+| -------------------------- | ---------------------------------------------------- |
+| Repository                 | `D:\IT\turkcyber\turkcyber.com`                      |
+| Branch                     | `codex/recovery-2026-08-23`                          |
+| Live implementation parent | `741332ad26f7b9f01d029f35be50cb7f5d38cd7a`           |
+| Parent subject             | `chore(release): record live production routing`     |
+| Final HEAD                 | the documentation proof addendum following `c491027` |
+| Relation to local `main`   | 15 commits ahead, 0 behind after the proof addendum  |
+| Staged changes             | none after finalization                              |
+| Working tree               | clean after finalization                             |
+| Remote                     | `https://github.com/hakandndr/turkcyber.git`         |
+| Push state                 | branch has no upstream and has not been pushed       |
 
 The committed history now reproduces the live source state. Recovery snapshots
 remain external to the repository; ignored `.env.*` and `.dev.vars` files remain

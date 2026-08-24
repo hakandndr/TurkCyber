@@ -1582,3 +1582,16 @@ Git task. Production remains on
 Review `git log --oneline main..codex/recovery-2026-08-23` and the clean final
 status. Push or merge only after explicit owner authorization; neither action is part
 of this finalization.
+
+### Post-commit proof addendum
+
+After `c491027` committed the main documentation reconciliation, the first read-only
+PowerShell live-health summary had an empty-pipeline parser error and made no change.
+The corrected command confirmed HTTP 200 for `turkcyber.com`,
+`www.turkcyber.com` and `turkcyber-staging.dndr.net`; production had no global
+`X-Robots-Tag`, while staging retained `noindex, nofollow`.
+
+This addendum is documentation-only. It records that final error and health result;
+production, staging, routes, DNS, secrets and data remained untouched. Its commit is
+the final branch HEAD, leaving the branch 15 commits ahead of local `main` and still
+unpushed.

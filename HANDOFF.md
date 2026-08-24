@@ -83,8 +83,8 @@ Current branch: `codex/recovery-2026-08-23`
 
 Live implementation parent:
 `741332ad26f7b9f01d029f35be50cb7f5d38cd7a`
-(`chore(release): record live production routing`). The documentation
-finalization commit containing this handoff follows it and is the branch HEAD.
+(`chore(release): record live production routing`). Documentation finalization
+commit `c491027` and its final proof addendum follow it; the addendum is branch HEAD.
 
 The deployed post-launch source has been recovered into coherent commits and the
 working tree is clean after finalization. A fresh checkout of this branch therefore
@@ -92,7 +92,7 @@ contains the brand masters/outputs, migrations, moderation and notification runt
 legacy importer, live route configuration, tests and current documentation needed to
 reproduce the live source state.
 
-The branch is 14 commits ahead of local `main`, has no upstream and has not been
+The branch is 15 commits ahead of local `main`, has no upstream and has not been
 pushed. Do not push until the owner explicitly authorizes it. The external forensic
 snapshots are not part of the clone and are retained only as local recovery evidence.
 
