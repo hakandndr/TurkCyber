@@ -81,7 +81,10 @@
         "ENVIRONMENT": "production",
         "ANALYTICS_TIMEZONE": "America/Los_Angeles",
       },
-      "routes": [],
+      "routes": [
+        { "pattern": "turkcyber.com/*", "zone_name": "turkcyber.com" },
+        { "pattern": "www.turkcyber.com/*", "zone_name": "turkcyber.com" },
+      ],
       "d1_databases": [
         {
           "binding": "APP_DB",

@@ -276,11 +276,15 @@ describe('release configuration', () => {
     expect(worker).not.toMatch(/connect-src[^\n]*formspree\.io(?:\s|["'])/);
   });
 
-  it('routes the complete staging hostname while leaving production unrouted', () => {
+  it('routes staging and exactly the two owner-approved production hostnames', () => {
     const config = readFileSync(join(process.cwd(), 'wrangler.jsonc'), 'utf8');
     expect(config).toContain('"pattern": "turkcyber-staging.dndr.net/*"');
     expect(config).toContain('"run_worker_first": true');
-    expect(config).toMatch(/"production"\s*:\s*\{[\s\S]*?"routes"\s*:\s*\[\]/);
+    const production = config.slice(config.indexOf('"production"'));
+    const productionRoutes = [...production.matchAll(/"pattern"\s*:\s*"([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+    expect(productionRoutes).toEqual(['turkcyber.com/*', 'www.turkcyber.com/*']);
   });
 });
 
