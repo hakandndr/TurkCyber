@@ -95,7 +95,14 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
       </ul>
     </nav>
 
-    <a href="/ara/" class="search-link" aria-label="Sitede ara">
+    <a
+      href="/ara/"
+      class="search-link"
+      aria-label="Sitede ara"
+      aria-haspopup="dialog"
+      aria-controls="site-search-dialog"
+      data-search-trigger
+    >
       <svg
         viewBox="0 0 24 24"
         width="20"
@@ -185,14 +192,57 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
           ))
         }
         <li>
-          <a class="mobile-top" href="/ara/">Ara</a>
+          <a
+            class="mobile-top"
+            href="/ara/"
+            aria-haspopup="dialog"
+            aria-controls="site-search-dialog"
+            data-search-trigger>Ara</a
+          >
         </li>
       </ul>
     </nav>
   </div>
 </header>
 
+<dialog
+  class="search-dialog"
+  id="site-search-dialog"
+  aria-labelledby="site-search-title"
+  data-search-dialog
+>
+  <div class="search-panel" data-search-panel>
+    <div class="search-panel-head">
+      <h2 id="site-search-title">Ara</h2>
+      <button type="button" class="search-close" aria-label="Aramayı kapat" data-search-close>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18"></path>
+        </svg>
+      </button>
+    </div>
+
+    <form class="dialog-search-form" data-dialog-search-form role="search">
+      <label for="dialog-search-query" class="visually-hidden">Arama terimi</label>
+      <input
+        id="dialog-search-query"
+        name="q"
+        type="search"
+        placeholder="şifre, 2FA, phishing…"
+        autocomplete="off"
+        autofocus
+        data-dialog-search-input
+      />
+      <button type="submit" class="button">Ara</button>
+    </form>
+
+    <p class="search-hint" data-dialog-search-hint>En az iki karakter yazın.</p>
+    <ul class="search-results" data-dialog-search-results></ul>
+  </div>
+</dialog>
+
 <script>
+  import { searchDocuments, type SearchDocument } from '../lib/search';
+
   /*
    * Two independent controls, no framework.
    *
@@ -338,6 +388,131 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     // Losing hover capability mid-session (a tablet docking, a stylus) must
     // not strand an open menu that nothing will now close.
     canHover.addEventListener('change', () => setGroup(false));
+
+    // ── Search dialog ────────────────────────────────────────────────────
+    // The hrefs remain real /ara/ links, so search still works without JS.
+    const searchDialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
+    const searchPanel = searchDialog?.querySelector<HTMLElement>('[data-search-panel]');
+    const searchClose = searchDialog?.querySelector<HTMLButtonElement>('[data-search-close]');
+    const searchForm = searchDialog?.querySelector<HTMLFormElement>('[data-dialog-search-form]');
+    const searchInput = searchDialog?.querySelector<HTMLInputElement>('[data-dialog-search-input]');
+    const searchHint = searchDialog?.querySelector<HTMLElement>('[data-dialog-search-hint]');
+    const searchResults = searchDialog?.querySelector<HTMLUListElement>(
+      '[data-dialog-search-results]',
+    );
+    const searchTriggers = document.querySelectorAll<HTMLAnchorElement>('[data-search-trigger]');
+
+    if (
+      searchDialog &&
+      searchPanel &&
+      searchClose &&
+      searchForm &&
+      searchInput &&
+      searchHint &&
+      searchResults
+    ) {
+      let returnFocus: HTMLElement | null = null;
+      let documents: SearchDocument[] | null = null;
+      let loading: Promise<SearchDocument[]> | null = null;
+      let searchTimer: number | undefined;
+
+      const loadIndex = (): Promise<SearchDocument[]> => {
+        if (documents) return Promise.resolve(documents);
+        if (!loading) {
+          loading = fetch('/search-index.json')
+            .then((response) => {
+              if (!response.ok) throw new Error(`http ${response.status}`);
+              return response.json() as Promise<SearchDocument[]>;
+            })
+            .then((data) => {
+              documents = data;
+              return data;
+            });
+        }
+        return loading;
+      };
+
+      const escapeText = (value: string): string => {
+        const element = document.createElement('div');
+        element.textContent = value;
+        return element.innerHTML;
+      };
+
+      const runSearch = async (): Promise<void> => {
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+          searchResults.innerHTML = '';
+          searchHint.textContent = 'En az iki karakter yazın.';
+          return;
+        }
+
+        let docs: SearchDocument[];
+        try {
+          docs = await loadIndex();
+        } catch {
+          searchHint.textContent = 'Arama dizini yüklenemedi. Sayfayı yenileyip tekrar deneyin.';
+          return;
+        }
+
+        const hits = searchDocuments(docs, query);
+        searchHint.textContent = hits.length
+          ? `${hits.length} sonuç bulundu.`
+          : 'Sonuç bulunamadı. Farklı bir kelime deneyin.';
+        searchResults.innerHTML = hits
+          .map(
+            (hit) => `<li class="search-result">
+<a href="${escapeText(hit.url)}">
+<span class="search-result-kind">${escapeText(hit.kindLabel)}</span>
+<span class="search-result-title">${escapeText(hit.title)}</span>
+<span class="search-result-desc">${escapeText(hit.description)}</span>
+<span class="search-result-cat">${escapeText(hit.categoryName)}</span>
+</a></li>`,
+          )
+          .join('');
+      };
+
+      const restoreAfterSearch = (): void => {
+        document.documentElement.classList.remove('search-open');
+        returnFocus?.focus();
+        returnFocus = null;
+      };
+
+      const closeSearch = (): void => {
+        if (searchDialog.open) searchDialog.close();
+        restoreAfterSearch();
+      };
+
+      searchTriggers.forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+          event.preventDefault();
+          returnFocus = trigger;
+          setPanel(false);
+          setGroup(false);
+          document.documentElement.classList.add('search-open');
+          searchDialog.showModal();
+          window.requestAnimationFrame(() => searchInput.focus());
+        });
+      });
+
+      searchClose.addEventListener('click', closeSearch);
+      searchDialog.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeSearch();
+      });
+      searchDialog.addEventListener('click', (event) => {
+        if (event.target === searchDialog) closeSearch();
+      });
+      searchDialog.addEventListener('close', restoreAfterSearch);
+
+      searchInput.addEventListener('input', () => {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(() => void runSearch(), 180);
+      });
+      searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        void runSearch();
+      });
+    }
   };
 
   setup();
@@ -589,6 +764,144 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     background: var(--interaction-accent);
     transform: scaleX(0);
     transform-origin: left;
+  }
+
+  :global(html.search-open) {
+    overflow: hidden;
+  }
+
+  .search-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: clamp(4.5rem, 12vh, 8rem) var(--sp-4) var(--sp-6);
+    color: var(--text);
+    background: transparent;
+    border: 0;
+    overflow-y: auto;
+  }
+
+  .search-dialog::backdrop {
+    background: rgb(3 7 8 / 78%);
+    backdrop-filter: blur(3px);
+  }
+
+  .search-panel {
+    width: min(42rem, 100%);
+    max-height: calc(100vh - clamp(6rem, 18vh, 11rem));
+    margin-inline: auto;
+    padding: var(--sp-5);
+    background: var(--surface-1);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgb(0 0 0 / 55%);
+    overflow-y: auto;
+  }
+
+  .search-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-4);
+  }
+
+  .search-panel-head h2 {
+    margin: 0;
+    font-size: var(--step-2);
+  }
+
+  .search-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .search-close svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  .dialog-search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+  }
+
+  .dialog-search-form input {
+    flex: 1 1 15rem;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.75em 0.9em;
+    color: var(--text);
+    font: inherit;
+    background: var(--surface-0);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .search-hint {
+    margin-top: var(--sp-3);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .search-results {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: var(--sp-5) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .search-results :global(.search-result a) {
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    color: inherit;
+    text-decoration: none;
+    background: var(--surface-0);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .search-results :global(.search-result a:hover),
+  .search-results :global(.search-result a:focus-visible) {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+  }
+
+  .search-results :global(.search-result-kind),
+  .search-results :global(.search-result-cat) {
+    color: var(--interaction-confirm);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .search-results :global(.search-result-title) {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .search-results :global(.search-result-desc) {
+    color: var(--text-muted);
+    font-size: var(--step--1);
   }
 
   /* --- mobile --- */

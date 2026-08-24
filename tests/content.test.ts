@@ -578,8 +578,11 @@ describe('the privacy page', () => {
     expect(html()).not.toMatch(/yasal zorunluluk/i);
   });
 
-  it('still discloses that the full IP address is stored', () => {
-    expect(html()).toMatch(/IP adresiniz/);
+  it('keeps the public policy concise without publishing an analytics field inventory', () => {
+    const page = html();
+    expect(page).toContain('Formspree');
+    expect(page).toContain('admin@turkcyber.com');
+    expect(page).not.toMatch(/IP adresiniz|tarayıcı ve cihaz|ülke ve şehir|yönlendiren|referrer/i);
   });
 });
 

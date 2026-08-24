@@ -2,25 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../config/site';
 
-/**
- * This page must describe what the code actually does.
- *
- * If the analytics schema, the comment fields, the third-party requests or the
- * retention behaviour change, this page changes in the same commit. A privacy
- * policy that disagrees with the implementation is worse than none.
- *
- * It is deliberately written for a reader, not for an auditor. An earlier
- * version listed ASN lookups, `sessionStorage` keys and the admin session
- * cookie — internal architecture that a visitor cannot act on and that buries
- * the two things they actually came for: what is stored, and for how long.
- * Detail that changes nothing for the reader was removed; nothing that
- * changes what is collected was softened.
- *
- * The 90-day line is a commitment the owner keeps by hand, using the retention
- * panel in the private console. It must never be phrased as a legal
- * requirement — no law is being cited here, and claiming one would be a
- * fabrication.
- */
 const lastUpdated = new Date('2026-08-23T00:00:00Z');
 const formatted = new Intl.DateTimeFormat('tr-TR', {
   day: 'numeric',
@@ -32,119 +13,35 @@ const formatted = new Intl.DateTimeFormat('tr-TR', {
 
 <BaseLayout
   title="Gizlilik"
-  description="TurkCyber hangi verileri topluyor, neden topluyor ve ne kadar süre saklıyor."
+  description="TurkCyber gizlilik politikası ve ziyaret kayıtlarının saklama süresi."
 >
   <div class="container-narrow page">
     <h1>Gizlilik</h1>
     <p class="updated">Son güncelleme: {formatted}</p>
 
     <p class="lede">
-      Kısa hâli: reklam ağı yok, üçüncü taraf analitik servisi yok, veri satışı yok. Aşağıda hangi
-      bilginin neden tutulduğu ve ne kadar süreyle saklandığı yazıyor.
-    </p>
-
-    <h2>Ziyaret kayıtları</h2>
-    <p>
-      Hangi rehberlerin işe yaradığını görebilmek için ziyaretleri kendi sistemimizde sayıyoruz. Bir
-      sayfa açıldığında kaydedilenler:
-    </p>
-    <ul>
-      <li>tarih ve saat</li>
-      <li>görüntülenen sayfanın adresi</li>
-      <li>bu sayfaya hangi adresten geldiğiniz</li>
-      <li><strong>IP adresiniz — tam hâliyle</strong></li>
-      <li>IP adresinden belirlenen ülke ve şehir bilgisi</li>
-      <li>tarayıcı ve cihaz türü</li>
-    </ul>
-    <p>
-      IP adresinin tam olarak saklandığını özellikle yazıyoruz. Bu bilinçli bir tercih ve "IP
-      saklamıyoruz" demek doğru olmazdı.
-    </p>
-    <p>
-      Bu kayıtlara yalnızca site sahibi erişir. Kimseyle paylaşılmaz, hiçbir reklam veya analitik
-      şirketine gönderilmez, profil çıkarmak veya reklam hedeflemek için kullanılmaz.
+      TurkCyber’da reklam ağı, üçüncü taraf analitik servisi veya veri satışı yoktur. Siteyi
+      çalıştırmak, güvenliği sağlamak ve temel ziyaret istatistiklerini görmek için sınırlı teknik
+      kayıtlar tutulabilir.
     </p>
 
     <h2>Saklama süresi</h2>
     <p>
-      Ziyaret kayıtları <strong>en fazla 90 gün</strong> saklanır. Daha eski kayıtlar silinir.
-    </p>
-    <p>
-      Silme işlemi site sahibi tarafından yapılır; arka planda kendiliğinden çalışan bir görev
-      yoktur. Bu, süreyi bir vaat olmaktan çıkarıp elle yürütülen bir işe dönüştürür — ve bu
-      sayfanın söylediği şey de tam olarak budur.
-    </p>
-
-    <h2>Çerez kullanıyor muyuz?</h2>
-    <p>
-      Ziyaretçiler için hayır. Sizi tanımlayan veya siteler arasında takip eden bir çerez
-      yerleştirilmez.
-    </p>
-    <p>
-      Aynı sayfayı aynı oturumda yenilediğinizde ziyaretin iki kez sayılmaması için tarayıcınızda
-      küçük bir işaret tutulur. Bu bilgi tarayıcınızdan çıkmaz ve sekmeyi kapattığınızda silinir.
+      Ziyaret kayıtları <strong>en fazla 90 gün</strong> saklanır, ardından silinir.
     </p>
 
     <h2>Yorumlar</h2>
-    <p>Bir yorum gönderdiğinizde saklananlar:</p>
-    <ul>
-      <li>yazdığınız isim (gerçek adınız olmak zorunda değil)</li>
-      <li>yorum metniniz</li>
-      <li>
-        <strong>e-posta adresiniz — yalnızca yazdıysanız.</strong> Bu alan isteğe bağlıdır; boş bırakırsanız
-        hiçbir şey saklanmaz.
-      </li>
-      <li>tarih ve saat, tarayıcı bilgisi ve ülke kodu</li>
-      <li>
-        IP adresinizin <strong>geri döndürülemez bir özeti</strong> — ham IP adresi yorum kayıtlarına
-        yazılmaz. Bu özet yalnızca kötüye kullanımı sınırlamak için kullanılır.
-      </li>
-    </ul>
-    <p>Yorumlar yayınlanmadan önce elle onaylanır; onaylanmayan yorumlar sitede görünmez.</p>
-
-    <h3>Yorumdaki e-posta adresi</h3>
-    <p>Yazarsanız:</p>
-    <ul>
-      <li><strong>Sitede hiçbir yerde yayınlanmaz</strong> ve hiçbir ziyaretçiye gönderilmez.</li>
-      <li>Üçüncü taraflara, başka bir yorumcuya veya bir listeye aktarılmaz.</li>
-      <li>Bülten veya duyuru göndermek için kullanılmaz.</li>
-      <li>Yalnızca yorumunuza özel yanıt vermemiz gerekirse kullanılır — çoğu zaman gerekmez.</li>
-    </ul>
     <p>
-      Adresinizin silinmesini isterseniz yazın; yorumunuzu silmeden yalnızca e-posta alanını da
-      temizleyebiliriz.
+      Yorum gönderildiğinde yorum içeriği ve moderasyon için gerekli sınırlı teknik bilgiler
+      saklanabilir. E-posta adresi yalnızca kullanıcı girerse alınır ve herkese açık gösterilmez.
     </p>
 
     <h2>İletişim formu</h2>
-    <p>
-      İletişim sayfasındaki form, mesajınızı bize e-posta olarak ileten <strong>Formspree</strong>
-      adlı üçüncü taraf bir servis üzerinden çalışır. Formu gönderdiğinizde yazdığınız ad, e-posta adresi,
-      konu ve mesaj bu servis tarafından işlenir ve Formspree'nin kendi gizlilik koşulları geçerli olur.
-    </p>
-    <p>
-      Formu kullanmak zorunda değilsiniz; doğrudan
-      <a href={`mailto:${SITE.email}`}>{SITE.email}</a> adresine de yazabilirsiniz.
-    </p>
+    <p>İletişim formu <strong>Formspree</strong> üzerinden iletilir.</p>
 
-    <h2>Üçüncü taraflara giden istekler</h2>
-    <ul>
-      <li>
-        <strong>Google Fonts</strong> — yazı tipleri buradan yüklenir, bu sırada IP adresiniz Google tarafından
-        görülür.
-      </li>
-      <li>
-        <strong>Cloudflare</strong> — site bu altyapı üzerinden sunulur ve yorum formundaki spam doğrulaması
-        Cloudflare Turnstile ile yapılır.
-      </li>
-      <li><strong>Formspree</strong> — yalnızca iletişim formunu gönderdiğinizde.</li>
-    </ul>
-    <p>Bunların dışında sayfalarda reklam kodu, izleme pikseli veya üçüncü taraf betiği yoktur.</p>
-
-    <h2>Talepleriniz</h2>
+    <h2>Talepler</h2>
     <p>
-      Kayıtlarınızın silinmesini isterseniz <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-      adresine yazın. Talebinizi karşılayabilmemiz için ilgili IP adresini veya yorum isminizi belirtmeniz
-      gerekir.
+      Gizlilikle ilgili talepler için: <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
     </p>
   </div>
 </BaseLayout>
@@ -165,16 +62,6 @@ const formatted = new Intl.DateTimeFormat('tr-TR', {
     color: var(--text-muted);
     margin-block: var(--sp-5) var(--sp-6);
   }
-  .page h3 {
-    font-size: var(--step-1);
-    margin-top: var(--sp-5);
-    margin-bottom: var(--sp-2);
-  }
-  .page h3 {
-    font-size: var(--step-1);
-    margin-top: var(--sp-5);
-    margin-bottom: var(--sp-2);
-  }
   .page h2 {
     font-size: var(--step-2);
     margin-top: var(--sp-6);
@@ -182,14 +69,7 @@ const formatted = new Intl.DateTimeFormat('tr-TR', {
     padding-top: var(--sp-3);
     border-top: 1px solid var(--border);
   }
-  .page p,
-  .page ul {
+  .page p {
     margin-bottom: var(--sp-4);
-  }
-  .page ul {
-    padding-left: var(--sp-5);
-  }
-  .page li {
-    margin-bottom: var(--sp-2);
   }
 </style>
