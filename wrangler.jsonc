@@ -86,21 +86,19 @@
         {
           "binding": "APP_DB",
           "database_name": "turkcyber-app-production",
-          "database_id": "REPLACE_WITH_PRODUCTION_APP_DB_ID",
+          "database_id": "ed222620-e45f-44bc-81ff-993d0ae0153a",
           "migrations_dir": "migrations/app",
           "migrations_table": "app_migrations",
         },
         {
           "binding": "ANALYTICS_DB",
           "database_name": "turkcyber-analytics-production",
-          "database_id": "REPLACE_WITH_PRODUCTION_ANALYTICS_DB_ID",
+          "database_id": "88d4d7f8-1062-4023-bded-515151b22774",
           "migrations_dir": "migrations/analytics",
           "migrations_table": "analytics_migrations",
         },
       ],
-      "kv_namespaces": [
-        { "binding": "THROTTLE_KV", "id": "REPLACE_WITH_PRODUCTION_THROTTLE_KV_ID" },
-      ],
+      "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "5e366c357bb24886b7de2502a55e7bcc" }],
     },
   },
 }
