@@ -196,6 +196,98 @@ describe('moderation', () => {
     expect(response.status).toBe(401);
   });
 
+  it('shows private email, IP and available location only in authenticated moderation', async () => {
+    const app = fakeDb({
+      rows: [
+        {
+          id: 7,
+          article_slug: 'passkey-nedir',
+          parent_id: null,
+          display_name: 'Ayşe',
+          body: 'İncelenecek yorum.',
+          status: 'pending',
+          created_at: '2026-08-24T00:00:00.000Z',
+          email: 'ayse@example.com',
+          comment_ip: '203.0.113.42',
+          country: 'US',
+          city: 'Santa Ana',
+          region_code: 'CA',
+        },
+      ],
+    });
+    const env = await makeEnv({ APP_DB: app as never });
+    const response = await handleBoss(
+      get('/boss/comments/', { cookie: await authedCookie() }),
+      env,
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(app.calls[0]!.sql).toMatch(/email, comment_ip, country, city, region_code/);
+    expect(html).toContain('ayse@example.com');
+    expect(html).toContain('203.0.113.42');
+    expect(html).toMatch(/<b>country<\/b>US/);
+    expect(html).toMatch(/<b>location<\/b>Santa Ana, CA/);
+    expect(html).toContain('/passkey-nedir/');
+  });
+
+  it('renders safe fallbacks for historical comments without email or raw IP', async () => {
+    const app = fakeDb({
+      rows: [
+        {
+          id: 1,
+          article_slug: 'eski-yazi',
+          parent_id: null,
+          display_name: 'Eski yorumcu',
+          body: 'Migrasyon öncesi yorum.',
+          status: 'pending',
+          created_at: '2026-08-23T00:00:00.000Z',
+          email: null,
+          comment_ip: null,
+          country: null,
+          city: null,
+          region_code: null,
+        },
+      ],
+    });
+    const response = await handleBoss(
+      get('/boss/comments/', { cookie: await authedCookie() }),
+      await makeEnv({ APP_DB: app as never }),
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toMatch(/<b>email<\/b>—/);
+    expect(html).toMatch(/<b>ip<\/b>—/);
+    expect(html).toMatch(/<b>location<\/b>—/);
+  });
+
+  it('shows a compact pending badge across every authenticated boss page', async () => {
+    for (const path of ['/boss/', '/boss/analytics/', '/boss/comments/', '/boss/system/']) {
+      const app = fakeDb({ rows: [{ status: 'pending', n: 3 }], first: { n: 3 } });
+      const env = await makeEnv({ APP_DB: app as never });
+      const response = await handleBoss(get(path, { cookie: await authedCookie() }), env);
+      const html = await response.text();
+
+      expect(response.status, path).toBe(200);
+      expect(html, path).toContain('aria-label="Comments, 3 pending comments"');
+      expect(html, path).toContain('class="nav-badge" aria-hidden="true">3</span>');
+    }
+  });
+
+  it('hides the pending badge at zero and renders the singular count', async () => {
+    const zero = await handleBoss(get('/boss/', { cookie: await authedCookie() }), await makeEnv());
+    expect(await zero.text()).not.toContain('<span class="nav-badge"');
+
+    const one = await handleBoss(
+      get('/boss/', { cookie: await authedCookie() }),
+      await makeEnv({ APP_DB: fakeDb({ first: { n: 1 } }) as never }),
+    );
+    const html = await one.text();
+    expect(html).toContain('aria-label="Comments, 1 pending comment"');
+    expect(html).toContain('class="nav-badge" aria-hidden="true">1</span>');
+  });
+
   it('requires POST — a GET must not mutate', async () => {
     const env = await makeEnv();
     const response = await handleBoss(

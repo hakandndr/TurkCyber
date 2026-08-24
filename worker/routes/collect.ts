@@ -69,7 +69,9 @@ export async function handleCollect(
       referrer_raw: referrerRaw,
       ip: sanitizeField(request.headers.get('cf-connecting-ip') ?? ''),
       country: sanitizeField(cf?.country ?? ''),
-      region: sanitizeField(cf?.region ?? ''),
+      // New Worker rows keep the compact ISO region code. Imported legacy
+      // rows remain untouched and retain their original city strings.
+      region: sanitizeField(cf?.regionCode ?? ''),
       city: sanitizeField(cf?.city ?? ''),
       asn: typeof cf?.asn === 'number' ? cf.asn : null,
       device: detectDevice(userAgent),

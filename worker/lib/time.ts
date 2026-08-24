@@ -68,6 +68,44 @@ export function formatPanelTimestamp(
 }
 
 /**
+ * Owner-facing timestamp: `Aug 24, 2026 · 1:57 AM PDT`.
+ *
+ * The IANA timezone is passed to Intl so daylight-saving transitions are
+ * resolved by the runtime timezone database rather than a fixed UTC offset.
+ */
+export function formatOwnerTimestamp(
+  value: string | Date,
+  timeZone: string = DEFAULT_TIMEZONE,
+): string {
+  const date = value instanceof Date ? value : parseStoredTimestamp(value);
+  if (!date || Number.isNaN(date.getTime())) return '';
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  }).formatToParts(date);
+
+  const get = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  let hour = Number.parseInt(get('hour'), 10);
+  if (!Number.isFinite(hour) || hour === 0) hour = 12;
+  const marker = get('dayPeriod')
+    .toUpperCase()
+    .replace(/[^APM]/g, '');
+
+  return (
+    `${get('month')} ${get('day')}, ${get('year')} · ` +
+    `${hour}:${get('minute')} ${marker} ${get('timeZoneName')}`
+  ).trim();
+}
+
+/**
  * Accept both ISO 8601 (`2026-08-04T20:09:04.000Z`) and the space-separated
  * form SQLite produces (`2026-08-04 20:09:04`). The latter is not valid ISO and
  * parses inconsistently across engines, so it is normalised first and treated

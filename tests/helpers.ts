@@ -20,6 +20,10 @@ export interface FakeDbOptions {
   rows?: unknown[];
   /** Row returned by `first()`. */
   first?: unknown;
+  /** Observe successful statement execution without changing the fake result. */
+  onRun?: () => void;
+  /** Override the default D1-like run result. */
+  runResult?: unknown;
 }
 
 export function fakeDb(options: FakeDbOptions = {}) {
@@ -37,7 +41,13 @@ export function fakeDb(options: FakeDbOptions = {}) {
         },
         async run() {
           if (options.throws) throw new Error('D1 unavailable');
-          return { success: true };
+          options.onRun?.();
+          return (
+            options.runResult ?? {
+              success: true,
+              meta: { changes: 1, last_row_id: 1 },
+            }
+          );
         },
         async all() {
           if (options.throws) throw new Error('D1 unavailable');

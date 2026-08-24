@@ -53,7 +53,7 @@ export default {
     }
 
     if (path === '/api/comments' || path === '/api/comments/') {
-      return handleComments(request, env);
+      return handleComments(request, env, ctx);
     }
 
     if (path === '/boss' || path.startsWith('/boss/')) {

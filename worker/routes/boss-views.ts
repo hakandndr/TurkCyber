@@ -10,7 +10,9 @@
  * account that matters.
  */
 import { escapeHtml } from '../lib/http';
+import { formatLocation } from '../lib/location';
 import { formatPanelTimestamp } from '../lib/time';
+import identity from '../../src/brand/identity.json';
 import {
   PAGE_SIZE,
   RETENTION_CONFIRM_PHRASE,
@@ -20,29 +22,37 @@ import {
   type RetentionStats,
 } from '../lib/analytics-query';
 
+const bossBrand = (): string =>
+  `<span class="brand-mark" data-brand-fingerprint="${identity.metadata.fingerprint}"><img src="${identity.derived.lockup.publicPath}" width="${identity.derived.lockup.dimensions[0]}" height="${identity.derived.lockup.dimensions[1]}" alt="TurkCyber"></span>`;
+
 const STYLE = `
 :root{--bg:#090b0c;--panel:#0c0f10;--raised:#101415;--raised-2:#13191a;
 --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.14);--text:#f1f5f4;
---muted:#8e9995;--faint:#64706c;--green:#21e67a;--cyan:#00c8ff;--amber:#ffb54a;
---red:#ff6a5e;--brand-red:#e30a17}
+--muted:#8e9995;--faint:#64706c;--green:#21e67a;--amber:#ffb54a;
+--red:#ff6a5e;--brand-accent:${identity.colors.accent};--brand-accent-strong:#ff5259;
+--brand-accent-border:rgba(255,82,89,.42)}
 *{box-sizing:border-box}
 html{background:var(--bg);color-scheme:dark}
 body{margin:0;min-width:0;background:var(--bg);color:var(--text);
 font:12px/1.45 ui-monospace,"JetBrains Mono","DejaVu Sans Mono",monospace}
-a{color:var(--cyan)}
+a{color:var(--brand-accent-strong)}
 .console{width:100%;max-width:1920px;margin:0 auto;padding:14px clamp(10px,1.25vw,24px) 48px}
 header.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;
 justify-content:space-between;gap:18px;min-height:50px;margin-bottom:14px;padding:7px 0 9px;
 background:rgba(9,11,12,.96);border-bottom:1px solid var(--line-strong)}
-.brand{display:flex;align-items:center;gap:0;min-width:0;color:var(--muted);font-size:18px;font-weight:600;letter-spacing:-.02em}
-.brand .b{color:var(--muted)}.brand .t{color:var(--text)}
-.brand .c{color:var(--brand-red)}.brand .s{color:var(--muted)}
+.brand{display:flex;align-items:center;gap:9px;min-width:0;color:var(--muted)}
+.brand-mark{display:block;width:168px;height:auto;line-height:0;flex:none}
+.brand-mark img{display:block;width:100%;height:auto}
+.login .brand-mark{width:166px}
 nav.sub{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 nav.sub a{position:relative;color:var(--muted);text-decoration:none;padding:7px 9px;
 border:1px solid transparent;border-radius:3px}
 nav.sub a.on{color:var(--text);background:var(--raised);border-color:var(--line-strong)}
-nav.sub a.on:after{content:"";position:absolute;inset:auto 9px -1px;height:1px;background:var(--cyan)}
-nav.sub a:hover{color:var(--cyan);background:var(--raised)}
+nav.sub a.on:after{content:"";position:absolute;inset:auto 9px -1px;height:1px;background:var(--brand-accent-strong)}
+nav.sub a:hover{color:var(--brand-accent-strong);background:var(--raised)}
+.nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;
+margin-left:6px;padding:0 5px;color:#090b0c;background:var(--amber);border-radius:9px;
+font-size:9px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1}
 .cards{display:grid;grid-template-columns:repeat(6,minmax(112px,1fr));gap:7px;margin-bottom:14px}
 .card{position:relative;min-width:0;background:var(--panel);border:1px solid var(--line);
 border-radius:3px;padding:9px 11px;overflow:hidden}
@@ -53,12 +63,12 @@ text-transform:uppercase;text-overflow:ellipsis;white-space:nowrap}
 .card .v.green{color:var(--green)}.card .v.amber{color:var(--amber)}
 h2{display:flex;align-items:center;gap:8px;margin:16px 0 7px;color:var(--muted);
 font-size:9px;line-height:1.2;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
-h2:before{content:"";width:12px;height:1px;background:var(--cyan)}
+h2:before{content:"";width:12px;height:1px;background:var(--brand-accent-strong)}
 .top{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:6px;margin-bottom:8px}
 .top div{display:flex;justify-content:space-between;gap:10px;min-width:0;padding:6px 9px;
 background:var(--panel);border:1px solid var(--line);border-radius:2px}
 .top div span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.top span.n{color:var(--green);font-variant-numeric:tabular-nums}
+.top span.n{color:var(--brand-accent-strong);font-variant-numeric:tabular-nums}
 form.filters{display:grid;grid-template-columns:repeat(5,minmax(92px,1fr)) auto auto auto auto;
 gap:6px;align-items:center;margin-bottom:8px;padding:8px;background:var(--panel);
 border:1px solid var(--line);border-radius:3px}
@@ -66,9 +76,9 @@ input,select,button{min-width:0;font:inherit;background:var(--raised);color:var(
 border:1px solid var(--line-strong);border-radius:2px;padding:5px 7px}
 input{width:100%}
 input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{
-outline:2px solid var(--cyan);outline-offset:1px}
-button{cursor:pointer;color:var(--cyan);border-color:rgba(0,200,255,.32)}
-button:hover{background:var(--raised-2);border-color:rgba(0,200,255,.6)}
+outline:2px solid var(--brand-accent-strong);outline-offset:1px}
+button{cursor:pointer;color:var(--brand-accent-strong);border-color:var(--brand-accent-border)}
+button:hover{background:var(--raised-2);border-color:var(--brand-accent-strong)}
 label.chk{display:flex;align-items:center;gap:5px;color:var(--muted);white-space:nowrap}
 label.chk input{width:auto}
 .counter{color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -86,12 +96,12 @@ tr:hover td{background:var(--raised)}
 .bot{color:var(--amber)}.human{color:var(--green)}
 .pager{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px}
 .pager a,.pager span{color:var(--muted);text-decoration:none}
-.pager a:hover{color:var(--cyan)}
+.pager a:hover{color:var(--brand-accent-strong)}
 .empty{width:min(100%,520px);margin:0;padding:16px 18px;color:var(--muted);text-align:left;
-background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--cyan);border-radius:3px}
+background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--brand-accent-strong);border-radius:3px}
 .empty strong{display:block;margin-top:3px;color:var(--text);font-size:13px;font-weight:500}
 .empty small{display:block;margin-top:3px;color:var(--faint)}
-.empty .signal{color:var(--cyan);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
+.empty .signal{color:var(--brand-accent-strong);font-size:9px;letter-spacing:.14em;text-transform:uppercase}
 .err{margin-bottom:12px;padding:9px 11px;color:var(--red);background:rgba(255,106,94,.06);
 border:1px solid rgba(255,106,94,.4);border-radius:3px}
 .login{max-width:340px;margin:12vh auto;padding:0 16px}
@@ -104,6 +114,7 @@ border-left:2px solid var(--line-strong);border-radius:3px}
 .cmt-pending{border-left-color:var(--amber)}.cmt-approved{border-left-color:var(--green)}
 .cmt-rejected{border-left-color:var(--muted)}.cmt-spam{border-left-color:var(--red)}
 .cmt .meta{grid-column:1/-1;display:flex;gap:7px 12px;flex-wrap:wrap;color:var(--muted);font-size:10px}
+.cmt .meta b{margin-right:4px;color:var(--faint);font-size:9px;font-weight:650;letter-spacing:.06em;text-transform:uppercase}
 .cmt .body{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 system-ui,sans-serif}
 .cmt form{display:inline}.cmt .acts{display:flex;align-items:flex-start;justify-content:flex-end;gap:5px;flex-wrap:wrap}
 .cmt .acts button{font-size:10px;padding:4px 7px}.cmt .action-delete,.cmt .action-spam{color:var(--red);border-color:rgba(255,106,94,.32)}
@@ -123,7 +134,7 @@ border-left:2px solid var(--green);border-radius:2px}.notice.bad{border-left-col
 @media(max-width:1100px){.cards{grid-template-columns:repeat(3,minmax(110px,1fr))}
 form.filters{grid-template-columns:repeat(3,minmax(100px,1fr))}.counter{margin-left:0;text-align:left}}
 @media(max-width:720px){.console{padding:8px 8px 36px}header.bar{position:static;align-items:flex-start}
-nav.sub{width:100%;border-top:1px solid var(--line);padding-top:5px}
+.brand-mark{width:122px}nav.sub{width:100%;border-top:1px solid var(--line);padding-top:5px}
 nav.sub a{padding:6px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
 .card{padding:8px}.card .v{font-size:17px}form.filters{grid-template-columns:repeat(2,minmax(0,1fr))}
 form.filters .counter{grid-column:1/-1}.cmt{grid-template-columns:1fr}.cmt .acts{justify-content:flex-start}
@@ -132,9 +143,14 @@ form.filters .counter{grid-column:1/-1}.cmt{grid-template-columns:1fr}.cmt .acts
 form.filters{grid-template-columns:1fr}.top{grid-template-columns:1fr}.login{margin-top:8vh}}
 `;
 
-function shell(title: string, active: string, body: string): string {
-  const tab = (href: string, label: string): string =>
-    `<a href="${href}"${active === href ? ' class="on"' : ''}>${label}</a>`;
+function shell(title: string, active: string, body: string, pendingComments = 0): string {
+  const tab = (href: string, label: string, badge = 0): string => {
+    const count = Math.max(0, Math.trunc(badge));
+    const accessible =
+      count > 0 ? ` aria-label="${label}, ${count} pending comment${count === 1 ? '' : 's'}"` : '';
+    const badgeHtml = count > 0 ? `<span class="nav-badge" aria-hidden="true">${count}</span>` : '';
+    return `<a href="${href}"${active === href ? ' class="on"' : ''}${accessible}>${label}${badgeHtml}</a>`;
+  };
   return `<!doctype html>
 <html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -142,10 +158,11 @@ function shell(title: string, active: string, body: string): string {
 <title>${escapeHtml(title)}</title><style>${STYLE}</style></head>
 <body><div class="console">
 <header class="bar">
-<div class="brand"><span class="b">&lt;</span><span class="t">T</span><span class="c">C</span><span class="s">/</span><span class="b">&gt;</span> boss</div>
-<nav class="sub">${tab('/boss/', 'Overview')}${tab('/boss/analytics/', 'Analytics')}${tab(
+<div class="brand">${bossBrand()}<span>boss</span></div>
+  <nav class="sub">${tab('/boss/', 'Overview')}${tab('/boss/analytics/', 'Analytics')}${tab(
     '/boss/comments/',
     'Comments',
+    pendingComments,
   )}${tab('/boss/system/', 'System')}
 <form method="post" action="/boss/logout/" style="display:inline">
 <button type="submit">Sign out</button></form></nav>
@@ -161,8 +178,7 @@ export function renderLogin(error?: string): string {
 <meta name="robots" content="noindex, nofollow">
 <title>boss</title><style>${STYLE}</style></head>
 <body><div class="login">
-<div class="brand" style="margin-bottom:16px;font-size:22px">
-<span class="b">&lt;</span><span class="t">T</span><span class="c">C</span><span class="s">/</span><span class="b">&gt;</span></div>
+<div class="brand" style="margin-bottom:16px">${bossBrand()}</div>
 ${error ? `<div class="err">${escapeHtml(error)}</div>` : ''}
 <form method="post" action="/boss/login/">
 <input name="username" autocomplete="username" placeholder="user" required autofocus>
@@ -203,6 +219,7 @@ export interface VisitRow {
   local_date: string | null;
   ip: string | null;
   country: string | null;
+  region: string | null;
   city: string | null;
   host: string;
   path: string;
@@ -236,6 +253,7 @@ ${cards(summary)}
 <h2>recent visits</h2>
 ${renderTable(recent, timeZone)}
 <div class="pager"><a href="/boss/analytics/">Full analytics →</a></div>`,
+    summary.pendingComments,
   );
 }
 
@@ -254,7 +272,7 @@ export function renderTable(rows: VisitRow[], timeZone: string): string {
 <td class="${r.automated ? 'bot' : 'human'}">${r.automated ? 'automated' : 'human'}</td>
 <td>${escapeHtml(formatPanelTimestamp(r.occurred_at, timeZone))}</td>
 <td>${escapeHtml(r.country)}</td>
-<td>${escapeHtml(r.city)}</td>
+<td>${escapeHtml(formatLocation(r.country, r.city, r.region))}</td>
 <td class="wrap">${escapeHtml(`${r.host}${r.path}`)}</td>
 <td class="wrap">${escapeHtml(r.referrer)}</td>
 <td class="wrap">${escapeHtml(`${r.device ?? ''} / ${r.browser ?? ''}`)}</td>
@@ -347,6 +365,7 @@ ${renderFilterForm(filters, matched, total)}
 <div id="table">${renderTable(rows, timeZone)}</div>
 ${renderPager(page, matched, query)}
 ${LIVE_FILTER_SCRIPT}`,
+    summary.pendingComments,
   );
 }
 
@@ -386,8 +405,11 @@ export interface ModerationRow {
   body: string;
   status: string;
   created_at: string;
+  email: string | null;
+  comment_ip: string | null;
   country: string | null;
-  user_agent: string | null;
+  city: string | null;
+  region_code: string | null;
 }
 
 export function renderComments(
@@ -408,18 +430,24 @@ export function renderComments(
 <input type="hidden" name="status" value="${escapeHtml(status)}">
 <button type="submit" class="action-${act}">${label}</button></form>`;
 
+  const field = (label: string, value: string | null | undefined): string =>
+    `<span><b>${escapeHtml(label)}</b>${escapeHtml(value || '—')}</span>`;
+
   const list = rows.length
     ? rows
         .map(
           (r) => `<div class="cmt cmt-${escapeHtml(r.status)}">
 <div class="meta">
-<span>#${r.id}</span>
-<span class="s-${escapeHtml(r.status)}">${escapeHtml(r.status)}</span>
-<span>${escapeHtml(r.display_name)}</span>
-<span>${escapeHtml(formatPanelTimestamp(r.created_at, timeZone))}</span>
-<span>/${escapeHtml(r.article_slug)}/</span>
-${r.parent_id ? `<span>reply to #${r.parent_id}</span>` : ''}
-${r.country ? `<span>${escapeHtml(r.country)}</span>` : ''}
+${field('id', `#${r.id}`)}
+<span class="s-${escapeHtml(r.status)}"><b>status</b>${escapeHtml(r.status)}</span>
+${field('author', r.display_name)}
+${field('email', r.email)}
+${field('ip', r.comment_ip)}
+${field('country', r.country)}
+${field('location', formatLocation(r.country, r.city, r.region_code))}
+${field('timestamp', formatPanelTimestamp(r.created_at, timeZone))}
+${field('article', `/${r.article_slug}/`)}
+${r.parent_id ? field('reply', `#${r.parent_id}`) : ''}
 </div>
 <div class="body">${escapeHtml(r.body)}</div>
 <div class="acts">
@@ -442,6 +470,7 @@ ${tab('pending', 'pending')}${tab('approved', 'approved')}${tab('rejected', 'rej
       'spam',
     )}</nav>
 ${list}`,
+    counts.pending ?? 0,
   );
 }
 
@@ -494,6 +523,7 @@ export function renderSystem(
   info: Record<string, string>,
   audit: Array<{ occurred_at: string; actor: string; action: string; entity_id: string }>,
   timeZone: string,
+  pendingComments: number,
   retention?: RetentionStats,
   notice?: { text: string; ok: boolean },
 ): string {
@@ -524,5 +554,6 @@ ${retention ? renderRetention(retention, timeZone) : ''}
 <div class="tablewrap"><table style="min-width:600px">
 <thead><tr><th>WHEN</th><th>ACTOR</th><th>ACTION</th><th>ENTITY</th></tr></thead>
 <tbody>${auditRows}</tbody></table></div>`,
+    pendingComments,
   );
 }

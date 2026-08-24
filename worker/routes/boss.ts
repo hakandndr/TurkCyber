@@ -205,7 +205,10 @@ function logout(): Response {
 }
 
 async function loadSummary(env: Env): Promise<SummaryData> {
-  if (!env.ANALYTICS_DB) return EMPTY_SUMMARY;
+  const pendingPromise = loadPendingCommentCount(env);
+  if (!env.ANALYTICS_DB) {
+    return { ...EMPTY_SUMMARY, pendingComments: await pendingPromise };
+  }
   const [summary, last24, pending] = await Promise.all([
     env.ANALYTICS_DB.prepare(SUMMARY_QUERY).first<{
       events: number;
@@ -214,11 +217,7 @@ async function loadSummary(env: Env): Promise<SummaryData> {
       automated: number;
     }>(),
     env.ANALYTICS_DB.prepare(LAST_24H_QUERY).first<{ events: number }>(),
-    env.APP_DB
-      ? env.APP_DB.prepare(`SELECT count(*) AS n FROM comments WHERE status = 'pending'`)
-          .first<{ n: number }>()
-          .catch(() => null)
-      : Promise.resolve(null),
+    pendingPromise,
   ]);
   return {
     events: summary?.events ?? 0,
@@ -226,14 +225,15 @@ async function loadSummary(env: Env): Promise<SummaryData> {
     humans: summary?.humans ?? 0,
     automated: summary?.automated ?? 0,
     last24h: last24?.events ?? 0,
-    pendingComments: pending?.n ?? 0,
+    pendingComments: pending,
   };
 }
 
 async function overview(env: Env): Promise<Response> {
   if (!env.ANALYTICS_DB) {
+    const summary = await loadSummary(env);
     return htmlResponse(
-      renderOverview(EMPTY_SUMMARY, [], [], timeZone(env), 'ANALYTICS_DB is not bound.'),
+      renderOverview(summary, [], [], timeZone(env), 'ANALYTICS_DB is not bound.'),
       503,
     );
   }
@@ -252,9 +252,10 @@ async function analytics(request: Request, env: Env): Promise<Response> {
   const params = url.searchParams;
 
   if (!env.ANALYTICS_DB) {
+    const summary = await loadSummary(env);
     return htmlResponse(
       renderAnalytics(
-        EMPTY_SUMMARY,
+        summary,
         buildFilters({}),
         [],
         0,
@@ -341,7 +342,7 @@ async function commentsPage(request: Request, env: Env): Promise<Response> {
   const [rows, countRows] = await Promise.all([
     env.APP_DB.prepare(
       `SELECT id, article_slug, parent_id, display_name, body, status, created_at,
-              country, user_agent
+              email, comment_ip, country, city, region_code
          FROM comments WHERE status = ?
         ORDER BY created_at DESC LIMIT 200`,
     )
@@ -522,10 +523,23 @@ async function systemPage(env: Env, notice?: { text: string; ok: boolean }): Pro
     audit = rows.results ?? [];
   }
 
-  const retention = await loadRetention(env).catch((error: unknown) => {
-    console.error('boss: retention stats failed', error);
-    return undefined;
-  });
+  const [retention, pendingComments] = await Promise.all([
+    loadRetention(env).catch((error: unknown) => {
+      console.error('boss: retention stats failed', error);
+      return undefined;
+    }),
+    loadPendingCommentCount(env),
+  ]);
 
-  return htmlResponse(renderSystem(info, audit, timeZone(env), retention, notice));
+  return htmlResponse(renderSystem(info, audit, timeZone(env), pendingComments, retention, notice));
+}
+
+async function loadPendingCommentCount(env: Env): Promise<number> {
+  if (!env.APP_DB) return 0;
+  const row = await env.APP_DB.prepare(
+    `SELECT count(*) AS n FROM comments WHERE status = 'pending'`,
+  )
+    .first<{ n: number }>()
+    .catch(() => null);
+  return row?.n ?? 0;
 }

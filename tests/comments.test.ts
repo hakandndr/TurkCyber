@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { threadComments, validateComment, type PublicComment } from '../worker/lib/comments';
 import { handleComments } from '../worker/routes/comments';
 import { isSameOrigin } from '../worker/lib/http';
@@ -15,6 +15,10 @@ const post = (body: unknown, headers: Record<string, string> = {}): Request =>
     headers: { 'content-type': 'application/json', origin: ORIGIN, ...headers },
     body: typeof body === 'string' ? body : JSON.stringify(body),
   });
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('validateComment', () => {
   const valid = { slug: 'passkey-nedir', name: 'Ayşe', body: 'Faydalı bir rehber olmuş.' };
@@ -191,6 +195,52 @@ describe('POST /api/comments', () => {
     );
     expect(response.status).toBe(405);
   });
+
+  it('stores new moderation IP and Cloudflare location separately from the keyed hash', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ success: true }), {
+            headers: { 'content-type': 'application/json' },
+          }),
+      ),
+    );
+    const db = fakeDb();
+    const request = post(
+      {
+        slug: 'passkey-nedir',
+        name: 'Ayşe',
+        email: 'ayse@example.com',
+        body: 'Moderasyon bağlamı için test yorumu.',
+        turnstileToken: 'valid-test-token',
+      },
+      { 'cf-connecting-ip': '203.0.113.42' },
+    );
+    Object.defineProperty(request, 'cf', {
+      value: { country: 'US', city: 'Santa Ana', regionCode: 'CA' },
+    });
+
+    const response = await handleComments(
+      request,
+      baseEnv({ APP_DB: db as never, TURNSTILE_SECRET_KEY: 'test' }),
+    );
+
+    expect(response.status).toBe(202);
+    const insert = db.calls.find((call) => call.sql.includes('INSERT INTO comments'))!;
+    expect(insert.sql).toContain('ip_hash');
+    expect(insert.sql).toContain('comment_ip');
+    expect(insert.sql).toContain('city');
+    expect(insert.sql).toContain('region_code');
+    expect(insert.params).toContain('203.0.113.42');
+    expect(insert.params).toContain('US');
+    expect(insert.params).toContain('Santa Ana');
+    expect(insert.params).toContain('CA');
+    expect(insert.params).toContain('ayse@example.com');
+    expect(
+      insert.params.find((value) => typeof value === 'string' && value.length === 64),
+    ).toBeDefined();
+  });
 });
 
 describe('GET /api/comments', () => {
@@ -211,6 +261,37 @@ describe('GET /api/comments', () => {
       APP_DB: db,
     } as unknown as Env);
     expect(db.calls[0]!.sql).not.toContain('pending');
+  });
+
+  it('never selects or returns private email, IP, hash or location metadata', async () => {
+    const db = fakeDb({
+      rows: [
+        {
+          id: 1,
+          parent_id: null,
+          display_name: 'Ayşe',
+          body: 'Herkese açık yorum.',
+          created_at: '2026-08-24T00:00:00.000Z',
+          email: 'private@example.com',
+          comment_ip: '203.0.113.42',
+          ip_hash: 'private-hash',
+          country: 'TR',
+          city: 'İstanbul',
+          region_code: '34',
+        },
+      ],
+    });
+    const response = await handleComments(
+      new Request(`${ORIGIN}/api/comments?slug=passkey-nedir`),
+      { APP_DB: db } as unknown as Env,
+    );
+    const body = await response.text();
+
+    expect(db.calls[0]!.sql).not.toMatch(/email|comment_ip|ip_hash|country|city|region_code/i);
+    expect(body).not.toContain('private@example.com');
+    expect(body).not.toContain('203.0.113.42');
+    expect(body).not.toContain('private-hash');
+    expect(body).not.toContain('İstanbul');
   });
 
   it('degrades to a 503 with an empty list when the query fails', async () => {

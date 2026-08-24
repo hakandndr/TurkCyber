@@ -6,6 +6,7 @@ import { normalizeReferrer } from '../worker/lib/referrer';
 import { sanitizeField, sanitizeMultiline } from '../worker/lib/sanitize';
 import { handleCollect, splitLocation } from '../worker/routes/collect';
 import { escapeHtml } from '../worker/lib/http';
+import { formatLocation } from '../worker/lib/location';
 import { renderTable } from '../worker/routes/boss-views';
 import { fakeCtx, fakeDb } from './helpers';
 import type { Env } from '../worker/lib/env';
@@ -215,6 +216,21 @@ describe('splitLocation', () => {
   });
 });
 
+describe('private location display', () => {
+  it('adds a two-letter state only for US locations', () => {
+    expect(formatLocation('US', 'Santa Ana', 'CA')).toBe('Santa Ana, CA');
+    expect(formatLocation('US', 'New York', 'NY')).toBe('New York, NY');
+    expect(formatLocation('TR', 'İstanbul', '34')).toBe('İstanbul');
+  });
+
+  it('handles missing or legacy region values without inventing data', () => {
+    expect(formatLocation('US', 'Austin', null)).toBe('Austin');
+    expect(formatLocation('US', null, 'TX')).toBe('—');
+    expect(formatLocation('US', 'Santa Ana, CA', null)).toBe('Santa Ana, CA');
+    expect(formatLocation('US', 'Santa Ana', 'California')).toBe('Santa Ana');
+  });
+});
+
 describe('the beacon always returns a pixel', () => {
   const request = new Request('https://turkcyber.com/collect?path=turkcyber.com%2F&referrer=&t=1', {
     headers: { 'user-agent': 'Mozilla/5.0 Chrome/121.0.0.0 Safari/537.36' },
@@ -243,7 +259,11 @@ describe('the beacon always returns a pixel', () => {
     const ctx = fakeCtx();
     const db = fakeDb();
     const env = { ANALYTICS_DB: db, ANALYTICS_TIMEZONE: TZ } as unknown as Env;
-    await handleCollect(request, env, ctx as never);
+    const geoRequest = new Request(request);
+    Object.defineProperty(geoRequest, 'cf', {
+      value: { country: 'US', city: 'Santa Ana', region: 'California', regionCode: 'CA' },
+    });
+    await handleCollect(geoRequest, env, ctx as never);
     await ctx.settled();
 
     expect(db.calls).toHaveLength(1);
@@ -252,6 +272,8 @@ describe('the beacon always returns a pixel', () => {
     expect(db.calls[0]!.params).toHaveLength(15);
     expect(db.calls[0]!.params).toContain('turkcyber.com');
     expect(db.calls[0]!.params).toContain('worker');
+    expect(db.calls[0]!.params).toContain('CA');
+    expect(db.calls[0]!.params).not.toContain('California');
   });
 });
 
@@ -266,6 +288,7 @@ describe('panel escaping', () => {
           local_date: '2026-08-04',
           ip: '1.2.3.4',
           country: 'TR',
+          region: null,
           city: '<img src=x onerror=alert(1)>',
           host: 'turkcyber.com',
           path: '/"><script>alert(1)</script>',

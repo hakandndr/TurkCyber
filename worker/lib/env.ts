@@ -25,4 +25,7 @@ export interface Env {
 
   /** HMAC key turning visitor IPs into non-reversible comment abuse keys. */
   COMMENT_IP_PEPPER?: string;
+
+  /** Resend send-only API key for private comment moderation notifications. */
+  RESEND_API_KEY?: string;
 }

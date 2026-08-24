@@ -21,13 +21,22 @@ import {
   peek,
 } from '../lib/throttle';
 import { threadComments, validateComment, type PublicComment } from '../lib/comments';
+import {
+  commentNotificationFailureStatus,
+  sendCommentNotification,
+} from '../lib/comment-notification';
+import { DEFAULT_TIMEZONE } from '../lib/time';
 
 /** Cap the body Cloudflare will read, so a large POST cannot be used as a lever. */
 const MAX_REQUEST_BYTES = 16_384;
 
-export async function handleComments(request: Request, env: Env): Promise<Response> {
+export async function handleComments(
+  request: Request,
+  env: Env,
+  ctx?: Pick<ExecutionContext, 'waitUntil'>,
+): Promise<Response> {
   if (request.method === 'GET') return listComments(request, env);
-  if (request.method === 'POST') return submitComment(request, env);
+  if (request.method === 'POST') return submitComment(request, env, ctx);
   return jsonResponse({ error: 'method_not_allowed' }, 405, { allow: 'GET, POST' });
 }
 
@@ -75,7 +84,11 @@ async function listComments(request: Request, env: Env): Promise<Response> {
   }
 }
 
-async function submitComment(request: Request, env: Env): Promise<Response> {
+async function submitComment(
+  request: Request,
+  env: Env,
+  ctx?: Pick<ExecutionContext, 'waitUntil'>,
+): Promise<Response> {
   // SameSite=Lax already blocks the cookie on cross-site POSTs; this is the
   // explicit second layer so the check does not rely on browser defaults.
   if (!isSameOrigin(request)) {
@@ -120,9 +133,9 @@ async function submitComment(request: Request, env: Env): Promise<Response> {
 
   const ip = clientIp(request);
   const pepper = env.COMMENT_IP_PEPPER;
-  // No raw IP is stored for comments. Without a pepper we would be storing a
-  // plain hash, which is trivially reversible across the IPv4 space, so the
-  // field is left null rather than pretending to protect it.
+  // Keep the keyed HMAC as the identifier used by throttling/security logic.
+  // The request address is stored separately for authenticated moderation only
+  // and is never selected by the public comments endpoint above.
   const ipHash = pepper && ip ? await hmacHex(ip, pepper) : null;
 
   const throttleId = ipHash ?? ip;
@@ -151,26 +164,37 @@ async function submitComment(request: Request, env: Env): Promise<Response> {
   }
 
   const cf = (request as { cf?: IncomingRequestCfProperties }).cf;
+  const commentIp = sanitizeField(ip, 64) || null;
+  const country = sanitizeField(cf?.country ?? '') || null;
+  const city = sanitizeField(cf?.city ?? '') || null;
+  const regionCode = sanitizeField(cf?.regionCode ?? '', 16) || null;
+  const createdAt = new Date().toISOString();
+  let commentId: number | null = null;
 
   try {
-    await env.APP_DB.prepare(
+    const inserted = await env.APP_DB.prepare(
       `INSERT INTO comments
          (article_slug, parent_id, display_name, body, status, created_at,
-          ip_hash, user_agent, country, email)
-       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
+          ip_hash, user_agent, country, city, region_code, comment_ip, email)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         validation.value.articleSlug,
         validation.value.parentId,
         validation.value.displayName,
         validation.value.body,
-        new Date().toISOString(),
+        createdAt,
         ipHash,
         sanitizeField(request.headers.get('user-agent') ?? ''),
-        sanitizeField(cf?.country ?? ''),
+        country,
+        city,
+        regionCode,
+        commentIp,
         validation.value.email,
       )
       .run();
+    const insertedId = Number(inserted.meta.last_row_id);
+    if (Number.isSafeInteger(insertedId) && insertedId > 0) commentId = insertedId;
   } catch (error) {
     console.error('comments: insert failed', error);
     return jsonResponse(
@@ -185,6 +209,48 @@ async function submitComment(request: Request, env: Env): Promise<Response> {
     COMMENT_MAX_PER_WINDOW,
     COMMENT_WINDOW_SECONDS,
   );
+
+  if (commentId && env.RESEND_API_KEY && ctx) {
+    const delivery = sendCommentNotification(env.RESEND_API_KEY, {
+      id: commentId,
+      environment: env.ENVIRONMENT || 'unknown',
+      author: validation.value.displayName,
+      email: validation.value.email,
+      ip: commentIp,
+      country,
+      city,
+      regionCode,
+      createdAt,
+      timeZone: env.ANALYTICS_TIMEZONE || DEFAULT_TIMEZONE,
+      articleSlug: validation.value.articleSlug,
+      body: validation.value.body,
+    }).catch((error: unknown) => {
+      console.error(
+        JSON.stringify({
+          event: 'comment_notification_failed',
+          comment_id: commentId,
+          provider: 'resend',
+          status: commentNotificationFailureStatus(error),
+        }),
+      );
+    });
+    // Registration happens before returning, but delivery is not awaited and
+    // cannot affect the already-persisted comment or the public response.
+    ctx.waitUntil(delivery);
+  } else if (
+    commentId &&
+    !env.RESEND_API_KEY &&
+    (env.ENVIRONMENT === 'staging' || env.ENVIRONMENT === 'production')
+  ) {
+    console.error(
+      JSON.stringify({
+        event: 'comment_notification_failed',
+        comment_id: commentId,
+        provider: 'resend',
+        status: 'not_configured',
+      }),
+    );
+  }
 
   // Nothing is publicly visible until an owner approves it.
   return jsonResponse({ ok: true, message: 'Yorumunuz inceleme için gönderildi.' }, 202);
