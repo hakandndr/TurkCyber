@@ -300,6 +300,6 @@ analytics and mail DNS. Data deletion is not part of route rollback.
 - Resend waitUntil delivery is not a durable queue. Provider idempotency limits
   duplicates but does not guarantee retry after every platform failure.
 - Google Fonts remains an external request.
-- The recovered live source is committed locally, but the branch has no upstream
-  and is not yet present in remote source control. Push or merge requires explicit
-  owner authorization.
+- The public GitHub history was sanitized before its first push. `main` is the
+  default tracked branch; the recovery milestone and exact-live annotated tag are
+  also remote-backed. Ignored environment and credential files remain owner-local.

@@ -1741,3 +1741,128 @@ database, analytics or comment mutation was performed.
 Commit only this mandatory documentation reconciliation, re-run the documentation
 diff/secret checks, then push the recovery branch first and verify its exact remote
 SHA before fast-forwarding `main`.
+
+---
+
+## 2026-08-24 — GitHub source-control finalization
+
+### Request
+
+Publish the sanitized recovery branch as the first remote safety anchor,
+fast-forward and publish `main` without rewriting published history, make `main`
+the GitHub default, publish an accurate production source tag, prove a clean clone
+as far as the environment permits, and reconcile all source-control documentation.
+Production, staging, Cloudflare, DNS, routes, secrets and data were out of scope.
+
+### Recovery-first publication
+
+Immediately before publication, `git ls-remote origin` was empty. The rewritten
+recovery branch was clean, 16 commits ahead of local `main` and not divergent.
+The final path audit again found zero transfer archives, nested `.git` paths or
+tracked `.env.development`, and the current secret scan was clean.
+
+`codex/recovery-2026-08-23` was pushed first with upstream tracking. Local and
+remote both resolved exactly to:
+
+`b7867ae6722d567f7ef90e85c62bbd7d2d970278`
+
+Only after that proof, local `main` fast-forwarded from
+`ae13097de0bd6d56e29812f4fc91c82794059db8` to `b7867ae…` with
+`git merge --ff-only`. `main` was then pushed and configured to track
+`origin/main`. No force option, rebase, squash, cherry-pick or merge commit was
+used.
+
+GitHub reported that the lowercase remote URL had moved to the canonical
+`https://github.com/hakandndr/TurkCyber.git`, so only the local `origin` URL was
+updated to that canonical spelling.
+
+### Default branch and release tag
+
+Because the recovery branch was intentionally the first branch pushed, GitHub
+initially selected it as the default. GitHub CLI was unavailable. The authenticated
+GitHub settings UI was therefore used to select `main`, and a subsequent
+`git ls-remote --symref origin HEAD` proved:
+
+`refs/heads/main` → `b7867ae6722d567f7ef90e85c62bbd7d2d970278`
+
+The annotated tag `production-live-2026-08-24` was created at the exact rewritten
+live implementation commit rather than the later documentation tip:
+
+- tag object: `922f808cdfea7b5cc45b4bba593d34c7eb602028`
+- peeled target: `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`
+- annotation: `TurkCyber production launch and recovery-complete source snapshot — 2026-08-24`
+
+Both the tag object and peeled target were verified through `git ls-remote
+--tags` after the tag-only push.
+
+### Remote and automation proof
+
+The public repository exposes both expected branches at the same published
+baseline, contains README and the expected source/assets/migrations, and exposes no
+ignored local environment file. `main` and the recovery branch both have matching
+upstreams. The sole GitHub Actions workflow explicitly performs verification only;
+it contains no Wrangler/deployment step. Git publication did not deploy a Worker.
+
+### Fresh-clone verification
+
+Two isolated clones were attempted and both checked out default branch `main` at
+`b7867ae…`. Neither contained `.env.development`,
+`.env.staging.local`, `.env.production.local`, `.dev.vars` or
+`turkcyber-pass2.tar.gz`. `pnpm install --frozen-lockfile` succeeded with all 604
+locked packages.
+
+The first wrapper-level `pnpm check` then hit the known non-TTY modules-store
+guard. Using the clone-local pinned binaries avoided that wrapper but exposed an
+environment-only esbuild traversal denial under both allowed Windows clone roots:
+`Cannot read directory ...: Access is denied`. Consequently Astro check, Vitest
+config loading and Astro build could not run inside the sandboxed clones.
+
+The strongest safe clone proof still passed:
+
+- default branch and HEAD: correct
+- frozen dependency installation: pass
+- Worker TypeScript: pass
+- ESLint: pass in the second clone
+- Prettier: pass in the second clone
+- secret scan: clean, 167 tracked files, in both clones
+- expected files: present
+- ignored/private files: absent
+
+Both temporary clones were path-validated and deleted. The owner's repository and
+`node_modules` were not modified. The authoritative byte-identical local tree had
+already passed Astro check, Worker TypeScript, ESLint, Prettier, 215/215 tests,
+57-page build, secret scan and diff check immediately before publication.
+
+### Errors and failed approaches
+
+1. The first tag-target verification used unquoted `^{}` in PowerShell after the
+   tag had been created. PowerShell parsed it incorrectly and the verification
+   command failed. The corrected quoted revision proved the intended target before
+   the tag was pushed.
+2. `gh` was not installed, so it could not inspect or change the default branch.
+   The authenticated GitHub settings UI performed the authorized change and the
+   remote symbolic HEAD independently verified it.
+3. The fresh-clone `pnpm check` wrapper aborted on its documented non-TTY store
+   check. Pinned binaries were used without purging dependencies.
+4. Both permitted clone roots produced the same sandbox parent-directory denial
+   in esbuild. Per the two-method execution limit, no third clone location was
+   attempted.
+
+### Final source-control architecture
+
+- `main` is the GitHub default and authoritative ongoing branch.
+- `codex/recovery-2026-08-23` is preserved at `b7867ae…` as a recovery milestone.
+- `production-live-2026-08-24` points to exact live source `800a2fba…`.
+- the final documentation reconciliation following this entry exists only on
+  `main`; the recovery branch is not moved.
+- pushing Git does not deploy either Cloudflare Worker.
+
+Production remains on `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3` and staging remains
+on `a854e11b-df2c-422b-a009-adf93cc72949`. No deploy, route, DNS, secret, database,
+analytics, comment or other runtime mutation occurred.
+
+### Exact next action
+
+Use clean `main` for future work. Operationally, the remaining owner tasks are
+routine Search Console/sitemap confirmation, moderation and manual analytics
+retention; no GitHub source-recovery action remains.

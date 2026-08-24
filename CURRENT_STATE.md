@@ -1,7 +1,7 @@
 # Current state
 
-Authoritative snapshot of TurkCyber as observed on **2026-08-24 03:43 PDT**
-(10:43 UTC). Repository and live runtime checks supersede earlier planning
+Authoritative snapshot of TurkCyber as observed on **2026-08-24 03:55 PDT**
+(10:55 UTC). Repository and live runtime checks supersede earlier planning
 documents and historical `PROCESS.md` entries.
 
 ## Headline
@@ -15,24 +15,27 @@ routing source is represented by coherent local commits. Before the first public
 push, a narrowly authorized rewrite removed the retired
 `turkcyber-pass2.tar.gz` transfer archive from every reachable commit. The
 rewritten source trees are byte-identical to their pre-rewrite counterparts and
-the public-history audit is clean. The branch still has no upstream and has not
-been pushed.
+the public-history audit is clean. The public GitHub repository is populated,
+`main` is authoritative and both preserved branches have upstream tracking.
 
 ## Repository and Git
 
-| Item                         | Current value                                          |
-| ---------------------------- | ------------------------------------------------------ |
-| Repository                   | `D:\IT\turkcyber\turkcyber.com`                        |
-| Branch                       | `codex/recovery-2026-08-23`                            |
-| Rewritten recovery proof     | `0a11ce94464b1a968fea4ad315da137e5feb0ac3`             |
-| Rewritten live source commit | `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`             |
-| Live source subject          | `chore(release): record live production routing`       |
-| Local `main`                 | `ae13097de0bd6d56e29812f4fc91c82794059db8`             |
-| Relation to local `main`     | 15 commits ahead, 0 behind before this documentation   |
-| Staged changes               | none before this documentation reconciliation          |
-| Working tree                 | only the mandatory rewrite documentation while editing |
-| Remote                       | `https://github.com/hakandndr/turkcyber.git`           |
-| Push state                   | remote empty; no upstream; no successful push yet      |
+| Item                         | Current value                                                      |
+| ---------------------------- | ------------------------------------------------------------------ |
+| Repository                   | `D:\IT\turkcyber\turkcyber.com`                                    |
+| Current branch               | `main`                                                             |
+| Published baseline           | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
+| Final HEAD                   | documentation-only commit containing this authoritative snapshot   |
+| Rewritten live source commit | `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`                         |
+| Local recovery branch        | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
+| Remote recovery branch       | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
+| Remote                       | `https://github.com/hakandndr/TurkCyber.git`                       |
+| Default branch               | `main`                                                             |
+| Tracking                     | `main` → `origin/main`; recovery → matching `origin` branch        |
+| Release tag                  | `production-live-2026-08-24` → live source `800a2fba…`             |
+| Tag object                   | `922f808cdfea7b5cc45b4bba593d34c7eb602028`                         |
+| Working tree                 | clean after the final documentation commit                         |
+| Push/deploy relationship     | GitHub CI scans/checks only; pushing does not deploy either Worker |
 
 The committed history now reproduces the live source state. Recovery snapshots
 remain external to the repository; ignored `.env.*` and `.dev.vars` files remain
@@ -344,13 +347,10 @@ Latest completed local verification after the notification-timezone fix:
 
 ## Remaining real work
 
-1. Complete the already-authorized GitHub finalization: publish the rewritten
-   recovery branch first, verify its remote SHA, then fast-forward and publish
-   `main` without force.
-2. Owner may refine the current logo masters later; integrations should remain
+1. Owner may refine the current logo masters later; integrations should remain
    metadata-driven and must not introduce independent geometry.
-3. Confirm Search Console property ownership and submit the live sitemap if the
+2. Confirm Search Console property ownership and submit the live sitemap if the
    owner has not already done so.
-4. Continue routine moderation and the manual 90-day analytics-retention check.
+3. Continue routine moderation and the manual 90-day analytics-retention check.
 
 There is no known runtime blocker at this snapshot.

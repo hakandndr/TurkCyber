@@ -77,9 +77,15 @@ secret values.
 
 ## 4. Repository and Git state
 
-Repository: `D:\IT\turkcyber\turkcyber.com`
+Clone:
 
-Current branch: `codex/recovery-2026-08-23`
+```powershell
+git clone https://github.com/hakandndr/TurkCyber.git
+```
+
+`main` is the authoritative default and ongoing-development branch. The local
+repository is `D:\IT\turkcyber\turkcyber.com` and should normally be on `main`
+tracking `origin/main`.
 
 Rewritten live implementation commit:
 `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`
@@ -93,11 +99,10 @@ contains the brand masters/outputs, migrations, moderation and notification runt
 legacy importer, live route configuration, tests and current documentation needed to
 reproduce the live source state.
 
-Before the archive-removal documentation commit, the branch is 15 commits ahead of
-rewritten local `main` at
-`ae13097de0bd6d56e29812f4fc91c82794059db8`. The remote is still empty and no
-upstream exists, but the owner has explicitly authorized the guarded publication
-sequence.
+The preserved recovery milestone is `codex/recovery-2026-08-23` at
+`b7867ae6722d567f7ef90e85c62bbd7d2d970278`, tracking the same-named remote
+branch. It records the clean rewrite proof and pre-public sanitation entry; ongoing
+documentation after GitHub publication belongs only on `main`.
 
 The first push attempt was stopped before any remote write because historical
 `turkcyber-pass2.tar.gz` contained a nested working copy. The unpublished history
@@ -105,6 +110,15 @@ was then rewritten only to remove that path. All reachable commits are now free 
 the archive, nested `.git` paths and tracked `.env.development`; the source trees
 and logical commit sequence were preserved. The pre-rewrite graph is recoverable
 from the verified external bundle under the Codex visualization snapshot area.
+
+The annotated `production-live-2026-08-24` tag identifies the exact deployed
+source commit `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`. It intentionally
+precedes later documentation-only commits.
+
+The only workflow in `.github/workflows/ci.yml` runs secret scanning, checks,
+linting, tests and builds. It contains no Wrangler or deployment step. Pushing Git
+does not deploy staging or production; Cloudflare operations remain separate,
+explicitly authorized actions.
 
 ## 5. Repository map
 
@@ -525,8 +539,7 @@ path.
 
 ## 23. Immediate next work
 
-1. push `codex/recovery-2026-08-23` first and verify the exact remote SHA;
-2. fast-forward local `main`, publish it without force and make it the GitHub
-   default branch;
-3. confirm Search Console sitemap submission if not already done;
-4. continue moderation and manual retention operations.
+1. work from clean `main` tracking `origin/main`;
+2. confirm Search Console sitemap submission if not already done;
+3. continue moderation and manual retention operations;
+4. keep the recovery branch and production-live tag as immutable milestones.
