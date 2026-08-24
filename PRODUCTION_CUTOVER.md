@@ -6,19 +6,37 @@ Operational document. **Each phase is a separate authorization: completing one
 never authorizes the next.** Stop immediately if any command prints an account,
 zone, database name or hostname other than the intended target.
 
-> **Current status: phases A–H not started.** No Cloudflare resource exists and
-> `turkcyber.com` still serves the legacy Hostinger site.
+> **CUTOVER COMPLETED — 2026-08-24.** The original pre-cutover phases are
+> preserved below as a historical runbook. They are not a description of the
+> current deployment state and must not be rerun without a new owner authorization.
+
+## Current live status
+
+- Production deployment: `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3`
+- Production routes: `turkcyber.com/*`, `www.turkcyber.com/*`
+- Staging deployment: `a854e11b-df2c-422b-a009-adf93cc72949`
+- Staging route: `turkcyber-staging.dndr.net/*`
+- Production APP D1: `ed222620-e45f-44bc-81ff-993d0ae0153a`
+- Production ANALYTICS D1: `88d4d7f8-1062-4023-bded-515151b22774`
+- Production throttle KV: `5e366c357bb24886b7de2502a55e7bcc`
+- Legacy analytics imported: 1,668 valid rows, source
+  `legacy_analytics_log`, no age filter, idempotency verified
+- Root receiving-mail DNS: unchanged during cutover
+- Rollback origin: retained Hostinger site behind the Worker routes
+
+The immediate rollback action is to detach only the two production Worker routes.
+Do not delete D1/KV data, the imported analytics, Hostinger content or mail DNS.
 
 ---
 
-## The rule that matters
+## The rule that mattered before cutover
 
-`env.production.routes` in `wrangler.jsonc` is deliberately an **empty array**.
+Before owner authorization, `env.production.routes` in `wrangler.jsonc` was an
+empty array.
 
-Adding routes there is the single action that replaces the live public site.
-It requires explicit owner authorization, given for that action specifically.
-Nothing in this runbook up to phase G changes what a visitor to `turkcyber.com`
-sees.
+Adding the two routes was the action that replaced the legacy public origin and
+was executed only after explicit owner authorization. Route changes remain a
+production-impacting operation and require fresh, action-specific authorization.
 
 ---
 
@@ -311,3 +329,64 @@ Stop and ask, at any phase, if:
 - `/boss` returns anything other than 401 while signed out,
 - `/boss` appears in `sitemap.xml` or is missing from `robots.txt`,
 - any Hostinger file would be modified or deleted.
+
+---
+
+## Executed cutover record — 2026-08-24
+
+The owner explicitly authorized production cutover after staging, production
+resources, secrets, Turnstile and migrations were verified.
+
+1. Current root, `www`, mail DNS, Worker routes and Hostinger behavior were
+   fingerprinted for rollback.
+2. The approved production build used the production Turnstile public site key.
+3. Production deployment `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3` was attached to
+   only `turkcyber.com/*` and `www.turkcyber.com/*`.
+4. Public pages, assets, search, navigation, responsive and no-JavaScript behavior,
+   CSP/security headers, Turnstile, `/boss` and analytics passed live checks.
+5. A controlled Worker analytics event was written without altering the imported
+   legacy set.
+6. Mail DNS fingerprints remained unchanged.
+7. Hostinger was retained and no production database, KV namespace or historical
+   analytics row was deleted.
+
+### Imported legacy analytics
+
+The owner supplied `D:\analytics.log` and authorized all valid history with
+`America/Los_Angeles` source interpretation. The production import reconciled
+1,668 source rows to 1,668 valid inserted rows, zero malformed rows and zero
+age-filtered rows. The imported UTC range is
+`2025-05-15T00:41:22.000Z`–`2026-08-23T22:55:15.000Z`.
+
+`legacy_analytics_imports` holds deterministic occurrence-aware identities. A
+rerun inserted zero rows; all 1,668 ledger identities and event IDs are distinct,
+and existing `source = 'worker'` rows were preserved. `APP_DB` was not involved.
+
+### Post-cutover changes already deployed
+
+- Private comment moderation now displays optional email and new-comment IP/location
+  metadata. Older rows with no raw IP remain null; the keyed hash is not reversible.
+- Pending-comment badges and compact moderation controls are live.
+- Resend notification delivery is configured in both environments through the
+  dedicated verified `notify.turkcyber.com` sending domain. Delivery runs after a
+  successful pending-comment insert via `ctx.waitUntil` and is nonfatal.
+- Notification identity is `comment-notification/<environment>/<comment-id>`.
+- Owner-facing notification timestamps remain stored in UTC and are rendered with
+  DST-aware `America/Los_Angeles` conversion.
+
+### Current rollback procedure
+
+If a critical production regression is discovered:
+
+1. Obtain explicit owner authorization for the route mutation unless an active
+   incident already falls under the authorized rollback condition.
+2. Record the current deployment and route state.
+3. Detach `turkcyber.com/*` and `www.turkcyber.com/*` from the Worker.
+4. Confirm root and `www` return the retained Hostinger origin.
+5. Confirm MX, SPF, DKIM, DMARC and the Resend subdomain are unchanged.
+6. Leave APP/ANALYTICS D1, KV, secrets and imported history intact so continuity is
+   preserved when the Worker is reattached.
+
+Do not treat the historical phase checklist above as an instruction to provision
+new resources or re-import analytics. `CURRENT_STATE.md` is the authoritative
+snapshot; `HANDOFF.md` is the operational continuation guide.

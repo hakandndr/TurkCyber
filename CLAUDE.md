@@ -69,12 +69,19 @@ understanding the comment first:
   `BOT_SQL`, built from a compile-time constant.
 - **Every value rendered in `/boss` is escaped.** Those rows are
   attacker-controlled.
-- **Comments are moderated before they are public**, and the public query never
-  selects `email`.
+- **Comments are moderated before they are public.** The public query uses an
+  explicit allowlist and never selects `email`, `comment_ip`, `ip_hash`,
+  `country`, `city` or `region_code`.
 - **Analytics retention is manual and ANALYTICS_DB-only.** Nothing schedules
   the purge, and it deletes from `visitor_events` and nothing else. `/gizlilik/`
   changes in the same commit if either fact does — see §4.
 - **Turnstile fails closed.**
+- **Comment notification failure is nonfatal.** Persist the pending comment and
+  return the normal response before scheduling Resend with `ctx.waitUntil`.
+  Never make notification delivery part of comment durability.
+- **Database timestamps stay UTC.** Owner-facing timestamps use the shared
+  DST-aware `America/Los_Angeles` formatter; never store a display timezone or
+  hard-code PST/PDT offsets.
 - **The draft publication gate defaults to closed** — see §5.
 - **`pnpm scan:secrets` runs first in CI.** The repository is public.
 
@@ -104,10 +111,14 @@ understanding the comment first:
 - **`/gizlilik/` says visitor records are kept "en fazla 90 gün".** That is a
   commitment kept by hand through `/boss/system/`. It must never be presented as
   a legal requirement — no law is being cited, and claiming one would be a
-  fabrication. Tests assert both halves.
-- The mark is defined once, as geometry, in `scripts/brandmark.py`. Do not hand-
-  draw another version of `<TC/>` for an icon — the icons and the OG card derive
-  from the same outlines as the header wordmark, and that is the point.
+  fabrication. Tests assert both halves. The owner-authorized one-time legacy
+  import is a documented historical exception and must not be silently purged or
+  reinterpreted by routine retention work.
+- The owner-supplied visual master pack is the brand source of truth.
+  `src/brand/identity.json` records canonical files, dimensions and hashes;
+  generated favicon, app-icon, WebP and OG assets derive from those masters.
+  Components and generators may crop, scale and pad but must not redraw,
+  reinterpret or duplicate logo geometry.
 
 ---
 
@@ -168,12 +179,19 @@ cause of a red first run on a fresh machine.
 ## 7. Deployment boundaries
 
 - **Never deploy production without explicit owner authorization.**
-- `env.production.routes` in `wrangler.jsonc` is deliberately an empty array.
-  Adding routes there replaces the live site.
-- `turkcyber.com` currently serves the legacy Hostinger site. Do not modify or
-  delete anything on Hostinger — it is the rollback path.
-- Provision and test in staging first. Import legacy analytics into staging and
-  reconcile counts before touching production.
+- Production is live on `turkcyber.com/*` and `www.turkcyber.com/*`. Any route
+  mutation, deployment or rollback still requires explicit, action-specific
+  owner authorization.
+- Do not modify or delete anything on Hostinger. It remains the rollback origin:
+  detaching the two production Worker routes returns traffic to it.
+- Provision and test in staging first. Schema changes apply to staging before
+  production. Never reuse staging bindings, secrets or Turnstile keys in
+  production.
+- The 1,668-row legacy analytics import is complete and idempotent. Do not rerun,
+  filter, purge or rewrite it unless the owner explicitly requests that data
+  operation.
+- Web cutover and rollback must not modify root receiving-mail DNS or the
+  dedicated Resend sending subdomain.
 - Set each secret as its own `wrangler secret put` command.
 
 Full runbook: `PRODUCTION_CUTOVER.md`.
@@ -185,8 +203,9 @@ Full runbook: `PRODUCTION_CUTOVER.md`.
 - **Astro 7 migration** is deliberately a separate, isolated task. Do not mix a
   framework upgrade with visual or content changes.
 - Self-hosting the webfonts (removes the Google Fonts third-party request).
-  `scripts/brandmark.py` already documents how JetBrains Mono was obtained.
 - Per-article OG images.
+- Optional owner refinements to the visual master pack. Integration must continue
+  to consume owner assets rather than inventing replacement geometry.
 
 Analytics retention is **not** deferred work any more — it exists, manually, at
 `/boss/system/`. Making it automatic is a deliberate non-goal; see §3.

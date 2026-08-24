@@ -1,163 +1,305 @@
 # Security
 
-## Reporting
+Security and privacy model for the live TurkCyber service. Report security
+issues privately to `admin@turkcyber.com`; do not include credentials, session
+cookies or private comment/analytics records in a public issue.
 
-Email `admin@turkcyber.com`. Please include enough detail to reproduce. There is
-no bug bounty; reports are read and acted on.
+## 1. Trust boundaries
 
-Do not open a public GitHub issue for a vulnerability.
+```text
+Public browser
+  |-- static content ---------------------- public
+  |-- /collect ---------------------------- private ANALYTICS_DB
+  |-- /api/comments GET ------------------- approved safe-column output
+  |-- /api/comments POST ------------------ pending APP_DB + private metadata
+  `-- /iletisim --------------------------- Formspree
 
----
+Authenticated owner
+  `-- /boss ------------------------------- private APP_DB/ANALYTICS_DB
 
-## Trust boundaries
-
-| Boundary                  | What crosses it                          | Treatment                                                                      |
-| ------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
-| Visitor → `/collect`      | query params, headers                    | sanitised, capped at 300 chars, bound into SQL                                 |
-| Visitor → `/api/comments` | JSON body                                | validated, length-capped, Turnstile-verified, same-origin required             |
-| Visitor → static site     | nothing                                  | fully static                                                                   |
-| Operator → `/boss`        | credentials, filters, moderation actions | password + signed session; all filters bound; all mutations POST + same-origin |
-| Database → `/boss` HTML   | attacker-controlled strings              | escaped at render                                                              |
-
-**The rows in the analytics table are attacker-controlled.** User agents,
-referrers and paths are written by whoever made the request. A private panel
-that renders them raw is a stored XSS against the only account that matters.
-Every value passes through `escapeHtml` in `worker/routes/boss-views.ts`, and a
-test renders a row containing `<script>` and asserts it appears as text.
-
----
-
-## SQL
-
-Every request-derived value is a bound parameter. There is exactly one piece of
-interpolated SQL in the codebase: `BOT_SQL` in `worker/lib/ua.ts`, built from a
-compile-time constant array in the same file. It contains no request data.
-
-`tests/analytics.test.ts` submits `1.2.3.4' OR 1=1 --` as an IP filter and
-asserts the string travels as a bound parameter and never appears in the clause.
-
----
-
-## Authentication
-
-- PBKDF2-SHA256, 16-byte salt, 256 derived bits.
-- **100,000 iterations is a hard ceiling**, not a tuning choice: the Workers
-  runtime throws `NotSupportedError` above it. Raising it breaks sign-in at
-  runtime, not at build time.
-- Verification returns `false` for a malformed hash or an out-of-range iteration
-  count rather than throwing — a bad stored secret must not take down the
-  request.
-- Constant-time comparison for both the derived bits and the session signature.
-- Session cookies are `HttpOnly; Secure; SameSite=Lax; Path=/`.
-- Idle timeout 30 minutes (refreshed); absolute timeout 8 hours (never moved).
-- The signature is verified **before** the payload is parsed.
-- Five failed attempts per IP per 15 minutes returns `429`, and the correct
-  password is refused while the window is open.
-- The visitor sees only `Kullanıcı adı veya şifre hatalı.` A test asserts the
-  responses for a wrong username and a wrong password are byte-identical.
-- The operator log reports _which check_ failed, never a value:
-  `boss: sign-in refused (user mismatch, password failed, reason mismatch)`.
-
-If any of `BOSS_USER`, `BOSS_PASSWORD_HASH` or `SESSION_SECRET` is missing, the
-console returns `503 Panel is not configured` — never a partially working panel.
-
----
-
-## Comments
-
-- Turnstile is verified server-side and **fails closed**: a missing secret,
-  missing token or network error all reject the submission.
-- Same-origin is required explicitly, not left to `SameSite` alone.
-- Rate limited to 3 submissions per abuse key per 10 minutes.
-- Body capped at 2,000 characters; the request body is capped at 16 KB.
-- HTML is never interpreted. It is stored verbatim and escaped at render.
-- Nothing is publicly readable before an owner approves it — the public query
-  filters `status = 'approved'` and a test asserts the word `pending` never
-  appears in that SQL.
-- No raw IP is stored. `ip_hash` is HMAC-SHA256 keyed with `COMMENT_IP_PEPPER`.
-- The optional `email` column (migration `0004`) is **never exposed publicly**.
-  The public read lists its columns explicitly and `email` is not among them; a
-  test asserts the query neither mentions `email` nor uses `SELECT *`. It is not
-  required to comment, and `/gizlilik/` states exactly how it is handled.
-
----
-
-## The contact form
-
-`/iletisim/` posts to Formspree, a third party, using the build-time
-`PUBLIC_FORMSPREE_ENDPOINT`. Notes:
-
-- The endpoint is validated against the expected Formspree URL shape. If it is
-  unset or malformed the form is **not rendered** and the page falls back to the
-  email address — a misconfigured build cannot silently discard messages.
-- A honeypot field (`_gotcha`) is positioned off-screen rather than
-  `display: none`, because bots skip fields that are not rendered at all.
-- `/gizlilik/` discloses that Formspree processes the submission.
-
-## Secrets
-
-The GitHub repository is **public**. Assume every committed byte is public
-forever.
-
-Never commit: Cloudflare API tokens, D1 identifiers you consider sensitive,
-passwords, password hashes, `SESSION_SECRET`, the Turnstile secret key,
-`COMMENT_IP_PEPPER`, `.dev.vars`, `.env`, private analytics exports, or any
-export containing full IP addresses.
-
-`.gitignore` covers these. `pnpm scan:secrets` is the second layer: it checks
-tracked files for credential shapes and for paths that must never be tracked,
-and it runs in CI before anything else.
-
-Set each secret as its own command:
-
-```bash
-npx wrangler secret put BOSS_USER
-npx wrangler secret put BOSS_PASSWORD_HASH
-npx wrangler secret put SESSION_SECRET
-npx wrangler secret put TURNSTILE_SECRET_KEY
-npx wrangler secret put COMMENT_IP_PEPPER
+Worker background task
+  `-- Resend ------------------------------ private moderation email
 ```
 
-Piping several into one heredoc has scrambled them in practice and produced
-three different failure modes at sign-in.
+APP_DB and ANALYTICS_DB are separate sensitivity domains. Never join them or
+move comments into analytics. THROTTLE_KV contains short-lived abuse counters,
+not durable user records.
 
----
+## 2. Worker-first header enforcement
 
-## Privacy commitments that are code, not prose
+`assets.run_worker_first` is required because the Worker owns public security
+headers. Without it Cloudflare's asset layer can bypass the Worker for static
+HTML. The release process found this in the live environment; checking Worker
+code alone is not sufficient.
 
-`/gizlilik/` states that full IP addresses are stored in the private analytics
-database, that comments store only a non-reversible hash, that visitor records
-are kept for **at most 90 days**, and that Google Fonts receives the visitor's
-IP.
+Production public responses receive:
 
-Each of those statements corresponds to something in the code. If any of them
-changes — retention becomes automatic, fonts are self-hosted, a field is
-dropped — `src/pages/gizlilik.astro` changes in the same commit. A privacy
-policy that disagrees with the implementation is worse than none.
+- strict Content Security Policy;
+- `Strict-Transport-Security`;
+- `X-Content-Type-Options: nosniff`;
+- `Referrer-Policy: strict-origin-when-cross-origin`;
+- restrictive permissions policy.
 
-The 90-day line is backed by the manual retention panel on `/boss/system/`:
-`POST /boss/analytics/purge`, same-origin, session-required, confirmation phrase
-required, audited, and scoped to `visitor_events` in ANALYTICS_DB alone. It is
-never presented as a legal requirement — no law is being cited, and claiming one
-would be a fabricated legal assertion on the one page whose entire value is that
-it is accurate.
+Staging receives the same public controls plus
+`X-Robots-Tag: noindex, nofollow`, and intentionally does not set HSTS.
 
----
+## 3. Content Security Policy
 
-## Known gaps
+The current CSP keeps `script-src` strict:
 
-- **Retention is manual, and that is deliberate.** Nothing schedules the purge.
-  An unattended DELETE against the only copy of the analytics history is one bug
-  away from destroying it, and the legacy import has not landed — a scheduled
-  job would delete those rows the moment they arrived. The trade-off is real:
-  the 90-day commitment on `/gizlilik/` depends on a person running it. If that
-  becomes automatic, the privacy text moves with it.
-- **Google Fonts is a third-party request.** Self-hosting removes it — see
-  ARCHITECTURE.md §11.
-- **KV rate limiting is not atomic.** Read-modify-write can undercount under
-  concurrent requests from one address. Acceptable for an abuse brake; not
-  suitable if it ever becomes an accounting record.
-- **No CSP reporting endpoint.** Violations are invisible until someone notices.
-- **Comment email is stored in plain text** in `APP_DB`. It is optional, never
-  published, and never leaves the database through a public route — but it is
-  not encrypted at rest beyond whatever D1 provides.
+- same-origin executable Astro assets;
+- Cloudflare Turnstile;
+- **no** `unsafe-inline` for scripts.
+
+Astro is configured to externalize executable component entrypoints. Do not
+reintroduce inline executable scripts or weaken the policy to accommodate them.
+
+Other important directives:
+
+- `default-src 'self'`
+- `base-uri 'self'`
+- `frame-ancestors 'none'`
+- `object-src 'none'`
+- Turnstile-only `frame-src`
+- Google Fonts stylesheet/font origins
+- exact `https://formspree.io/f/mljrvker` allowance in `form-action` and
+  `connect-src`
+
+`style-src 'unsafe-inline'` is for generated styles and is not permission for
+inline JavaScript.
+
+## 4. SQL and rendering
+
+Every request-derived SQL value is bound. Dynamic filter values must never be
+interpolated into statements. Migrations are append-only.
+
+Every value rendered in `/boss` is attacker-controlled until proven otherwise:
+comment text, display name, path, referrer, user agent and geolocation. Escape
+all values with the shared HTML escape helper. Do not render raw D1 rows into
+HTML templates.
+
+## 5. Boss authentication
+
+Boss uses a repository-defined PBKDF2-SHA256 hash format and a signed stateless
+session cookie.
+
+- maximum PBKDF2 iterations: 100,000, a Worker runtime compatibility ceiling;
+- login attempts: KV-backed throttling, five failures trigger lockout;
+- cookie: `tc_boss`, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`;
+- idle expiry: 30 minutes, refreshed on authenticated requests;
+- absolute session: 8 hours from sign-in, never moved;
+- logout clears the cookie;
+- all private responses: `Cache-Control: no-store` and
+  `X-Robots-Tag: noindex, nofollow`.
+
+State-changing boss requests require same-origin evidence. `Origin: null` from
+a real browser is treated as unavailable; a Referer is accepted only when its
+origin exactly matches the target. Private pages use
+`Referrer-Policy: same-origin` so normal form submissions preserve this signal.
+Cross-origin, malformed and headerless requests are rejected.
+
+Synthetic HTTP tests once supplied Origin/Referer manually and missed the real
+browser failure. Test authentication through the visible browser form after any
+change to headers, policy, cookies, redirects or routes.
+
+## 6. Comment submission controls
+
+The comments endpoint enforces:
+
+- exact route and method handling;
+- same-origin evidence;
+- bounded request size;
+- validated/sanitized slug, name, email and plain-text body;
+- KV rate limiting;
+- Turnstile server-side verification, fail closed;
+- parameterized D1 inserts;
+- `pending` status before public visibility.
+
+Public HTML renders comment bodies as text; stored HTML is neither needed nor
+trusted.
+
+## 7. Comment IP and email model
+
+New comments may store two IP representations:
+
+- `ip_hash`: HMAC keyed by `COMMENT_IP_PEPPER`, used for abuse correlation and
+  throttling; intentionally irreversible;
+- `comment_ip`: nullable raw address for authenticated moderation only.
+
+Migration 0005 added `comment_ip` and `city`; migration 0006 added
+`region_code`. Existing rows are not backfilled because their HMAC cannot be
+reversed. Do not invent raw IP or location for historical comments.
+
+Optional `email` is private moderation/reply context. It is never public.
+
+## 8. Public comment allowlist
+
+The public read SQL names only:
+
+```text
+id, parent_id, display_name, body, created_at
+```
+
+The following must never appear in public comment output:
+
+- `email`
+- `comment_ip`
+- `ip_hash`
+- `user_agent`
+- `country`
+- `city`
+- `region_code`
+- moderation notes
+
+Do not replace the explicit projection with `SELECT *`. Regression tests check
+both SQL and serialized output.
+
+## 9. Geolocation
+
+Country/city/region come from Cloudflare request metadata. No outbound geo-IP
+service or fingerprinting fields are added. The shared private formatter emits
+`City, ST` for US records only when a valid two-letter region exists, city for
+non-US records and `—` when missing. It never invents a state.
+
+## 10. Turnstile and throttling
+
+Staging and production use distinct Turnstile widgets/site keys/secrets.
+The public site key is build-time public configuration; the secret is a Worker
+secret. Missing/invalid verification fails closed before comment insertion or
+notification.
+
+THROTTLE_KV protects comment submission and boss login. The HMAC pepper and
+session secrets differ by environment and must not be reused.
+
+## 11. Resend as a private processor
+
+Resend receives a private moderation notification only after a pending comment
+is stored. Current routing:
+
+- domain: `notify.turkcyber.com`
+- from: `TurkCyber <notifications@notify.turkcyber.com>`
+- to: `admin@turkcyber.com`
+- secret name: `RESEND_API_KEY`
+
+The message may include comment id/status, author, optional email, raw IP,
+location, timestamp, article/path, excerpt and the authenticated moderation
+URL. It must not include passwords, hashes, cookies, API keys, session material
+or Turnstile tokens.
+
+The dedicated sending subdomain has verified DKIM/SPF. Root Hostinger
+receiving-mail DNS was preserved; Resend did not migrate root mail.
+
+## 12. Background failure safety and idempotency
+
+Notification delivery is registered with `ctx.waitUntil()` only after a
+successful D1 insert and public success preparation. Resend/network failure:
+
+- does not reject the comment;
+- does not roll it back;
+- does not change status;
+- does not alter the public 202 response.
+
+The idempotency header is
+`comment-notification/<environment>/<comment-id>`. This is provider-level
+duplicate protection for retries; it is not a general job queue.
+
+Failure logs are structured and limited to event name
+`comment_notification_failed`, comment id, provider and HTTP/network status.
+Do not log the key, email body, IP, email address or comment text.
+
+## 13. Time handling
+
+D1 timestamps remain UTC ISO strings. `local_date` and owner-facing display are
+computed in application code using IANA timezone data. Notification email uses
+`America/Los_Angeles` and resolves PDT/PST through `Intl.DateTimeFormat`; no
+fixed `-7`/`-8` offset is allowed. Tests cover both seasons.
+
+## 14. Analytics privacy boundary
+
+`ANALYTICS_DB` is private and may hold IP, geo, path/referrer and user-agent
+context. `/collect` always returns its pixel; analytics failure is not a public
+page failure. Analytics data is visible only in boss.
+
+The public privacy page intentionally uses concise categories rather than a
+column inventory. It promises visit records are kept at most 90 days. The purge
+is currently manual in boss and touches only `visitor_events`.
+
+The owner explicitly authorized a one-time import of all 1,668 historical
+legacy rows without a 90-day filter. That exception must remain documented and
+must not be mistaken for automatic ongoing retention behavior.
+
+## 15. Analytics import safety
+
+The legacy importer:
+
+- is read-only unless `--write-sql` is explicitly requested;
+- writes SQL only outside the repository;
+- validates IP/field lengths/client/timestamp;
+- rejects impossible and DST-ambiguous timestamps;
+- creates deterministic occurrence-aware record hashes;
+- uses an import ledger for idempotency;
+- contains no delete statement;
+- preserves existing Worker events and never touches APP_DB.
+
+Import SQL contains private source records. Never commit or paste it into logs or
+documentation.
+
+## 16. Contact form
+
+The public contact form submits to the exact Formspree endpoint configured in
+`src/config/site.ts`. The CSP allows that endpoint only. A honeypot reduces
+automated spam. Formspree is an external processor and the privacy page states
+that plainly.
+
+The endpoint URL itself is public configuration. Formspree account credentials
+or dashboard tokens would be secrets and must not be added.
+
+## 17. Secret handling
+
+Allowed in documentation: secret names only.
+
+Deployed secret names:
+
+- `BOSS_USER`
+- `BOSS_PASSWORD_HASH`
+- `SESSION_SECRET`
+- `TURNSTILE_SECRET_KEY`
+- `COMMENT_IP_PEPPER`
+- `RESEND_API_KEY`
+
+Never store or print values, plaintext boss passwords, password hashes, session
+tokens, cookies or `.env.*.local` contents. Use `wrangler secret put` through a
+safe stdin/interactive flow and verify only with `wrangler secret list`.
+
+The public Turnstile site key and Formspree endpoint are not secrets, but still
+must be environment-correct.
+
+## 18. Brand and generated-asset integrity
+
+Owner raster masters and their aggregate fingerprint are recorded in
+`src/brand/identity.json`. Tests validate exact master/derived hashes and
+dimensions and reject duplicate SVG geometry. Generator scripts only crop,
+scale, pad and composite the owner artwork. This prevents a future integration
+from silently replacing the approved mark.
+
+## 19. DNS, routes and rollback security
+
+Production route or DNS changes require explicit owner authorization. Never
+alter MX/SPF/DKIM/DMARC as a side effect of site deployment. Snapshot DNS and
+mail fingerprints before a cutover or rollback.
+
+If a critical Worker regression occurs, detach only the two production Worker
+routes or roll back the Worker version. Preserve Hostinger, D1, KV, comments,
+analytics and mail DNS. Data deletion is not part of route rollback.
+
+## 20. Known security gaps and operational limits
+
+- Boss is password/session based, not Cloudflare Access or hardware-key gated.
+- Analytics retention is manual; missing the operator task can exceed the
+  public 90-day commitment.
+- Resend waitUntil delivery is not a durable queue. Provider idempotency limits
+  duplicates but does not guarantee retry after every platform failure.
+- Google Fonts remains an external request.
+- The recovered live source is committed locally, but the branch has no upstream
+  and is not yet present in remote source control. Push or merge requires explicit
+  owner authorization.

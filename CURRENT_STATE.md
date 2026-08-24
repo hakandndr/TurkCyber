@@ -1,293 +1,351 @@
 # Current state
 
-**Snapshot: 2026-08-23.** Authoritative description of where the project is. If
-anything below disagrees with reality, reality wins and this file needs updating.
-
----
+Authoritative snapshot of TurkCyber as observed on **2026-08-24 03:04 PDT**
+(10:04 UTC). Repository and live runtime checks supersede earlier planning
+documents and historical `PROCESS.md` entries.
 
 ## Headline
 
-Locally complete. **Nothing deployed. No Cloudflare resource exists.
-`turkcyber.com` untouched** — still the legacy Hostinger site.
-
-Third work pass complete: the brand mark now derives from the wordmark's real
-letterforms, a content-type-aware SEO system, two new problem areas
-(**Banka & Kamu Dolandırıcılığı**, **Teknik Derinlik**), 18 new entries, search
-that labels and ranks correctly, two more interactive tools, a reader-first
-privacy page and manual analytics retention in `/boss`.
-
----
-
-## Repository
-
-|             |                                                         |
-| ----------- | ------------------------------------------------------- |
-| Remote      | `https://github.com/hakandndr/turkcyber.git`            |
-| Branch      | `main`                                                  |
-| HEAD        | `1887a3f` — this pass is **uncommitted** in the tree    |
-| Push status | **blocked** — git proxy has not authorised this session |
-| Lockfile    | present (`pnpm-lock.yaml`), resolves cleanly            |
-
-> **Delete `.git\index.lock` before the first local git command.** A `git
-status` run over the desktop bridge leaves one behind and the mount will not
-> let a non-Windows process unlink it.
-
----
-
-## Verification
-
-> **⚠ Not yet verified on Windows.**
->
-> `pnpm check` (0/0/0, 62 files) and `pnpm build` (56 pages) completed against a
-> **one-way copy** of this tree in a cloud container — same files, different
-> machine. That is the strongest honest statement available from there. The
-> block below is what makes it real. See PROCESS.md, 2026-08-23, for why the
-> desktop bridge VM cannot run the toolchain.
-
-```powershell
-cd D:\IT\turkcyber\turkcyber.com
-Remove-Item -Force .git\index.lock -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force _to_delete -ErrorAction SilentlyContinue
-
-# Case 1 — completely clean checkout
-Remove-Item -Recurse -Force dist, .astro, .test-dist -ErrorAction SilentlyContinue
-pnpm test
-
-# Case 2 — deliberately stale build directory
-Remove-Item -Recurse -Force dist, .test-dist -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Force -Path dist\konular\sosyal-medya | Out-Null
-New-Item -ItemType Directory -Force -Path dist\haberler\ornek-haber-sablonu | Out-Null
-'<html>stale</html>' | Set-Content dist\index.html
-'<?xml version="1.0"?><urlset><url><loc>https://turkcyber.com/konular/sifreler-passkeys/</loc></url></urlset>' | Set-Content dist\sitemap.xml
-'[]' | Set-Content dist\search-index.json
-pnpm test
-
-pnpm check ; pnpm lint ; pnpm test ; pnpm build ; pnpm scan:secrets
-```
-
-### The hermetic rule
-
-`pnpm test` never reads `dist/`. `tests/global-setup.ts` deletes `.test-dist/`
-and rebuilds into it on every run, so neither a missing nor a stale `dist/` can
-affect an assertion. `pnpm build` still writes `dist/` and is unrelated.
-
----
-
-## Routes
-
-Public and in the sitemap:
-
-```
-/                          /rehberler/            /rehberler/<slug>/      (16)
-/efsane-mi-gercek-mi/      /efsane-mi-gercek-mi/<slug>/                    (9)
-/teknik/                   /teknik/<slug>/                                 (6)
-/araclar/                  /araclar/<tool>/                                (3)
-/haberler/                 /konular/              /konular/<category>/    (10)
-/hakkinda/                 /iletisim/             /gizlilik/
-/rss.xml                   /sitemap.xml           /search-index.json
-```
-
-Built but `noindex` and excluded from the sitemap: `/ara/`, `/404`.
-
-Worker-owned, never in the static build: `/collect`, `/api/comments`,
-`/boss`, `/boss/{analytics,comments,system,login,logout}`,
-`/boss/comments/{approve,reject,spam,delete}`,
-**`/boss/analytics/purge` (POST only)**.
-
-Total: **56 pages**.
-
----
-
-## Content
-
-|                   |                                       |
-| ----------------- | ------------------------------------- |
-| Published guides  | 16                                    |
-| Published myths   | 9                                     |
-| Technical entries | 6                                     |
-| Published news    | **0**                                 |
-| Draft news        | 1 template (excluded from production) |
-| Interactive tools | 3, all shipped                        |
-| Categories        | 10 — eight `primary`, two `secondary` |
-
-### Taxonomy (changed this pass)
-
-Two categories added: `banka-kamu-dolandiriciligi` and `nasil-calisiyor`.
-Nothing was renamed or removed, so no existing URL changed.
-
-`technical` is a **collection**, not a category — the reader's intent differs
-(a guide answers "what do I do", these answer "why does that work"), and mixing
-them buried the explanations. Entries live at `/teknik/<slug>/` and carry a
-visible `İLERİ SEVİYE` label wherever they are linked.
-
-### The rule the technical lane exists to enforce
-
-No page may claim that clicking a link is categorically safe. `tests/content.test.ts`
-asserts this against the built HTML of
-`/teknik/link-tiklamak-tek-basina-ne-yapar/`, which states the real
-preconditions instead: entering something, sharing a code, approving a
-permission, running a file, or an unpatched vulnerability.
-
----
-
-## SEO
-
-`src/lib/seo.ts` is the single source for titles and structured data.
-
-- Homepage: `TurkCyber | Dijital Güvenlik, Dolandırıcılık ve Hesap Güvenliği Rehberleri`
-- Content: `Başlık · <Tür> | TurkCyber`, degrading to `Başlık | TurkCyber` and
-  then to `Başlık` rather than truncating. Frontmatter `seoTitle` wins outright.
-- Every page: canonical, OG, Twitter card. Drafts carry `noindex`.
-- JSON-LD is emitted as an `@graph`: Article / NewsArticle / TechArticle, a real
-  `ClaimReview` for myths (verdict → three-point rating), CollectionPage on
-  listings, and a BreadcrumbList that matches the visible breadcrumb.
-- **No invented credentials.** The house byline is emitted as an `Organization`,
-  never a `Person`. There is no `aggregateRating`, no `sameAs`, no `jobTitle`.
-
----
-
-## Search
-
-Static, privacy-preserving, no server request. Turkish folding unchanged
-(`İ`→`i`, `I`→`ı`, then diacritics).
-
-Content types: **REHBER · EFSANE · HABER · TEKNİK · ARAÇ**. Myths were
-previously labelled HABER — the opposite of what the page is.
-
-Ranking, in the stated priority order: exact title → title starts with → title
-contains → tags and category → summary → body. Whole-query tiers are applied
-above per-field weights, with gaps larger than any per-field total, so an exact
-title cannot be outranked by accumulated body hits.
-
-Shipped tools are in the index; `planned` tools are not.
-
----
-
-## Databases
-
-Migrations written; **none applied anywhere** — no D1 database exists.
-
-```
-migrations/app/        0001_comments.sql
-                       0002_comment_indexes.sql
-                       0003_audit_events.sql
-                       0004_comment_email.sql
-migrations/analytics/  0001_visitor_events.sql
-```
-
-**No migration was added this pass.**
-
----
-
-## Analytics retention
-
-`/gizlilik/` states visitor records are kept for **at most 90 days**. The
-mechanism behind that sentence is a manual panel on `/boss/system/`:
-
-- shows oldest, newest, total, and the count older than 90 days
-- offers a delete **only when there is something to delete**, with the count in
-  the button's own label
-- requires the confirmation phrase `SIL` to be typed
-- `POST /boss/analytics/purge`, same-origin, session-required, audited
-- touches **`visitor_events` in ANALYTICS_DB only** — a test asserts APP_DB
-  never receives a `DELETE`
-
-It is deliberately manual: nothing runs it on a schedule. An unattended DELETE
-against the only copy of the history is one bug away from destroying it, and the
-legacy import has not happened yet. If this ever becomes automatic,
-`/gizlilik/` changes in the same commit.
-
----
-
-## Brand
-
-`scripts/brandmark.py` holds the mark as geometry — JetBrains Mono Bold
-outlines for `< T C / >`, embedded as SVG path data. The favicon, the app icons
-and the OG card all derive from it, so they cannot drift into being a different
-mark. Regenerate with `python3 scripts/generate-icons.py` and
-`python3 scripts/generate-og-default.py` (Pillow only).
-
-Colour roles, identical in `Logo.astro`, the icons and the `/boss` header:
-brackets faint grey, **T** warm white, **C** Turkish red (the only accent),
-**slash neutral grey — never green**.
-
-Icons carry the reduced `TC/`: the full five-glyph composition is not legible in
-a 16px tab. The OG card, which has room, carries the full `<TC/>`.
-
-Heritage wording is `2005'ten bugüne`, from `HERITAGE` in `src/config/site.ts`.
-No copy anywhere claims uninterrupted publication.
-
----
-
-## Configuration
-
-| Variable                    | State                                               |
-| --------------------------- | --------------------------------------------------- |
-| `PUBLIC_FORMSPREE_ENDPOINT` | unset — falls back to the committed public endpoint |
-| `SHOW_UNPUBLISHED`          | `.env.development` only; defaults closed elsewhere  |
-| All secrets                 | unset; no environment provisioned                   |
-
----
-
-## Legacy analytics
-
-**Not imported.** Export (~1,661 records) not supplied.
-`scripts/import-legacy-analytics.mjs` is written, smoke-tested, DST-correct,
-non-deduplicating, re-runnable, and never executes against a database itself.
-
-> Do not run the retention purge after importing legacy records without checking
-> their dates first — anything older than 90 days would be deleted immediately.
-
----
-
-## Cloudflare
-
-Nothing created. Required at provisioning: Workers `turkcyber-staging` /
-`turkcyber-production`; D1 `turkcyber-{app,analytics}-{staging,production}`;
-a KV namespace per environment; a Turnstile widget per environment.
-All `database_id` values in `wrangler.jsonc` are `REPLACE_WITH_*` placeholders.
-
----
-
-## Production
-
-`turkcyber.com` → legacy Hostinger site. **Unchanged.** No Hostinger file read,
-modified or deleted. `env.production.routes` is deliberately `[]`.
-
----
-
-## Blockers
-
-1. **Windows verification** of this pass — the command block above.
-2. **Cloudflare credentials** — no account access from the build environment.
-3. **Git push** — proxy has not authorised this repository for the session.
-4. **Legacy analytics export** — owner to supply.
-
----
-
-## Suggested commits
-
-```
-feat(brand): derive every icon from the wordmark's own letterforms
-feat(seo): content-type titles, breadcrumbs and honest structured data
-feat(content): banking-fraud area and the technical-depth lane
-feat(search): correct content types and relevance ordering
-feat(tools): Instagram security check and account security score
-feat(boss): manual analytics retention, and a reader-first privacy page
-chore(ui): tighten footer rhythm
-docs: reconcile PROCESS, CURRENT_STATE and HANDOFF
-```
-
----
-
-## Exact next step
-
-```powershell
-cd D:\IT\turkcyber\turkcyber.com
-Remove-Item -Force .git\index.lock -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force _to_delete -ErrorAction SilentlyContinue
-pnpm check ; pnpm lint ; pnpm test ; pnpm build ; pnpm scan:secrets
-```
-
-Then commit, then `PRODUCTION_CUTOVER.md` **phase A**. Astro 7 migration
-afterwards, as its own isolated task.
+**Production is live. Staging is healthy.** Cloudflare Worker routes serve the
+static Astro site and dynamic services at both environments. Production data,
+comments, moderation, analytics, Turnstile and Resend notifications are active.
+
+The deployed post-launch brand, runtime, migration, notification, importer and
+routing source is now represented by coherent local commits. The recovery tree
+is clean after the documentation finalization commit; the remaining source-control
+boundary is that the branch has no upstream and has not been pushed.
+
+## Repository and Git
+
+| Item                       | Current value                                                  |
+| -------------------------- | -------------------------------------------------------------- |
+| Repository                 | `D:\IT\turkcyber\turkcyber.com`                                |
+| Branch                     | `codex/recovery-2026-08-23`                                    |
+| Live implementation parent | `741332ad26f7b9f01d029f35be50cb7f5d38cd7a`                     |
+| Parent subject             | `chore(release): record live production routing`               |
+| Final HEAD                 | the documentation finalization commit containing this snapshot |
+| Relation to local `main`   | 14 commits ahead, 0 behind after the documentation commit      |
+| Staged changes             | none after finalization                                        |
+| Working tree               | clean after finalization                                       |
+| Remote                     | `https://github.com/hakandndr/turkcyber.git`                   |
+| Push state                 | branch has no upstream and has not been pushed                 |
+
+The committed history now reproduces the live source state. Recovery snapshots
+remain external to the repository; ignored `.env.*` and `.dev.vars` files remain
+owner-local and untracked.
+
+## Live environments
+
+### Production
+
+| Item            | Current value                                            |
+| --------------- | -------------------------------------------------------- |
+| Status          | **LIVE**, HTTP 200                                       |
+| Worker          | `turkcyber-production`                                   |
+| Active version  | `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3` at 100%           |
+| Routes          | `turkcyber.com/*`, `www.turkcyber.com/*`                 |
+| HSTS            | enabled                                                  |
+| Global noindex  | absent                                                   |
+| Search page     | `/ara/` intentionally has page-level `noindex`           |
+| Rollback origin | legacy Hostinger origin retained behind the Worker route |
+
+### Staging
+
+| Item           | Current value                                  |
+| -------------- | ---------------------------------------------- |
+| Status         | healthy, HTTP 200                              |
+| Worker         | `turkcyber-staging`                            |
+| Active version | `a854e11b-df2c-422b-a009-adf93cc72949` at 100% |
+| Host/route     | `turkcyber-staging.dndr.net/*`                 |
+| Indexing       | `X-Robots-Tag: noindex, nofollow`              |
+| HSTS           | absent, intentionally                          |
+
+Staging and production use distinct Turnstile public keys and separate Worker
+secrets/resources.
+
+## Runtime architecture
+
+Astro builds 57 static pages. `worker/index.ts` runs first for every routed
+request because `assets.run_worker_first` is enabled, handles dynamic routes,
+then serves `dist/` through the `ASSETS` binding. This is required so the
+Worker-owned CSP and security headers are applied to static HTML.
+
+Dynamic routes:
+
+- `/collect` — first-party analytics pixel; database writes are deferred and a
+  pixel is returned even when analytics fails.
+- `/api/comments` — approved-comment reads and moderated comment submissions.
+- `/boss/*` — private operational console.
+- all other paths — static Astro assets/pages through `ASSETS`.
+
+The contact form remains external and submits only to the configured Formspree
+endpoint `https://formspree.io/f/mljrvker`.
+
+## Cloudflare resources
+
+Resource identifiers are non-secret and already tracked in `wrangler.jsonc`.
+
+| Environment | Binding        | Resource                               | ID                                     |
+| ----------- | -------------- | -------------------------------------- | -------------------------------------- |
+| staging     | `APP_DB`       | `turkcyber-app-staging`                | `b5b90da3-0620-46e5-be5c-0efabff7ce68` |
+| staging     | `ANALYTICS_DB` | `turkcyber-analytics-staging`          | `6ed98f3d-e168-4e98-9741-9bd2fb7749ac` |
+| staging     | `THROTTLE_KV`  | `turkcyber-turkcyber-throttle-staging` | `fdc6c7f6db5e45638f59629b253c66ad`     |
+| production  | `APP_DB`       | `turkcyber-app-production`             | `ed222620-e45f-44bc-81ff-993d0ae0153a` |
+| production  | `ANALYTICS_DB` | `turkcyber-analytics-production`       | `88d4d7f8-1062-4023-bded-515151b22774` |
+| production  | `THROTTLE_KV`  | production throttle namespace          | `5e366c357bb24886b7de2502a55e7bcc`     |
+
+Both deployed environments have these secret **names** configured:
+
+- `BOSS_USER`
+- `BOSS_PASSWORD_HASH`
+- `SESSION_SECRET`
+- `TURNSTILE_SECRET_KEY`
+- `COMMENT_IP_PEPPER`
+- `RESEND_API_KEY`
+
+No secret values belong in Git or documentation.
+
+## Migrations
+
+Both APP databases have all six migrations recorded in `app_migrations`:
+
+1. `0001_comments.sql`
+2. `0002_comment_indexes.sql`
+3. `0003_audit_events.sql`
+4. `0004_comment_email.sql`
+5. `0005_comment_moderation_metadata.sql`
+6. `0006_comment_region_code.sql`
+
+Both analytics databases have `0001_visitor_events.sql` recorded in
+`analytics_migrations`. Migrations are append-only; older migration comments
+describe the schema at that historical point and are superseded by later
+additive migrations.
+
+## Content and public pages
+
+Current content inventory:
+
+| Type              | Count/state                                    |
+| ----------------- | ---------------------------------------------- |
+| Guides            | 16 published MDX entries                       |
+| Myths             | 9 published MDX entries                        |
+| Technical         | 6 published MDX entries                        |
+| News              | 1 draft template; no fabricated published news |
+| Interactive tools | 3 client-only tools                            |
+| Categories        | 10, defined once in `src/config/site.ts`       |
+
+Primary public routes include `/`, `/icerikler/`, `/rehberler/`,
+`/efsane-mi-gercek-mi/`, `/teknik/`, `/araclar/`, `/haberler/`, `/konular/`,
+`/hakkinda/`, `/iletisim/`, `/gizlilik/` and `/ara/`.
+
+Only `status: published` content enters production, RSS, sitemap and search.
+`SHOW_UNPUBLISHED` is an explicit local opt-in and defaults closed. Tests build
+their own `.test-dist/`; they do not depend on ignored `.env.development` or a
+developer's `dist/`.
+
+## Navigation, search and responsive behavior
+
+- The header groups five destinations under **İçerikler**.
+- The label is a real `/icerikler/` link; the adjacent chevron toggles the menu.
+- Fine-pointer hover, focus, Escape and outside-click paths are supported.
+- Explicit toggle state prevents hover/focus from immediately undoing a
+  chevron click.
+- Mobile uses an accessible drawer; `public/no-js.css` keeps destinations
+  reachable without JavaScript.
+- Search triggers remain real `/ara/` links without JavaScript.
+- With JavaScript, the search dialog closes on Escape or backdrop click, ignores
+  clicks inside its panel, restores trigger focus, clears scroll lock and can be
+  reopened.
+- Mobile checks at 390, 360 and 320 px found no document overflow during the
+  release verification.
+
+## Design and brand
+
+The current experience uses restrained security-engineering structure:
+framing rails, route boundary, scroll-progress rail, indexed 01–07 homepage
+sections, WHOIS dossier, system-map content hub, tool-console framing,
+engineering article rails and small Boundary Trace interactions. It avoids
+fake telemetry, decorative code noise, gamer/cyberpunk styling and artificial
+navigation delays.
+
+The production identity is the owner-approved **Kod Parantezi** raster master
+pack:
+
+- canonical metadata: `src/brand/identity.json`
+- canonical owner masters: `src/brand/masters/*.png`
+- generated display lockup/emblem: `public/brand/*.webp`
+- derived 16/32/180/192/512 icons and `public/og/default.png`
+- `Logo.astro`, footer and `/boss` consume the same metadata/derivatives
+- hash and dimension tests prevent drift
+
+Brand red (`#d71920`, with a higher-contrast red for small UI text/focus) is the
+primary brand accent. Green is reserved mainly for semantic success, verified,
+human/healthy and approved states. Cyan remains only where it conveys
+information/technical meaning, not as the logo identity. The owner may refine
+the visual masters later; they are not declared immutable forever.
+
+## SEO and discovery
+
+- canonical URLs, structured data, descriptions and content-aware titles are
+  emitted by the Astro layouts.
+- `https://turkcyber.com/sitemap.xml`, `/robots.txt`, `/rss.xml` and
+  `/search-index.json` are live.
+- `/boss` is absent from public discovery, blocked in robots and always private.
+- Production is indexable globally; `/ara/` alone is intentionally noindex.
+- The site is technically ready for Search Console sitemap submission. Property
+  ownership/submission status is an external owner operation and was not
+  established by this audit.
+
+## Comments and moderation
+
+Submission order is:
+
+1. same-origin and request validation
+2. throttle check
+3. Turnstile verification, fail closed
+4. pending insert into `APP_DB`
+5. throttle increment
+6. public HTTP 202 success
+7. background owner notification through `ctx.waitUntil()`
+
+Stored comment fields include author, body, status, UTC timestamp, article,
+optional email, keyed `ip_hash`, private `comment_ip`, country, city and
+`region_code`. `ip_hash` remains the abuse/throttle identifier and cannot be
+reversed. Historical comments created before migration 0005 cannot have raw IP
+recovered or invented.
+
+The public read query explicitly selects only `id`, `parent_id`,
+`display_name`, `body` and `created_at`. It never exposes email, raw IP, IP
+hash, country, city or region. Authenticated `/boss/comments/` displays the
+private context with `—` fallbacks and supports approve, reject, spam and
+delete. Audit events record mutations. A pending-only badge appears across the
+boss navigation and is hidden at zero.
+
+Location formatting is shared: US rows render `City, ST` when a real two-letter
+region exists; non-US rows use city by default; missing data renders `—`.
+Nothing invents a state.
+
+## Resend comment notification
+
+| Item           | Current value                                        |
+| -------------- | ---------------------------------------------------- |
+| Provider       | Resend                                               |
+| Sending domain | `notify.turkcyber.com` (verified; DKIM/SPF verified) |
+| From           | `TurkCyber <notifications@notify.turkcyber.com>`     |
+| To             | `admin@turkcyber.com`                                |
+| Subject        | `TurkCyber — Yeni yorum bekliyor`                    |
+| Helper         | `worker/lib/comment-notification.ts`                 |
+| Secret name    | `RESEND_API_KEY`                                     |
+
+Notifications include operational moderation context and a link to
+`https://turkcyber.com/boss/comments/`. Delivery is secondary: failures are
+logged as `comment_notification_failed` with comment id, provider and status,
+without private comment content or keys; they cannot reject or roll back the
+stored comment.
+
+The provider idempotency key is
+`comment-notification/<environment>/<comment-id>`. The real staging test used
+`comment-notification/staging/3`; a duplicate replay returned 409 and the owner
+confirmed exactly one message. Staging comment 3 was verified in boss and then
+deleted safely; its row no longer exists.
+
+Database timestamps remain UTC. Notification presentation uses the configured
+`America/Los_Angeles` timezone through `Intl.DateTimeFormat`, including DST.
+Example: `2026-08-24T08:57:48.621Z` displays as
+`Aug 24, 2026 · 1:57 AM PDT`. Tests cover both PDT and PST.
+
+## Analytics
+
+`ANALYTICS_DB` stores first-party Worker events separately from application
+data. New events include UTC timestamp, Los Angeles `local_date`, host/path,
+referrer, IP, Cloudflare country/region/city/ASN, device/browser/user agent and
+`source='worker'`. `/collect` always returns its GIF and performs D1 writes in
+`ctx.waitUntil()`.
+
+Production counts at this snapshot:
+
+- `legacy_analytics_log`: **1,668**
+- `worker`: **23** (live count; expected to increase)
+- import ledger: 1,668 distinct hashes and event ids, 0 orphaned
+
+The owner-authorized one-time import used `D:\analytics.log`, interpreted in
+`America/Los_Angeles` with DST-aware conversion. All 1,668 rows parsed; 0 were
+rejected and **no 90-day filter** was applied. Repeated legitimate visits were
+preserved. Imported UTC range:
+`2025-05-15T00:41:22.000Z`–`2026-08-23T22:55:15.000Z`.
+
+The public privacy commitment remains a maximum 90-day visit-record retention
+period. Operational purge is manual in `/boss/system/`, affects only
+`visitor_events`, and is not scheduled. The historical import was an explicit
+owner-authorized exception; no historical rows were purged during import.
+
+## Boss authentication and privacy
+
+- PBKDF2-SHA256 hashes use the repository's bounded Worker-compatible format.
+- Five failed attempts trigger KV-backed lockout.
+- The signed `tc_boss` cookie is `Secure`, `HttpOnly`, `SameSite=Lax`, 30-minute
+  rolling idle expiry, with an 8-hour absolute anchor.
+- State-changing actions require same-origin evidence.
+- `Origin: null` is treated as unavailable and may fall back only to a verified
+  same-origin Referer; cross-origin and headerless requests remain rejected.
+- Every boss response is `no-store` and `noindex, nofollow`.
+- Attacker-controlled fields are HTML-escaped before private rendering.
+
+## Security headers and external processors
+
+The Worker applies a strict public CSP. Executable scripts are same-origin
+Astro assets plus Cloudflare Turnstile; `script-src` does not contain
+`unsafe-inline`. Formspree is allowed only at its exact endpoint in
+`form-action` and `connect-src`. `frame-ancestors 'none'`, `object-src 'none'`,
+`base-uri 'self'`, `nosniff`, a restrictive permissions policy and a referrer
+policy are present. Production alone receives HSTS.
+
+External processors are limited to Cloudflare, Formspree for the contact form,
+Resend for private moderation email, and Google Fonts. The public privacy page
+is intentionally concise and does not expose a backend-column inventory.
+
+## DNS, mail and rollback
+
+The production Worker route overlays the existing zone/origin configuration;
+mail DNS was not changed during cutover. The 2026-08-24 audit recorded:
+
+- root MX record-set count 2, fingerprint
+  `7b16544d962c0f51b60165a35c3dff615a0d4fcf726ec98a5379daac007b1942`
+- root TXT record-set count 2, fingerprint
+  `b3d82304cafa0d954db7626e783f13cc373d02a44b1f46246dd4f01c464378a1`
+- `notify.turkcyber.com` TXT count 1, fingerprint
+  `30ceeb1f540d635f50c3b09fa5716cd359769f821c9a48889208786d64d95e68`
+
+The dedicated `notify.turkcyber.com` sending subdomain did not migrate or
+replace Hostinger root-domain receiving mail.
+
+Rollback for a critical Worker failure is to detach the two production Worker
+routes, allowing the retained legacy origin behavior to serve again. Do not
+delete D1/KV data or the legacy Hostinger copy during rollback. Route changes
+require explicit owner authorization.
+
+## Verification snapshot
+
+Latest completed local verification after the notification-timezone fix:
+
+- Astro check: 0 errors, warnings or hints
+- Worker TypeScript: pass
+- ESLint: pass
+- Prettier: pass
+- Vitest: **215/215**, 9 files
+- production build: 57 pages
+- secret scan: clean, 167 tracked files checked
+- `git diff --check`: pass
+- staging and production HTTP: 200
+
+## Remaining real work
+
+1. Review the recovered commit sequence and push or merge it only with explicit
+   owner authorization; the branch currently has no upstream.
+2. Owner may refine the current logo masters later; integrations should remain
+   metadata-driven and must not introduce independent geometry.
+3. Confirm Search Console property ownership and submit the live sitemap if the
+   owner has not already done so.
+4. Continue routine moderation and the manual 90-day analytics-retention check.
+
+There is no known runtime blocker at this snapshot.

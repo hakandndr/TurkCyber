@@ -526,3 +526,1059 @@ upgraded.
 1. Delete `.git\index.lock` and `_to_delete\`.
 2. Run the verification block in CURRENT_STATE.md.
 3. Commit in the logical groups listed there.
+
+---
+
+## 2026-08-23 (second entry) — Brand mark redrawn, heritage copy, footer, and the /teknik lane redefined
+
+### What was requested
+
+A focused polish pass on top of `fffedce`, explicitly bounded: no redesign, no
+variant exploration, no dependency upgrades, no deployment, no large batch of
+new articles, and **no commit** — the owner runs Windows verification first.
+
+Four goals: refine the `<TC/>` mark into a deliberately drawn vector rather
+than font glyphs; rewrite the homepage WHOIS narrative and the header heritage
+line; simplify the footer and fix a reported horizontal-overflow/clipping
+issue; and redefine `/teknik` as an engineering lane, demonstrated by
+substantially upgrading one existing article.
+
+### Files changed
+
+| File                                                                    | Change                                                                                                                                                                                                                    |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/brandmark.py`                                                  | **Rewritten.** The mark is now constructed geometry — strokes, a true circular arc, round caps — instead of extracted JetBrains Mono outlines. Adds `ICON_WEIGHT_SCALE` for optical sizing.                               |
+| `scripts/generate-icons.py`                                             | Uses the drawn geometry and the icon weight scale; emits a stroke-based `favicon.svg`.                                                                                                                                    |
+| `public/favicon.svg`, `public/{apple-touch-icon,icon-192,icon-512}.png` | Regenerated.                                                                                                                                                                                                              |
+| `src/components/Logo.astro`                                             | **Rewritten** as inline SVG on the same 144 × 48 grid as `brandmark.py`. No monospace text anywhere in the mark.                                                                                                          |
+| `src/config/site.ts`                                                    | `HERITAGE.badge` → `2005'ten bugüne…`; `HERITAGE.footer` replaced by `HERITAGE.mission`; `HERITAGE.about` reworded, `TurkCyber.com` capitalisation, and now says plainly that no unbroken publication history is claimed. |
+| `src/components/Footer.astro`                                           | Brand column reduced to mark + mission + heritage line. `Kuruluş: 2005` removed. Grid track floor fixed.                                                                                                                  |
+| `src/pages/index.astro`                                                 | WHOIS narrative rewritten.                                                                                                                                                                                                |
+| `src/pages/teknik/index.astro`                                          | Lane positioning: what qualifies as a technical entry, and the two accuracy rules.                                                                                                                                        |
+| `src/content/technical/oturum-cerezi-nedir-ve-neden-calinir.mdx`        | **Substantially upgraded** as the reference implementation of the format.                                                                                                                                                 |
+| `src/layouts/ArticleLayout.astro`                                       | Styles for the mechanism diagrams (`.flow`, `.targets`).                                                                                                                                                                  |
+
+### Schema / migration changes
+
+**None.** No collection field, no migration, no route added or removed.
+
+### The brand mark: what was wrong and what replaced it
+
+The previous mark was rendered in JetBrains Mono Bold — first as live text,
+then as extracted outlines. Both read as a terminal screenshot rather than as a
+mark, for two structural reasons rather than aesthetic ones:
+
+1. **A monospace advance grid decides the spacing.** A wide `C` and a narrow
+   `/` get the same box, so the composition is the font's, not the brand's.
+2. **The glyph geometry is whatever the face does** — including a slash running
+   from the descender to above the cap, which had to be scaled down by hand
+   every time.
+
+It is now drawn: constant stroke weight, round caps and joins, a true circular
+arc for the `C` opened 52° on the right, chevrons at a lighter weight, and a
+slash bounded by the cap height. One 144 × 48 coordinate space, shared by
+`Logo.astro` and `brandmark.py`.
+
+`ICON_WEIGHT_SCALE = 2.2` exists because the header mark's weights are under
+one device pixel at 16px and turn to grey mush. Icons thicken every stroke by a
+constant factor — ordinary optical sizing, same drawing, not a second mark.
+
+**Only one version was produced.** No variant sheet, per the brief. Two
+renders were inspected: the first showed the 16px icon illegible, which is what
+`ICON_WEIGHT_SCALE` fixed.
+
+### The footer clipping report
+
+The reported symptom — the brand column clipped at some search-page widths —
+traced to `grid-template-columns: minmax(0, 1.6fr) …`. A `0` minimum lets the
+grid compress that track below the intrinsic width of the mark, so the logo was
+pushed outside the container. Floored at `min-content`, and `overflow-wrap:
+anywhere` added to the columns so long content wraps instead of widening the
+grid. The three-group layout is otherwise untouched.
+
+### What /teknik now means
+
+The bar is a **mechanism**, not a longer explanation. An entry qualifies when it
+can name the components involved, the order they run in, the assumption each
+depends on, and what happens when that assumption fails.
+
+`/teknik/oturum-cerezi-nedir-ve-neden-calinir/` is the reference
+implementation and now carries: a nine-step request/auth/session flow from
+browser through CDN, application, credential verification, rate limiting, risk
+evaluation, MFA and session issuance; a real `Set-Cookie` header read attribute
+by attribute with what breaks when each is removed; an explicit "what the
+attacker targets" section (session token, AiTM, OAuth consent, recovery
+channel, the human); and a security-boundary table pairing each layer with its
+assumption and the failure mode.
+
+The consumer-friendly answer was **not** removed — it is the first section, and
+the engineering sits underneath it.
+
+**Accuracy rule, applied.** The Meta/Instagram section separates (1) publicly
+observable and documented behaviour from (2) the simplified industry-standard
+model used to explain it, and states outright that Meta's internal design is
+not public and is not being claimed. The conclusion is hedged accordingly:
+password-only access generally does not suffice — "does not suffice" is not
+"impossible", because a low-risk sign-in may not be challenged at all.
+
+Diagrams are semantic markup — an ordered list with `data-risk` on the steps
+attackers target — not images. They stay selectable, searchable, translatable,
+readable in order by a screen reader, and legible without CSS.
+
+### Errors encountered
+
+1. **The 16px icon was illegible on the first render.** Stroke weights that
+   read as precise at 24px cap height fell under one device pixel. Fixed with
+   `ICON_WEIGHT_SCALE`, not by redrawing.
+2. **A `.replace()` batch aborted on its first miss** while editing
+   `src/pages/teknik/index.astro` — the target text differed from the version in
+   context because Prettier had reformatted it earlier. The helper exits on a
+   missed anchor rather than silently no-opping, which is why this surfaced as a
+   `MISS` line instead of a wrong file. Re-read the file and re-applied.
+3. **`pnpm lint` failed on Prettier formatting** in the two files written this
+   pass. Formatted in the verification container and the formatted copies
+   written back to the mount — content-identical, formatting only.
+
+### Commands run and their actual results
+
+In the cloud container, against a one-way copy of the mounted tree (see the
+previous entry for why the desktop bridge VM cannot run the toolchain):
+
+| Command             | Result                                                                         |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `pnpm check`        | **0 errors, 0 warnings, 0 hints** (62 files)                                   |
+| `pnpm test`         | **168 passed (168)**, 6 files — the pre-existing baseline, unchanged           |
+| `pnpm build`        | **56 pages** — unchanged, as intended                                          |
+| `pnpm lint`         | red on two Prettier files, green after formatting                              |
+| `pnpm scan:secrets` | not runnable there — the container copy has no `.git`. Must be run on Windows. |
+
+### Verification status
+
+`verification pending on owner's Windows machine`. `pnpm scan:secrets` in
+particular has **not** run anywhere in this pass.
+
+### Git state
+
+`fffedce`, working tree dirty. **Deliberately not committed** — the owner runs
+Windows verification first. No git command was run over the bridge this pass,
+so no new `.git/index.lock` should exist.
+
+### Staging / production state
+
+Untouched. No Cloudflare resource, `turkcyber.com` still the legacy Hostinger
+site, `env.production.routes` still `[]`, Astro not upgraded.
+
+### Next action
+
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
+pnpm check && pnpm lint && pnpm test && pnpm build && pnpm scan:secrets
+git diff --check
+git status
+git diff --stat
+```
+
+---
+
+## 2026-08-24 — Recovery, staged release, production cutover and post-launch operations
+
+This entry corrects and supersedes the operational state recorded above. Earlier
+entries remain unchanged because this file is append-only.
+
+### Request and scope
+
+The owner authorized a controlled recovery of the dirty repository, separation of
+independent feature groups, staging-first release validation, production backend
+provisioning, legacy analytics import, production cutover, and narrowly scoped
+post-launch improvements. Work was intentionally split so rejected brand work and
+unrelated local changes were never committed wholesale.
+
+### Recovery point and repository separation
+
+Before source modification, an external forensic snapshot was created at:
+
+`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-forensic-snapshot-2026-08-23-015156`
+
+It contains:
+
+- `git-status-short.txt`
+- `git-diff-stat.txt`
+- `git-diff-name-status.txt`
+- `dirty-working-tree.binary.patch`
+- `src-pages-icerikler.astro`
+- `env.development.nonsecret-snapshot`
+- `MANIFEST.txt`
+- `SHA256SUMS.txt`
+
+Recovery continued on `codex/recovery-2026-08-23`. The dirty tree was not
+committed wholesale. Approved work was isolated into these commits:
+
+- `41b5e05 feat(nav): group content navigation and add the content hub`
+- `11eebc6 feat(ui): refine homepage, footer and empty states`
+- `84747d5 feat(teknik): expand the engineering lane and security diagrams`
+- `855f756 feat(ui): establish the TurkCyber security-engineering experience`
+- `2e4ca22 fix(release): resolve CSP, clean-checkout and staging blockers`
+- `aa1fcd0 fix(release): complete staging runtime and boss authentication`
+- `d33d89a feat(ui): polish staging navigation, footer and boss console`
+- `272e56f fix(ui): close search correctly and simplify privacy copy`
+- `bdd5205 chore(release): provision production backend resources`
+
+Rejected boot overlay, artificial 110 ms internal-navigation delay and signal
+dropout animation were removed without discarding the approved navigation and
+responsive work. Brand experiments stayed separate until the owner supplied the
+approved visual masters.
+
+Rejected visual directions included early flat `<TC/>` and red-C/Sora lockups,
+rounded-square favicons, hand-drawn wordmarks that read as graffiti, TC frame and
+boundary-node studies, and progressively brighter green/cyan treatments. The owner
+also rejected AI as final logo authority. Those failures established the current
+rule: brand exploration is isolated from product/release work and owner visual
+direction overrides aesthetic inference.
+
+### Product and content work completed
+
+- Grouped desktop navigation, `/icerikler/` hub and accessible mobile drawer.
+- Homepage WHOIS dossier, restrained metadata and responsive presentation.
+- Footer and empty-state cleanup.
+- A distinct engineering lane with reusable architecture, boundary and attack-path
+  diagram vocabulary.
+- CSS-first page arrival, route boundary, indexed sections, structural card/list
+  differentiation, reduced-motion and forced-colors safeguards.
+- Search closes on Escape or backdrop click and restores trigger focus.
+- The public privacy page is concise and retains the 90-day commitment.
+- The final owner-supplied red/silver raster identity is canonical through
+  `src/brand/identity.json`; generated favicon, app-icon and OG outputs derive from
+  those masters. Red is the brand accent, green is semantic, and cyan is limited to
+  informational/technical contexts.
+
+The navigation label remains a direct link while its chevron is an independent
+control. Fine-pointer hover, focus traversal, Escape and outside-click behavior are
+supported. A discovered interaction bug allowed hover/focus-derived state to undo a
+chevron click; explicit toggle state now owns the click decision instead of letting
+incidental hover/focus reverse it. Search retains a real `/ara/` fallback.
+
+### Release-blocker fixes
+
+- Executable scripts are externalized; the Worker CSP does not require
+  `unsafe-inline`.
+- `form-action` and `connect-src` allow only the approved Formspree endpoint.
+- Tests no longer depend on ignored developer environment files.
+- The no-JavaScript mobile-navigation fallback is an external stylesheet.
+- `assets.run_worker_first` was enabled after live staging showed that Cloudflare's
+  static asset layer could otherwise answer HTML without the Worker-owned security
+  headers. Worker-first ASSETS fallback is therefore a security boundary, not an
+  optional routing preference.
+- Staging uses a full-host route while production stayed unrouted until explicit
+  cutover authorization.
+- Placeholder resource identifiers were replaced only after the corresponding
+  environment resources existed.
+
+### Staging infrastructure and verification
+
+Staging resources:
+
+- `turkcyber-app-staging` — `b5b90da3-0620-46e5-be5c-0efabff7ce68`
+- `turkcyber-analytics-staging` — `6ed98f3d-e168-4e98-9741-9bd2fb7749ac`
+- throttle KV — `fdc6c7f6db5e45638f59629b253c66ad`
+- route — `turkcyber-staging.dndr.net/*`
+- current deployment — `a854e11b-df2c-422b-a009-adf93cc72949`
+
+Secrets were configured independently and never written to tracked files. The live
+staging site, public routes, assets, CSP, Formspree, comments, Turnstile, analytics,
+`/boss`, responsive layouts and no-JavaScript navigation were exercised before
+production authorization.
+
+The first synthetic boss-authentication smoke test missed a real-browser failure:
+it supplied headers that the visible form did not. The browser POST arrived with an
+unusable `Origin` condition under the old referrer policy and was rejected before
+credential verification. Same-origin validation now accepts a verified same-origin
+`Referer` when `Origin` is unavailable/null, while cross-origin and headerless
+requests still fail. The session remains Secure, HttpOnly and SameSite=Lax.
+
+### Production backend and cutover
+
+Production resources:
+
+- `turkcyber-app-production` — `ed222620-e45f-44bc-81ff-993d0ae0153a`
+- `turkcyber-analytics-production` — `88d4d7f8-1062-4023-bded-515151b22774`
+- throttle KV — `5e366c357bb24886b7de2502a55e7bcc`
+
+All required secret names are present in both environments:
+`BOSS_USER`, `BOSS_PASSWORD_HASH`, `SESSION_SECRET`,
+`TURNSTILE_SECRET_KEY`, `COMMENT_IP_PEPPER`, and `RESEND_API_KEY`.
+Values were neither printed nor committed.
+
+APP migrations applied in staging and production:
+
+1. `0001_comments.sql`
+2. `0002_comment_indexes.sql`
+3. `0003_audit_events.sql`
+4. `0004_comment_email.sql`
+5. `0005_comment_moderation_metadata.sql`
+6. `0006_comment_region_code.sql`
+
+ANALYTICS migration `0001_visitor_events.sql` is applied in both environments.
+
+After explicit owner authorization, production deployment
+`c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3` was attached to only:
+
+- `turkcyber.com/*`
+- `www.turkcyber.com/*`
+
+Production public pages, assets, search, navigation, responsive/no-JavaScript
+behavior, Turnstile, `/boss`, analytics and security headers passed live smoke
+tests. Production does not emit the staging noindex header. Hostinger remains
+available behind the Worker routes as the immediate rollback origin. Mail DNS was
+fingerprinted before and after cutover and was not changed.
+
+### Legacy analytics import
+
+The owner supplied `D:\analytics.log` and explicitly authorized a full-history
+import using `America/Los_Angeles`; no 90-day filter or purge was applied.
+
+- input SHA-256:
+  `ce606c8cd8b36beab280a875741454ed1510c6bec5a0edcc87482aea0fe2255c`
+- source rows: 1,668
+- valid rows: 1,668
+- malformed rows: 0
+- repeated source rows preserved as distinct occurrences: 15
+- filtered by age: 0
+- imported source: `legacy_analytics_log`
+- source-local range: `2025-05-14 17:41:22` to `2026-08-23 15:55:15`
+- UTC range: `2025-05-15T00:41:22.000Z` to
+  `2026-08-23T22:55:15.000Z`
+
+The importer uses deterministic, occurrence-aware source identities and the
+`legacy_analytics_imports` ledger. A rerun inserted nothing: all 1,668 ledger
+hashes and event IDs remained distinct, with zero orphaned ledger rows. Existing
+`source = 'worker'` rows were preserved, and `APP_DB` was untouched.
+Legacy country/city values, including entries such as Santa Ana, CA, were preserved
+as supplied rather than geocoded or normalized into invented detail.
+
+The public 90-day statement governs routine Worker visitor-record retention. The
+one-time owner-authorized historical import is preserved as supplied and documented
+as an explicit operational exception; routine retention must not silently purge or
+reinterpret it without owner direction.
+
+### Comment moderation metadata
+
+The optional email column was retained as private moderation data. New nullable
+`comment_ip`, `city` and `region_code` columns were added for moderation-only
+context; `country` already existed. The keyed `ip_hash` remains for throttling and
+cannot be reversed for older rows. Existing rows therefore render a safe dash where
+raw IP is unavailable.
+
+Public comment queries use an explicit field allowlist and never expose email, raw
+IP, IP hash or location. `/boss/comments/` shows the private metadata and keeps the
+approve, reject, spam and delete operations. Location presentation is conservative:
+US city plus a valid two-letter region, non-US city when available, otherwise a
+dash. New Worker analytics events store the Cloudflare `regionCode` in the existing
+analytics `region` field; legacy rows remain unchanged. The boss navigation shows a
+pending-only comment count on overview, analytics, comments and system pages, hides
+it at zero and includes an accessible count label. No additional fingerprinting
+fields were added.
+
+### Resend comment notifications
+
+Resend sending is isolated to the verified `notify.turkcyber.com` subdomain. Root
+Hostinger receiving-mail records were not modified. New pending comments are first
+validated, Turnstile-checked, throttled and inserted; the public success response is
+then returned while `ctx.waitUntil(...)` schedules notification delivery. Provider
+failure cannot roll back or reject the comment.
+
+Notification settings:
+
+- sender: `TurkCyber <notifications@notify.turkcyber.com>`
+- recipient: `admin@turkcyber.com`
+- subject: `TurkCyber — Yeni yorum bekliyor`
+- moderation link: `https://turkcyber.com/boss/comments/`
+- identity: `comment-notification/<environment>/<comment-id>`
+
+One staging comment (ID 3) produced exactly one real notification. The owner
+confirmed sender, recipient, subject, metadata and link. A duplicate replay was
+rejected, the comment was verified in `/boss`, and the staging row was safely
+deleted. Production was then deployed without manufacturing a production comment.
+
+The initial email rendered its stored UTC timestamp directly. Presentation was
+corrected without rewriting data: `Intl.DateTimeFormat` now converts with the IANA
+zone `America/Los_Angeles`, including DST. The observed example changed from
+`2026-08-24T08:57:48.621Z` to `Aug 24, 2026 · 1:57 AM PDT`; regression coverage
+includes both PDT and PST dates.
+
+### Security, DNS and rollback state
+
+- Public CSP has no executable `unsafe-inline`; Formspree is narrowly allowed.
+- `/boss` is private, no-store and noindex, with capped PBKDF2 and bounded sessions.
+- Turnstile fails closed; throttling retains the keyed HMAC design.
+- Resend logs only event type, comment ID, provider and status, never API keys or
+  private comment content.
+- Root and `www` web DNS resolve through the Worker routes.
+- Root MX/TXT receiving-mail records and the dedicated Resend subdomain records are
+  operationally separate.
+- Immediate rollback is to detach the two production Worker routes so the retained
+  Hostinger origin serves again. Databases, imported analytics, KV, mail DNS and
+  Hostinger content must not be deleted during rollback.
+
+### Failed approaches and lessons
+
+- A synthetic authentication request is not a browser-flow test. Login changes must
+  be verified through the visible form, redirects and session cookie lifecycle.
+- AI-generated logo variations repeatedly diverged from owner intent. The owner
+  visual master pack is now canonical; generators may crop, scale and pad but may
+  not redraw it.
+- A flat SVG reconstruction lost the approved metallic treatment. Primary brand
+  surfaces use the owner raster masters and derived WebP/PNG assets instead.
+- Treating a dirty tree as one feature made review unsafe. External binary snapshots,
+  hunk-level staging and independent verification made recovery auditable.
+- Local `pnpm exec` attempted to reconcile a mismatched package store in a non-TTY
+  environment. Do not purge `node_modules`; use the pinned project commands or the
+  existing local binaries.
+- Notification delivery is secondary data movement. Persist the comment first,
+  deduplicate by environment/comment ID and make provider failure nonfatal.
+- Store timestamps in UTC; convert only at owner-facing presentation boundaries
+  with a named IANA timezone, never a hard-coded offset.
+
+### Current repository and operational state
+
+- Branch: `codex/recovery-2026-08-23`
+- HEAD: `bdd520513dea2dbf6f48fea2f8a2457f48cf563e`
+- No upstream is configured and the recovery commits have not been pushed.
+- The working tree still contains deliberately preserved, uncommitted work. This
+  documentation reconciliation does not authorize staging or committing it.
+- Production and staging are live and healthy at the deployments listed above.
+- No new deployment, route, DNS, secret, data or runtime mutation was performed by
+  this documentation-only reconciliation.
+
+### Next action
+
+Review the reconciled documentation diff separately from the existing dirty
+application tree. If approved, isolate only the documentation files into a dedicated
+commit. Do not push or deploy as part of that review.
+
+### Documentation-reconciliation verification
+
+The final documentation-only tree was verified on 2026-08-24:
+
+- Astro check: 66 files, 0 errors, 0 warnings, 0 hints
+- Worker TypeScript: pass
+- ESLint: pass
+- Prettier: pass
+- Vitest: 215/215 tests in 9 files
+- production build: 57 pages
+- secret scan: clean, 151 tracked files checked
+- `git diff --check`: pass
+
+Two environment/tooling failures occurred before the green run and changed no
+project files:
+
+1. `pnpm check` aborted because the Codex pnpm store wanted to replace the existing
+   modules directory in a non-TTY process. No purge was accepted or attempted.
+2. The first direct `astro check` could not create Astro telemetry configuration
+   under the sandboxed roaming profile. Re-running the same pinned local binary with
+   telemetry disabled passed. Worker TypeScript had already passed independently.
+3. The first PowerShell documentation-consistency summary had an empty-pipeline
+   parser error. It performed no write; the corrected read-only query confirmed the
+   live routes, staging host, migrations, analytics import, Resend, rollback and test
+   state across the current documents.
+
+The test suite's expected failure-path diagnostics (D1 unavailable, Turnstile
+refused and wrong-password/lockout cases) appeared on stderr while all assertions
+passed. No documentation files were staged, committed or pushed.
+
+---
+
+## 2026-08-23 (third entry) — Brand lockup, the footer overflow bug found properly, and the /teknik visual language
+
+### What was requested
+
+One primary goal — make the brand lockup feel like a real brand — plus the
+footer responsiveness bug (reported as still broken after the previous pass)
+and a stronger visual engineering language for `/teknik`. Bounded to ~25 tool
+calls, one judged direction, no variant sheets, no commit.
+
+### Files changed
+
+`src/components/Logo.astro` (rewritten) · `src/components/Header.astro` ·
+`src/components/Footer.astro` · `src/layouts/BaseLayout.astro` ·
+`src/layouts/ArticleLayout.astro` · `src/pages/ara.astro` ·
+`src/config/site.ts` ·
+`src/content/technical/oturum-cerezi-nedir-ve-neden-calinir.mdx` ·
+`PROCESS.md` · `CURRENT_STATE.md` · `HANDOFF.md`
+
+No schema, migration, route, search, comments, analytics or taxonomy change.
+Icons were **not** regenerated: the emblem geometry is unchanged, only the
+lockup around it.
+
+### 1. The lockup
+
+The previous version was an emblem next to the site's heading font — two
+objects that happened to be adjacent. Three changes make it one object:
+
+- **Shared cap height.** The emblem's cap band is exactly half its 144 × 48
+  viewBox, so `height: calc(var(--wm) * 1.44)` puts it on the wordmark's cap
+  height. One optical line instead of two.
+- **A hairline rule between emblem and name.** A masthead device. It is what
+  stops the pairing reading as an icon with a caption.
+- **A wordmark face of its own** — Sora 600 at −0.025em tracking. Added to the
+  Google Fonts request the site already makes, so no new connection and no
+  dependency; used for the wordmark and nowhere else, which is what keeps it
+  reading as a mark rather than as an `h2`.
+
+Semi-bold, not heavy: at this size a 700 grotesk reads as a UI button label and
+costs the horizontal elegance the wordmark exists for.
+
+The heritage line is now `2005’ten bugüne…` with the curly apostrophe, set in
+the body face at 0.72rem with zero tracking — a signature under the name, not a
+spaced uppercase label. Header gets `flex: none` on the lockup so the nav can
+never compress it toward the viewport edge.
+
+### 2. The footer bug — what it actually was
+
+Two previous attempts were wrong in opposite directions, and both are worth
+recording because each looks correct in isolation:
+
+| Attempt                  | Why it failed                                                                                                                                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `minmax(0, 1.6fr)`       | A zero floor let the grid squeeze the brand track narrower than the lockup, so the mark painted outside its own column.                                                                              |
+| `minmax(min-content, …)` | Worse. A track that refuses to shrink makes the **grid** wider than its container, so the whole row shifts out of the page. Never floor a grid track at intrinsic width inside a fixed-width parent. |
+
+Both were treating a symptom. The actual cause was upstream, in `Logo.astro`:
+the inline `<svg>` had `height` set and `width: auto` with **no aspect ratio**.
+An inline SVG sized that way is entitled to fall back to the 300 px
+replaced-element default, and when it did, it dragged the brand column — and
+therefore the grid — past the container. Fixed with an explicit
+`aspect-ratio: 144 / 48`, which gives a definite width in every engine.
+
+With the cause removed, the tracks are plain fractions with a zero floor and
+the layout reflows at deliberate breakpoints **before** any column gets too
+narrow: single column by default, two columns at 40rem with the brand on its
+own row, three columns at 64rem.
+
+**Verified, not assumed.** A Playwright harness served the built `dist/` and
+checked 4 routes × 14 viewport widths (1440 → 320) for
+`documentElement.scrollWidth > innerWidth` and for any element painting outside
+the viewport, excluding the deliberately off-canvas skip link, the nav's
+horizontal scroller, and content inside any `overflow-x: auto` box. Result:
+**no overflow at any width on any route.**
+
+That run also surfaced three real problems the eye had not caught, all fixed:
+
+- `pre` blocks had no width limit, so a long `Set-Cookie` line painted outside
+  the reading column and was unreachable — the document itself refuses to
+  scroll sideways.
+- The new `.wide` tables did the same at 360 px and below.
+- `/ara/`'s search form pushed its button past the viewport at 320 px.
+
+### 3. The /teknik visual language
+
+A small, fixed vocabulary, because a technical lane where every article invents
+its own diagram is not a lane:
+
+- `.arch` / `.node` — a pipeline stage showing **what goes in, what it checks,
+  what comes out**, and a `.node-boundary` line naming the assumption it rests
+  on. Connected by a drawn line rather than separated by a gap, so it reads as
+  a chain and not as a stack of identical cards.
+- `.attack-path` / `.ap-step` — where an attacker _leaves_ the pipeline, with
+  `.ap-stage` naming the stage bypassed. Red marks the departure and is the
+  only accent in the block.
+- `.wide` — a controlled escape past the reading measure for architecture and
+  comparison tables, scrolling inside itself on narrow screens.
+
+The article was restructured onto them: the eight-stage pipeline is now nodes
+with explicit in/checks/out/boundary; the attacker section is an attack path
+annotated with which stage each route skips; a new section states the framing
+thesis directly — **a credential is an input to the authentication pipeline; a
+session is its output** — and the Meta example now separates three things
+rather than two: publicly documented behaviour, the industry-standard
+explanatory model, and an explicit list of internals that are **not** public and
+are not being claimed.
+
+Readability: `h2` rules got `--sp-8` top margin and a stronger divider, code
+samples went to 0.86rem with real padding and a border, and the wide tables no
+longer compete with body prose for the same measure. No technical content was
+removed.
+
+### Errors encountered
+
+1. `bash /tmp/sync.sh` failed once — `_to_delete/` had been deleted between
+   passes and `tar` had nowhere to write. Recreated the directory.
+2. The first overflow harness reported 56 false failures: it flagged the
+   off-canvas skip link and the nav's intentional horizontal scroller. Refined
+   to skip those and anything inside an `overflow-x: auto` ancestor, which is
+   what turned a noisy result into the three real bugs above.
+3. `playwright` was not installed in the verification container. Installed
+   there only; no project dependency was added.
+
+### Commands run and their actual results
+
+| Command                   | Result                                                          |
+| ------------------------- | --------------------------------------------------------------- |
+| `pnpm check`              | **0 errors, 0 warnings, 0 hints** (62 files)                    |
+| `pnpm test`               | **168 passed (168)**, 6 files — baseline unchanged              |
+| `pnpm build`              | **56 pages** — unchanged                                        |
+| `pnpm lint`               | green (after Prettier formatting the eight touched files)       |
+| Playwright overflow sweep | 4 routes × 14 widths — **no overflow anywhere**                 |
+| `pnpm scan:secrets`       | not runnable in the container (no `.git`). Must run on Windows. |
+
+### Verification status
+
+`verification pending on owner's Windows machine`. `pnpm scan:secrets` has not
+run anywhere this pass.
+
+### Git state
+
+`fffedce`, working tree dirty. **Deliberately not committed.** No git command
+was run over the bridge.
+
+### Staging / production state
+
+Untouched. No Cloudflare resource, `turkcyber.com` still the legacy Hostinger
+site, `env.production.routes` still `[]`, Astro not upgraded.
+
+### Next action
+
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
+pnpm check && pnpm lint && pnpm test && pnpm build && pnpm scan:secrets
+git diff --check
+git status
+git diff --stat
+```
+
+---
+
+## 2026-08-23 (fourth entry) — Bespoke wordmark, grouped navigation, /icerikler/, mobile drawer, architecture diagram
+
+### What was requested
+
+A launch UX pass on top of the uncommitted polish work: turn the lockup into a
+real wordmark drawn as vector lettering rather than a chosen font; simplify the
+header to four destinations plus the existing search control; give the content
+group a real page; replace the mobile scrolling nav strip with a drawer;
+restructure the WHOIS card as records; add a genuine architecture diagram to
+the session article; stop drafts appearing in ordinary `pnpm dev`; and fix the
+duplicated identity in the footer base row.
+
+### Files changed
+
+**New:** `src/pages/icerikler.astro`
+
+**Changed:** `src/components/Logo.astro` (wordmark rewritten) ·
+`src/components/Header.astro` (rewritten) · `src/components/Footer.astro` ·
+`src/config/site.ts` · `src/layouts/ArticleLayout.astro` ·
+`src/pages/index.astro` · `src/pages/haberler/index.astro` ·
+`src/pages/sitemap.xml.ts` ·
+`src/content/technical/oturum-cerezi-nedir-ve-neden-calinir.mdx` ·
+`.env.development` · `tests/content.test.ts` · the three docs.
+
+No schema, migration, analytics, comments-API, `/boss`, search-ranking, tool
+scoring or production-routing change.
+
+### 1. The wordmark is drawn now
+
+Changing fonts was never going to fix this, and two passes spent trying proved
+it. The problem was not which letterforms were used but that the two halves of
+the lockup came from different systems: a constructed emblem beside type.
+
+"TurkCyber" is now built from the same primitives as the emblem — monoline
+strokes at one weight, round caps and joins, circular and elliptical arcs — on
+the same 48-unit vertical space (cap 13, baseline 37, x-height 20, descender
+43). Rendering both SVGs at one height therefore puts their cap heights and
+baselines in exact register with no optical fudging. The red `C` appears once
+in each half at the same hue and weight; it is the hinge that makes them read
+as one identity.
+
+**Two corrections, both of which shipped visibly wrong before being applied:**
+
+1. **Sidebearings for the stroke.** A monoline letter is 2 units wider than its
+   skeleton on each side. Spacing skeletons evenly — the first attempt — made
+   the ink collide even though the geometry was correct on paper.
+2. **Optical kerning per pair.** A uniform gap then produced "TurkCyb er":
+   round-to-round (`b·e`) needs materially less space than stem-to-stem
+   (`u·r`), and `r` and `T` leave the line open under their arm so a metric gap
+   reads as a hole. Each pair now carries its own correction.
+
+Icons are untouched and still carry the emblem alone — nine letters at 16px are
+a grey smear.
+
+### 2. Navigation
+
+Seven first-level destinations became four plus the existing, unchanged search
+control. Five content sections moved under **İçerikler**, which is a real page
+at `/icerikler/`, not a dropdown trigger.
+
+The label is an ordinary link and the chevron is a separate `<button>` with
+`aria-expanded` / `aria-controls`. That is what makes the group reachable by
+keyboard and by touch, and it is why the menu is never hover-only. Escape
+closes and returns focus to the control that was open; an outside click closes;
+crossing the breakpoint closes both so a hidden panel cannot be left "open".
+
+Mobile gets a drawer instead of the horizontally scrolling strip — a pattern
+that hid items behind a gesture nobody is told about. It is a sibling of the
+bar, rendered server-side and hidden until opened, so the links are in the
+document for a screen reader and for search even with JavaScript off.
+
+### 3. Drafts no longer pollute local QA — intentional behaviour change
+
+`SHOW_UNPUBLISHED=true` was **on by default** in `.env.development`, so every
+ordinary `pnpm dev` showed "Haber Şablonu — Yayınlamadan Önce Doldurun". Visual
+QA was being done against a page that will never ship, and the empty state real
+visitors see was never looked at.
+
+It is now commented out. The gate is unchanged and still defaults to CLOSED, so
+production exclusion from the build, sitemap, search index and RSS is exactly as
+before. To preview drafts: `SHOW_UNPUBLISHED=true pnpm dev`.
+
+With no published news the section is **designed rather than absent** — on the
+homepage and on `/haberler/`. A shelf that silently disappears tells a returning
+visitor nothing, and fabricating a news item to fill it is forbidden outright.
+
+### 4. The architecture diagram
+
+A directed pipeline with attack branches, built from a list and CSS. No
+charting dependency, no image, no SVG canvas to keep in sync with the prose:
+the stages are real list items, so the diagram is selectable, searchable,
+translatable, read in order by a screen reader, and still correct with the
+stylesheet off. Direction is drawn — a continuous spine with an arrowhead
+between stages — and attacked stages are marked on the stage itself, with
+dashed connectors pointing at what each route bypasses.
+
+Desktop is two columns (trust pipeline left, attacker entry points right);
+below 60rem it becomes one vertical flow with each branch nested under its
+stage. The three-way distinction — publicly documented behaviour, the
+industry-standard explanatory model, and Meta internals TurkCyber does not claim
+to know — is unchanged.
+
+### Errors encountered
+
+1. **The first wordmark collided.** Skeletons spaced evenly, ink overlapping.
+2. **The second read "TurkCyb er".** Uniform tracking with no per-pair optical
+   correction.
+3. **`tests/content.test.ts` failed on the news empty state** — it asserted the
+   old copy. A real assertion catching a real change; replaced with tests for
+   the new empty state on both surfaces, plus one that fails if
+   `SHOW_UNPUBLISHED=true` is ever uncommented in `.env.development`.
+4. **The overflow harness reported 12 false failures** — the contact form's
+   honeypot is parked at `-9999` on purpose, like the skip link. Excluded.
+5. **Playwright screenshots timed out on `networkidle`** — Google Fonts is
+   unreachable from the container. Switched to `load`.
+
+### Commands run and their actual results
+
+| Command                   | Result                                                          |
+| ------------------------- | --------------------------------------------------------------- |
+| `pnpm check`              | **0 errors, 0 warnings, 0 hints** (63 files)                    |
+| `pnpm test`               | **174 passed (174)** — up from 168; 6 new tests, none removed   |
+| `pnpm build`              | **57 pages** (was 56; `/icerikler/`)                            |
+| `pnpm lint`               | green after Prettier formatting the touched files               |
+| Playwright overflow sweep | 10 routes × 12 widths (1440→320) — **no overflow anywhere**     |
+| `pnpm scan:secrets`       | not runnable in the container (no `.git`). Must run on Windows. |
+
+Visually inspected at 1280 (header with the group open), 390 (drawer open) and
+1280 (diagram).
+
+### Verification status
+
+`verification pending on owner's Windows machine`. `pnpm scan:secrets` has not
+run anywhere this pass.
+
+### Git state
+
+`fffedce`, working tree dirty and carrying the previous polish pass as well.
+**Deliberately not committed.** No git command was run over the bridge.
+
+### Staging / production state
+
+Untouched. No Cloudflare resource, `turkcyber.com` still the legacy Hostinger
+site, `env.production.routes` still `[]`, Astro not upgraded.
+
+### Next action
+
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
+pnpm check && pnpm lint && pnpm test && pnpm build && pnpm scan:secrets
+git diff --check
+git status
+git diff --stat
+```
+
+---
+
+## 2026-08-23 (fifth entry) — Wordmark reverted to typography, hover-capable dropdown, restrained atmosphere
+
+### What was requested
+
+A narrow final pass: replace the hand-drawn wordmark (rejected — graffiti-like,
+handmade, inconsistent with the geometric emblem), open the desktop İçerikler
+group on hover and focus without losing click or keyboard behaviour, and add
+subtle micro-motion. Nothing else.
+
+### Files changed
+
+`src/components/Logo.astro` · `src/components/Header.astro` ·
+`src/layouts/BaseLayout.astro` · `src/styles/base.css` · the three docs.
+
+The emblem geometry, `scripts/brandmark.py`, the icons, the WHOIS card, the
+footer base row, the mobile drawer's information architecture and the technical
+article are all untouched.
+
+### 1. The wordmark: the custom alphabet was the wrong call
+
+Recording this plainly, because the reasoning that produced it was sound and
+the result still failed.
+
+The previous pass drew "TurkCyber" as a monoline alphabet on the emblem's own
+grid, arguing that one construction system for both halves would make them read
+as one identity. The logic holds; the output did not. Nine hand-built letters
+read as **handmade lettering**, not as a masthead — which is the opposite of
+what a security publication needs. Constructing a text face is a project in its
+own right, and a half-built one always looks half-built. Two rounds of optical
+kerning corrections improved it and could never have fixed it, because the
+problem was the category, not the spacing.
+
+It is typography again: **Sora 600, `letter-spacing: -0.03em`**, with the `C`
+in Turkish red. Sora is a geometric grotesk — circular bowls, even stroke, no
+contrast — which is the same visual logic the emblem is _drawn_ in, so the two
+agree without the wordmark having to be hand-drawn to match. Sora was already
+in the site's single Google Fonts request; no dependency was added.
+
+**Register is computed, not eyeballed.** The emblem's cap band occupies exactly
+half its 48-unit viewBox, so its cap height is `--lock-h / 2`. Sora's cap
+height is ~0.70em. Setting `--lock-h: calc(var(--wm) * 1.4)` makes those equal,
+and one `translateY(-2%)` corrects the emblem's ink sitting one unit low in its
+box. Everything scales from `--wm`.
+
+Icons were **not** regenerated — they are emblem-only and the emblem did not
+change.
+
+### 2. The dropdown opens on intent now
+
+Hover and focus **open** the group; they never own it. The click path (chevron
+button, `aria-expanded` / `aria-controls`) and the keyboard path are unchanged,
+so touch and keyboard users get the same menu without a pointer.
+
+- Hover is gated on `(hover: hover) and (pointer: fine)`, so a phone reporting
+  synthetic hover cannot open a menu nobody asked for.
+- Closing is delayed 200ms. The gap between label and panel is real space a
+  pointer must cross, and a menu that vanishes mid-crossing is worse than one
+  that never opened. A pseudo-element extends the panel's hover area upward so
+  there is no inert gap at all.
+- `focusin` opens; `focusout` closes only when focus actually leaves the group,
+  which is what makes tabbing through the menu behave like hovering it.
+- Losing hover capability mid-session closes the group, so nothing is stranded.
+
+**Verified by driving the browser**, not by reading the code:
+
+| Behaviour                                | Result                 |
+| ---------------------------------------- | ---------------------- |
+| Hover the label → opens                  | `aria-expanded="true"` |
+| Move pointer into the panel → stays open | `true`                 |
+| Leave the group → closes after the delay | `false`                |
+| Focus the label → opens                  | `true`                 |
+| Escape → closes                          | `false`                |
+| Click the label → navigates              | `/icerikler/`          |
+
+### 3. Atmosphere — three things, deliberately
+
+1. **A one-time entry reveal per section**: opacity and 6px, 220ms. Armed by a
+   `js-reveal` class the script adds, so with scripting off — or under
+   `prefers-reduced-motion` — nothing is ever hidden. Each section reveals once
+   and is unobserved, and a 1.6s failsafe reveals anything still hidden, so a
+   mis-measured layout can never leave content invisible.
+2. **Surfaces acknowledge the pointer** — border and background only. A card
+   that moves under the cursor reads as a toy.
+3. **A single static scan line** at 1.5% over the grid the body already
+   carried. No sweep, no flicker: below the threshold of notice, above the
+   threshold of flatness.
+
+Nothing animates body text. The page never waits on any of it. Everything
+motion-related sits inside `prefers-reduced-motion: no-preference`.
+
+### Errors encountered
+
+1. **`pnpm lint` failed on the inline reveal script** — three `var`s and an
+   unused `catch` binding. The script is deliberately ES5-shaped so it can run
+   inline before hydration, but `no-var` applies regardless; converted to
+   `const`/`let` and an optional catch binding.
+
+### Commands run and their actual results
+
+| Command                      | Result                                                   |
+| ---------------------------- | -------------------------------------------------------- |
+| `pnpm check`                 | **0 errors, 0 warnings, 0 hints** (63 files)             |
+| `pnpm test`                  | **174 passed (174)** — unchanged                         |
+| `pnpm build`                 | **57 pages** — unchanged                                 |
+| `pnpm lint`                  | red once (above), then green                             |
+| Playwright overflow sweep    | 10 routes × 12 widths — **no overflow anywhere**         |
+| Dropdown interaction harness | all six behaviours as tabled above                       |
+| `pnpm scan:secrets`          | not runnable in the container (no `.git`). Windows only. |
+
+Visually inspected the masthead at 1440, 1280 and 360.
+
+### Verification status
+
+`verification pending on owner's Windows machine`. `pnpm scan:secrets` has not
+run anywhere this pass.
+
+### Git state
+
+`fffedce`, working tree dirty and carrying the previous two passes as well.
+**Deliberately not committed.** No git command was run over the bridge.
+
+### Staging / production state
+
+Untouched. No Cloudflare resource, `turkcyber.com` still the legacy Hostinger
+site, `env.production.routes` still `[]`, Astro not upgraded.
+
+### Next action
+
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
+pnpm check && pnpm lint && pnpm test && pnpm build && pnpm scan:secrets
+git diff --check
+git status
+git diff --stat
+```
+
+---
+
+## 2026-08-24 — Git recovery finalization
+
+### Request
+
+Reconcile the already-deployed and already-verified production source with Git
+without changing runtime behavior, infrastructure, routes, DNS, secrets or data.
+The starting `HEAD` did not reproduce the live service and the working tree mixed
+52 tracked changes with 17 untracked source/assets.
+
+### Forensic capture
+
+Before touching the index, the branch was
+`codex/recovery-2026-08-23` at
+`bdd520513dea2dbf6f48fea2f8a2457f48cf563e`. There were no staged paths, no
+`index.lock`, and no merge, rebase, cherry-pick, revert or bisect operation in
+progress. The branch was nine commits ahead of local `main`, had no upstream and
+had not been pushed.
+
+The external snapshot is:
+
+`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-git-finalization-snapshot-2026-08-24-025513`
+
+It contains the original status/stat/name-status reports, cached-stat report,
+untracked path list, Git/deployment state report, an `untracked/` copy preserving
+all 17 files, and SHA-256 manifests. Ignored `.env.development`,
+`.env.staging.local`, `.env.production.local` and `.dev.vars` were recorded by name
+only; their contents were not copied.
+
+`dirty-working-tree.binary.v2.patch` is the authoritative tracked-file patch. It
+was written directly by Git and passed
+`git apply --check --reverse --binary`. Every untracked copy matched its source
+SHA-256.
+
+### Classification and commit boundaries
+
+The real hunks supported four implementation groups and one documentation group:
+
+1. **Owner brand and public accent alignment** — canonical master metadata and
+   raster assets, generated WebP/PNG/favicon/app/OG outputs, brand generation tools,
+   public logo/favicon integration, red design tokens, and the directly dependent
+   public component/layout/page styling. `.gitignore`'s `__pycache__/` rule belongs
+   to this Python-backed generator group.
+2. **Moderation, geo, boss and notification runtime** — APP migrations 0005/0006,
+   private email/IP/city/region rendering, pending badge, shared location formatting,
+   Worker region-code collection, Resend background notification, failure safety,
+   idempotency, DST-aware owner timestamps, environment typing and direct tests. The
+   `/boss` template was intentionally kept together because its owner-brand,
+   moderation, location and pending-badge hunks are structurally intertwined.
+3. **Legacy analytics import tooling** — the inspected pipe-format parser,
+   DST-aware normalization, occurrence-aware deterministic identity, additive
+   ledger-backed SQL generation, no-delete safety and direct importer tests.
+4. **Live release routing** — only the two production route entries already live in
+   Cloudflare and their exact regression assertion. Staging routing was preserved.
+5. **Documentation** — the eight reconciled Markdown files, kept separate from
+   implementation.
+
+No unrelated or obsolete experimental source remained after classification. The
+retired `public/favicon.svg` was removed in the brand commit because BaseLayout and
+the manifest now reference the canonical 16/32 PNG outputs, the generated asset
+tests reject stale SVG geometry, and the build has no remaining reference to it.
+No other file was deleted merely for appearing old.
+
+### Commits created
+
+- `de3bfba1d73628e9545828b0f599ad0229e713dd` —
+  `feat(brand): integrate owner identity and align live accents`
+- `63b223f2aa852e79884bc471487103adfb0808ae` —
+  `feat(comments): add moderation context and owner notifications`
+- `129f8568a1147a6851c0a6230eb913a5f622d5b4` —
+  `feat(analytics): add idempotent legacy import tooling`
+- `741332ad26f7b9f01d029f35be50cb7f5d38cd7a` —
+  `chore(release): record live production routing`
+- the final documentation reconciliation is committed separately as
+  `docs: finalize production recovery history`; its SHA is the resulting branch
+  HEAD and is reported by the post-commit proof.
+
+Older commits were not amended, rebased, squashed or rewritten. Nothing was pushed.
+
+### Verification
+
+The dirty-tree baseline passed before staging:
+
+- Astro check: 66 files, 0 errors/warnings/hints
+- Worker TypeScript: pass
+- ESLint: pass
+- Prettier: pass
+- Vitest: 215/215 across 9 files
+- build: 57 pages
+- secret scan: clean
+- `git diff --check`: pass
+
+Focused post-commit verification:
+
+- brand: 15/15 tests plus build and diff check
+- moderation/notification/boss/analytics/brand: 113/113 tests, Worker TypeScript
+  and diff check
+- legacy importer: 6/6 tests and diff check
+- release configuration: 66/66 content tests and diff check
+
+The full post-implementation suite then passed again with the same 215/215 result,
+57-page build, clean secret scan over 167 tracked files and clean diff check.
+
+### Errors and failed approaches
+
+1. The first binary patch was piped through PowerShell text output. Although the
+   file existed, `git apply --check --reverse --binary` rejected its first binary
+   hunk. It is retained as failed evidence; the direct Git `--output` v2 patch is
+   authoritative and validated.
+2. The first `git add` could not create `.git/index.lock` under the restricted
+   sandbox. The already-authorized, explicitly enumerated `git add` was rerun with
+   repository-write approval. No bulk add was used.
+3. The secret scanner rejected a newly tracked test fixture named like a Turnstile
+   secret. It was a mock, not a real credential, but was shortened to the repository's
+   established safe test value. The file was restaged and the scan passed.
+4. The known pnpm store mismatch was not retried and `node_modules` was not purged.
+   Verification used the existing pinned binaries:
+   `astro`, `tsc`, `eslint`, `prettier` and `vitest`, plus the project Node scripts.
+
+Expected stderr from fail-closed tests (Turnstile refusal, D1 unavailable,
+wrong-password lockout and retention audit messages) remained present while every
+assertion passed.
+
+### Final Git and live state
+
+After the documentation commit the working tree and index are clean. The branch is
+14 commits ahead of local `main`, has no upstream and remains unpushed. The committed
+history reproduces the deployed source, including generated brand outputs and all
+append-only migrations.
+
+No deployment command, Cloudflare mutation, DNS change, route change, secret write,
+database operation, analytics import or comment mutation was performed during this
+Git task. Production remains on
+`c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3`; staging remains on
+`a854e11b-df2c-422b-a009-adf93cc72949`.
+
+### Exact next action
+
+Review `git log --oneline main..codex/recovery-2026-08-23` and the clean final
+status. Push or merge only after explicit owner authorization; neither action is part
+of this finalization.

@@ -1,63 +1,60 @@
 # TurkCyber
 
-Turkish digital-security publishing platform. Guides that explain one real
-security problem at a time, in plain Turkish, for people who are not security
-professionals.
+TurkCyber is a Turkish digital-security publication: practical guides,
+myth-busting, engineering articles and browser-only security tools. The domain
+dates from 2005; the site does not claim uninterrupted publication since then.
 
-The mark is `<TC/>`. The domain was registered in **2005** and ran as a
-cybersecurity forum in that era, then lay dormant for years — the site carries
-that date as a founding date, never as a claim of continuous publication.
+A [DNDR Labs](https://dndr.net) project. Production is live at
+`https://turkcyber.com`; staging is `https://turkcyber-staging.dndr.net`.
 
-A [DNDR Labs](https://dndr.net) project. Production domain: `turkcyber.com`.
+> Public content is Turkish. Code, identifiers, schema and technical
+> documentation are English.
 
-> **Language split.** The public site is Turkish. The codebase, comments,
-> identifiers, schema and this documentation are English. Never introduce
-> Turkish identifiers or schema names because the site language is Turkish.
+## Runtime architecture
 
----
+Astro emits a static site. A Cloudflare Worker runs first for dynamic routes and
+serves the build through its `ASSETS` binding for everything else.
 
-## Architecture in one paragraph
+- `/collect` records first-party visitor events in `ANALYTICS_DB`.
+- `/api/comments` handles moderated comments in `APP_DB`.
+- `/boss/*` is the private moderation, analytics and system console.
+- Two D1 databases keep application data and analytics separate.
+- A KV namespace provides comment throttling and notification deduplication.
+- Turnstile protects comment submission.
+- Resend sends nonfatal background notifications for new pending comments.
 
-Astro builds a fully static site. A Cloudflare Worker serves that build through
-its `ASSETS` binding and owns three dynamic routes: `/collect` (the analytics
-beacon), `/api/comments` (first-party comments) and `/boss/*` (the private
-console). Two D1 databases keep public application data and private visitor
-analytics apart. Because the content site is static, a Worker or D1 outage
-cannot stop an article from rendering — comments degrade to a Turkish notice and
-analytics fails silently.
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the reasoning and the trade-offs.
-
----
+Static articles remain available if dynamic services fail. See
+[ARCHITECTURE.md](ARCHITECTURE.md) for boundaries and trade-offs.
 
 ## Local development
 
-Requires Node 22+ and pnpm.
+Requires Node 20 or newer and pnpm 9.15.4.
 
 ```bash
 pnpm install
-pnpm dev          # static site at http://localhost:4321
+pnpm dev
 ```
 
-`pnpm dev` runs the Astro site only. Dynamic routes need the Worker:
+`pnpm dev` runs Astro only. To exercise Worker routes locally:
 
 ```bash
 pnpm build
-pnpm preview      # wrangler dev — serves dist/ plus /collect, /api, /boss
+pnpm preview
 ```
 
 ### Verification
 
 ```bash
-pnpm check        # astro check + worker typecheck
-pnpm lint         # eslint + prettier --check
-pnpm test         # vitest — run after pnpm build
-pnpm build
-pnpm scan:secrets # pre-push credential scan
+pnpm check        # Astro and Worker TypeScript
+pnpm lint         # ESLint and Prettier check
+pnpm test         # hermetic Vitest build in .test-dist/
+pnpm build        # production static build
+pnpm scan:secrets # tracked-file credential scan
+git diff --check
 ```
 
-`tests/content.test.ts` asserts against `dist/`, but `pnpm test` builds the site
-itself when `dist/` is missing — there is no ordering dependency.
+The test suite owns and rebuilds `.test-dist/`; it does not read `dist/` and does
+not depend on a preceding `pnpm build`.
 
 ### Local databases
 
@@ -66,143 +63,93 @@ pnpm db:app:local
 pnpm db:analytics:local
 ```
 
-Migrations live in `migrations/app` and `migrations/analytics` and are applied
-with separate migration tables so the two databases never interfere.
+APP migrations live in `migrations/app`; analytics migrations live in
+`migrations/analytics`. Never apply one database's migrations to the other.
 
----
+## Content
 
-## Content types
+| Collection  | Route                   | Purpose                                   |
+| ----------- | ----------------------- | ----------------------------------------- |
+| `guides`    | `/rehberler/`           | practical, problem-focused guidance       |
+| `myths`     | `/efsane-mi-gercek-mi/` | short myth checks with an explicit result |
+| `technical` | `/teknik/`              | engineering and security-boundary depth   |
+| `news`      | `/haberler/`            | attributable, publication-gated news      |
 
-| Collection | Route                   | What it is                                      |
-| ---------- | ----------------------- | ----------------------------------------------- |
-| `guides`   | `/rehberler/`           | The core: one concrete problem per guide        |
-| `myths`    | `/efsane-mi-gercek-mi/` | Short myth-busting entries carrying a verdict   |
-| `news`     | `/haberler/`            | Secondary; requires a real, attributable source |
+Interactive tools at `/araclar/` run in the browser; their answers are not sent
+to the Worker or analytics.
 
-Interactive tools live at `/araclar/` and run entirely in the visitor's browser
-— answers are never transmitted or stored. See `HANDOFF.md` §11b.
-
-## Adding a guide
-
-Git is the content store. There is no CMS and no browser editor that could
-bypass it.
+To add a guide:
 
 1. Create `src/content/guides/<slug>.mdx`.
-2. Fill the frontmatter (see the schema in `src/content.config.ts` — invalid
-   frontmatter fails the build rather than rendering something wrong).
-3. Put images in `src/assets/articles/<slug>/`.
-4. `pnpm check && pnpm build` — confirm the guide appears.
-5. Commit.
+2. Follow the schema in `src/content.config.ts`; invalid frontmatter fails the
+   build.
+3. Put article media under `src/assets/articles/<slug>/`.
+4. Run `pnpm check`, `pnpm test` and `pnpm build`.
 
-Frontmatter fields:
+Categories are defined once in `src/config/site.ts`. Navigation, category pages,
+search and schemas derive from that configuration.
 
-| Field                       | Notes                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| `title`                     | 8–120 characters                                                                      |
-| `description`               | 40–200 characters; used as the meta description                                       |
-| `category`                  | must be one of the ids in `src/config/site.ts`                                        |
-| `publishedAt` / `updatedAt` | dates                                                                                 |
-| `status`                    | `draft` · `review` · `published` — only `published` ships                             |
-| `featured`                  | promotes to the homepage shelf                                                        |
-| `summary`                   | the "Kısaca" block above the article                                                  |
-| `difficulty`                | `baslangic` · `orta` · `ileri`                                                        |
-| `readingTime`               | minutes, author-supplied                                                              |
-| `tags`                      | up to 8                                                                               |
-| `uiVerifiedAt`              | set when the guide depends on a third-party UI; renders a visible "last checked" line |
+The draft gate is explicit and closed by default. `SHOW_UNPUBLISHED=true` is a
+developer-only opt-in; release builds never depend on an ignored local env file.
 
-Categories are defined once, in `src/config/site.ts`. Navigation, category
-pages, the content schema and the search index all derive from that file. Never
-duplicate the list.
+## Configuration and secrets
 
-### Callouts
+Public configuration such as `PUBLIC_TURNSTILE_SITE_KEY` is supplied per build.
+Server-only values are Worker secrets:
 
-Inside an `.mdx` guide:
+- `BOSS_USER`
+- `BOSS_PASSWORD_HASH`
+- `SESSION_SECRET`
+- `TURNSTILE_SECRET_KEY`
+- `COMMENT_IP_PEPPER`
+- `RESEND_API_KEY`
 
-```mdx
-<Callout type="dikkat">Bir uyarı metni.</Callout>
+Never put real values in tracked files or command output. See `.env.example` for
+names and [SECURITY.md](SECURITY.md) for handling rules.
+
+## Brand source
+
+The owner-supplied red/silver visual master pack is canonical. Metadata,
+dimensions and hashes live in `src/brand/identity.json`; favicon, app-icon, WebP
+and OG outputs are derived reproducibly. Do not redraw or reinterpret the mark in
+components or generators.
+
+## Repository map
+
+```text
+src/                  Astro pages, content, components, layouts and brand sources
+worker/               Worker router, dynamic routes and runtime libraries
+migrations/app/       comments, audit and moderation metadata
+migrations/analytics/ visitor-event schema
+scripts/              verification, password, analytics-import and brand tooling
+tests/                hermetic Vitest regression suite
+public/               static and generated public assets
 ```
 
-Types: `bilgi` (cyan, information), `kontrol` (green, do this), `ornek`
-(neutral, example), `dikkat` (amber, caution), `onemli` (red, danger). Each
-renders an icon and a written label, so meaning never depends on colour alone.
+## Operations
 
----
+Production and staging are both live. Production uses only
+`turkcyber.com/*` and `www.turkcyber.com/*`; staging uses
+`turkcyber-staging.dndr.net/*`. The legacy Hostinger origin is retained for
+route-detachment rollback. Root receiving-mail DNS is independent and must not be
+changed during a web rollback.
 
-## Environment variables
-
-Names only; see [.env.example](.env.example). Real values go in `.dev.vars`
-locally (gitignored) or `wrangler secret put` for deployed environments.
-
-| Name                        | Purpose                                                              |
-| --------------------------- | -------------------------------------------------------------------- |
-| `BOSS_USER`                 | private console login name                                           |
-| `BOSS_PASSWORD_HASH`        | `pbkdf2$<iterations>$<salt>$<hash>` from `scripts/hash-password.mjs` |
-| `SESSION_SECRET`            | signs session cookies                                                |
-| `PUBLIC_TURNSTILE_SITE_KEY` | public; appears in client HTML                                       |
-| `TURNSTILE_SECRET_KEY`      | server-side only                                                     |
-| `COMMENT_IP_PEPPER`         | HMAC key turning visitor IPs into non-reversible abuse keys          |
-
-Set each secret as a **separate** `wrangler secret put` command. Piping several
-through one heredoc has scrambled them in practice.
-
-```bash
-node scripts/hash-password.mjs   # reads the password from stdin, echo disabled
-```
-
----
-
-## The private console
-
-There is a password-protected operator console. It is never linked from the
-site, never in the sitemap, disallowed in `robots.txt`, and every response
-carries `no-store` and `noindex`. Its route and behaviour are documented in
-[HANDOFF.md](HANDOFF.md), not here.
-
----
-
-## Repository layout
-
-```
-src/
-  config/site.ts        single source of truth: site identity, categories, nav
-  content.config.ts     content schema — invalid frontmatter fails the build
-  content/guides/       the guides
-  content/myths/        "Efsane mi, gerçek mi?" entries
-  content/news/         news (secondary; a draft template ships as an example)
-  lib/tools/            interactive tool definitions + pure scoring
-  components/           Logo, Header, Footer, ArticleCard, Callout, Share, Comments
-  layouts/              BaseLayout (SEO, fonts, beacon), ArticleLayout
-  pages/                routes, plus rss.xml.ts, sitemap.xml.ts, search-index.json.ts
-  lib/                  content helpers, Turkish-aware search
-worker/
-  index.ts              routing + public security headers
-  routes/               collect, comments, boss, boss-views
-  lib/                  auth, time, ua, referrer, sanitize, throttle, turnstile, queries
-migrations/
-  app/                  comments, indexes, audit trail
-  analytics/            visitor events
-scripts/                hash-password, import-legacy-analytics, scan-secrets, icon/OG generators
-tests/                  vitest — 132 tests
-```
-
----
+Cloudflare resource IDs, current deployment versions, migrations, import counts
+and the exact rollback sequence are maintained in
+[CURRENT_STATE.md](CURRENT_STATE.md) and [HANDOFF.md](HANDOFF.md). Do not
+duplicate volatile operational state here.
 
 ## Documentation
 
-| File                                           | What it is                                                      |
-| ---------------------------------------------- | --------------------------------------------------------------- |
-| [ARCHITECTURE.md](ARCHITECTURE.md)             | design decisions and why they were made                         |
-| [SECURITY.md](SECURITY.md)                     | security model, boundaries, reporting                           |
-| [PROCESS.md](PROCESS.md)                       | append-only work journal                                        |
-| [CURRENT_STATE.md](CURRENT_STATE.md)           | latest authoritative snapshot                                   |
-| [HANDOFF.md](HANDOFF.md)                       | everything another engineer needs to continue                   |
-| [PRODUCTION_CUTOVER.md](PRODUCTION_CUTOVER.md) | phased runbook; production requires explicit authorization      |
-| [CLAUDE.md](CLAUDE.md)                         | working rules — including the mandatory doc-reconciliation rule |
+| File                                           | Purpose                                                |
+| ---------------------------------------------- | ------------------------------------------------------ |
+| [CURRENT_STATE.md](CURRENT_STATE.md)           | authoritative snapshot of what is live now             |
+| [HANDOFF.md](HANDOFF.md)                       | zero-context engineering and operations continuation   |
+| [ARCHITECTURE.md](ARCHITECTURE.md)             | system structure, data flow and design decisions       |
+| [SECURITY.md](SECURITY.md)                     | threat model, privacy boundaries and secret handling   |
+| [PROCESS.md](PROCESS.md)                       | append-only recovery and release history               |
+| [PRODUCTION_CUTOVER.md](PRODUCTION_CUTOVER.md) | historical cutover runbook and current rollback record |
+| [CLAUDE.md](CLAUDE.md)                         | permanent repository working rules                     |
 
----
-
-## Status
-
-Local build, tests and documentation are complete. **No Cloudflare resource has
-been created and `turkcyber.com` has not been touched** — it still serves the
-legacy Hostinger site. See CURRENT_STATE.md for exactly what remains.
+Read `CLAUDE.md`, `CURRENT_STATE.md` and `HANDOFF.md` before making a meaningful
+change. Every such change must reconcile those documents with reality.
