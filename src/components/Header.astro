@@ -146,6 +146,11 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     </button>
   </div>
 
+  <span class="scroll-rail" aria-hidden="true">
+    <span class="scroll-rail-line"></span>
+    <span class="scroll-rail-node"></span>
+  </span>
+
   <!--
     The mobile panel is a sibling of the bar rather than a child of the desktop
     list, so the two navigations never fight over the same markup. It renders
@@ -198,6 +203,27 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
   const setup = (): void => {
     const header = document.querySelector<HTMLElement>('.site-header');
     if (!header) return;
+
+    // The rail expresses the unread portion of the document: nearly full at
+    // the top, then contracting toward its left origin as reading progresses.
+    // requestAnimationFrame keeps it coupled to the browser's paint cycle;
+    // there is no easing delay or synthetic catch-up animation.
+    let railFrame = 0;
+    const updateRail = (): void => {
+      railFrame = 0;
+      const scrollRange = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+      const progress = Math.min(1, Math.max(0, window.scrollY / scrollRange));
+      const remaining = Math.max(0.055, 1 - progress * 0.945);
+      header.style.setProperty('--scroll-remaining', remaining.toFixed(4));
+    };
+    const requestRailUpdate = (): void => {
+      if (railFrame) return;
+      railFrame = window.requestAnimationFrame(updateRail);
+    };
+
+    updateRail();
+    window.addEventListener('scroll', requestRailUpdate, { passive: true });
+    window.addEventListener('resize', requestRailUpdate, { passive: true });
 
     // ── Desktop group ────────────────────────────────────────────────────
     const group = header.querySelector<HTMLElement>('[data-group]');
@@ -327,14 +353,36 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     border-bottom: 1px solid var(--border);
   }
 
-  .site-header::after {
-    content: '';
+  .scroll-rail {
     position: absolute;
-    inset: auto auto -1px 0;
-    width: clamp(6rem, 18vw, 18rem);
-    height: 1px;
-    background: linear-gradient(90deg, var(--interaction-confirm), var(--interaction-accent));
+    inset: auto 1rem -2px;
+    height: 3px;
     pointer-events: none;
+    overflow: hidden;
+  }
+
+  .scroll-rail-line {
+    position: absolute;
+    inset: 1px 0 auto;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--interaction-confirm) 28%, var(--border-strong)),
+      color-mix(in srgb, var(--interaction-accent) 18%, var(--border-strong))
+    );
+    transform: scaleX(var(--scroll-remaining, 1));
+    transform-origin: left;
+    will-change: transform;
+  }
+
+  .scroll-rail-node {
+    position: absolute;
+    top: 0;
+    left: calc((100% - var(--trace-node-size)) * var(--scroll-remaining, 1));
+    width: var(--trace-node-size);
+    height: var(--trace-node-size);
+    background: color-mix(in srgb, var(--interaction-accent) 18%, var(--border-strong));
+    transform: translateX(-50%);
   }
 
   .header-inner {
@@ -343,17 +391,6 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     align-items: center;
     gap: var(--sp-5);
     min-height: 62px;
-  }
-
-  .header-inner::after {
-    content: '';
-    position: absolute;
-    right: var(--sp-4);
-    bottom: -3px;
-    width: var(--trace-node-size);
-    height: var(--trace-node-size);
-    background: var(--interaction-accent);
-    pointer-events: none;
   }
 
   .logo-link {
@@ -488,6 +525,7 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
   }
 
   .group-menu a {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
@@ -495,6 +533,18 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     border-radius: var(--radius);
     border-bottom: 0;
     white-space: normal;
+  }
+
+  .group-menu a::after {
+    content: '';
+    position: absolute;
+    left: var(--sp-3);
+    bottom: 0.34rem;
+    width: 2.75rem;
+    height: var(--trace-thickness);
+    background: var(--interaction-accent);
+    transform: scaleX(0);
+    transform-origin: left;
   }
 
   .group-menu a:focus-visible {
@@ -632,10 +682,15 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
     .group-menu a:hover {
       background: var(--surface-2);
     }
+
+    .group-menu a:hover::after {
+      transform: scaleX(1);
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .search-link::after {
+    .search-link::after,
+    .group-menu a::after {
       transition: transform var(--trace-duration) var(--trace-ease);
     }
   }
@@ -666,18 +721,14 @@ const groupActive = (item: (typeof NAV)[number]): boolean =>
       gap: var(--sp-3);
     }
 
-    .header-inner::after {
-      right: var(--sp-4);
-    }
-
     .search-label {
       display: none;
     }
   }
 
   @media (forced-colors: active) {
-    .site-header::after,
-    .header-inner::after {
+    .scroll-rail-line,
+    .scroll-rail-node {
       background: CanvasText;
     }
   }

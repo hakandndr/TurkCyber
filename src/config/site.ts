@@ -288,12 +288,6 @@ export const NAV = [
 ] as const;
 
 export const FOOTER_LINKS = [
-  { href: '/icerikler/', label: 'İçerikler' },
-  { href: '/rehberler/', label: 'Rehberler' },
-  { href: '/efsane-mi-gercek-mi/', label: 'Efsane mi, gerçek mi?' },
-  { href: '/teknik/', label: 'Nasıl çalışıyor?' },
-  { href: '/araclar/', label: 'Araçlar' },
-  { href: '/haberler/', label: 'Haberler' },
   { href: '/hakkinda/', label: 'Hakkında' },
   { href: '/iletisim/', label: 'İletişim' },
   { href: '/gizlilik/', label: 'Gizlilik' },
