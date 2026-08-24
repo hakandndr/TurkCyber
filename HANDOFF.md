@@ -115,10 +115,14 @@ The annotated `production-live-2026-08-24` tag identifies the exact deployed
 source commit `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`. It intentionally
 precedes later documentation-only commits.
 
-The only workflow in `.github/workflows/ci.yml` runs secret scanning, checks,
-linting, tests and builds. It contains no Wrangler or deployment step. Pushing Git
-does not deploy staging or production; Cloudflare operations remain separate,
-explicitly authorized actions.
+The only workflow in `.github/workflows/ci.yml` runs dependency installation,
+secret scanning, typechecks, lint/format checks, tests, builds and private/draft
+route guards. pnpm's authoritative version is the `packageManager` field in
+`package.json`; the workflow must not declare a competing version. GitHub Actions
+run `32720269328` passed every step at commit `796ec43cfdb3479ee40ba6805c12559553728e00`.
+The workflow contains no Wrangler or deployment step. Pushing Git does not deploy
+staging or production; Cloudflare operations remain separate, explicitly
+authorized actions.
 
 ## 5. Repository map
 

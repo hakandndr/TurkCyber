@@ -1866,3 +1866,47 @@ analytics, comment or other runtime mutation occurred.
 Use clean `main` for future work. Operationally, the remaining owner tasks are
 routine Search Console/sitemap confirmation, moderation and manual analytics
 retention; no GitHub source-recovery action remains.
+
+## 2026-08-24 — Final GitHub Actions correction and green verification
+
+### Failure found after publication
+
+The first public CI runs stopped in `pnpm/action-setup@v4` before repository
+checks began. The action reported two competing pnpm version declarations:
+`version: 9` in `.github/workflows/ci.yml` and the authoritative
+`packageManager: pnpm@9.15.4` value in `package.json`. This was a repository
+automation defect only; no application, dependency, runtime or deployment state
+was changed.
+
+The owner explicitly authorized the CI-only correction. Commit
+`796ec43cfdb3479ee40ba6805c12559553728e00`
+(`fix(ci): use packageManager pnpm version`) removed only the workflow's redundant
+two-line `with`/`version` block. The package manifest remains the sole pnpm version
+source. The cached diff contained one file and two deletions; `git diff --check`
+and the 167-file secret scan passed before publication.
+
+### GitHub-hosted proof
+
+GitHub Actions run `32720269328` completed successfully for `796ec43…`. Its single
+job, `typecheck · lint · test · build`, reported success for every required step:
+
+- checkout, pnpm setup, Node setup and frozen dependency installation;
+- secret scan;
+- Astro and Worker typechecks;
+- ESLint and Prettier;
+- production build;
+- full test suite;
+- verification that private routes and drafts are absent from the build;
+- the draft gate under an unexpected `NODE_ENV`.
+
+The workflow contains no deployment action. This correction and its documentation
+did not deploy or mutate production, staging, Cloudflare, DNS, routes, databases,
+analytics, comments, secrets or dependencies.
+
+### Validation notes
+
+An attempted standalone local YAML parse could not run because the bundled Python
+and Node runtimes did not include a YAML parser package. No package was installed
+or dependency changed for that purpose. GitHub accepted the workflow syntax and
+executed the complete job, providing the authoritative clean-environment YAML and
+behavioral validation.

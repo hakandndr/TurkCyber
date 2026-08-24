@@ -1,7 +1,7 @@
 # Current state
 
-Authoritative snapshot of TurkCyber as observed on **2026-08-24 03:55 PDT**
-(10:55 UTC). Repository and live runtime checks supersede earlier planning
+Authoritative snapshot of TurkCyber as observed on **2026-08-24 04:10 PDT**
+(11:10 UTC). Repository and live runtime checks supersede earlier planning
 documents and historical `PROCESS.md` entries.
 
 ## Headline
@@ -16,26 +16,28 @@ push, a narrowly authorized rewrite removed the retired
 `turkcyber-pass2.tar.gz` transfer archive from every reachable commit. The
 rewritten source trees are byte-identical to their pre-rewrite counterparts and
 the public-history audit is clean. The public GitHub repository is populated,
-`main` is authoritative and both preserved branches have upstream tracking.
+`main` is authoritative and both preserved branches have upstream tracking. The
+GitHub Actions verification workflow is green at the final CI-fix commit.
 
 ## Repository and Git
 
-| Item                         | Current value                                                      |
-| ---------------------------- | ------------------------------------------------------------------ |
-| Repository                   | `D:\IT\turkcyber\turkcyber.com`                                    |
-| Current branch               | `main`                                                             |
-| Published baseline           | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
-| Final HEAD                   | documentation-only commit containing this authoritative snapshot   |
-| Rewritten live source commit | `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`                         |
-| Local recovery branch        | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
-| Remote recovery branch       | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
-| Remote                       | `https://github.com/hakandndr/TurkCyber.git`                       |
-| Default branch               | `main`                                                             |
-| Tracking                     | `main` → `origin/main`; recovery → matching `origin` branch        |
-| Release tag                  | `production-live-2026-08-24` → live source `800a2fba…`             |
-| Tag object                   | `922f808cdfea7b5cc45b4bba593d34c7eb602028`                         |
-| Working tree                 | clean after the final documentation commit                         |
-| Push/deploy relationship     | GitHub CI scans/checks only; pushing does not deploy either Worker |
+| Item                                            | Current value                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------------ |
+| Repository                                      | `D:\IT\turkcyber\turkcyber.com`                                    |
+| Current branch                                  | `main`                                                             |
+| Published main before this documentation update | `796ec43cfdb3479ee40ba6805c12559553728e00`                         |
+| Final HEAD                                      | documentation-only commit containing this authoritative snapshot   |
+| Rewritten live source commit                    | `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`                         |
+| Local recovery branch                           | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
+| Remote recovery branch                          | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
+| Remote                                          | `https://github.com/hakandndr/TurkCyber.git`                       |
+| Default branch                                  | `main`                                                             |
+| Tracking                                        | `main` → `origin/main`; recovery → matching `origin` branch        |
+| Release tag                                     | `production-live-2026-08-24` → live source `800a2fba…`             |
+| Tag object                                      | `922f808cdfea7b5cc45b4bba593d34c7eb602028`                         |
+| Working tree                                    | clean after the final documentation commit                         |
+| Push/deploy relationship                        | GitHub CI scans/checks only; pushing does not deploy either Worker |
+| GitHub Actions verification                     | run `32720269328`: all required steps passed                       |
 
 The committed history now reproduces the live source state. Recovery snapshots
 remain external to the repository; ignored `.env.*` and `.dev.vars` files remain
