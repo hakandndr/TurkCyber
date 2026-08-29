@@ -7,23 +7,24 @@ see the append-only `PROCESS.md`.
 
 ## 0. Source control and authoring rule
 
-| Ref                              | SHA              |
-| -------------------------------- | ---------------- |
-| `main` (default)                 | `374b9f7`        |
-| `codex/recovery-2026-08-23`      | `f7d5f87`        |
-| tag `production-live-2026-08-24` | commit `89cf284` |
+| Ref                              | SHA                                |
+| -------------------------------- | ---------------------------------- |
+| `main` (default)                 | `47c9955`                          |
+| `codex/recovery-2026-08-23`      | `eb2c0dd`                          |
+| tag `production-live-2026-08-24` | object `15376b0`, commit `d23887b` |
 
-History was rewritten on 2026-08-29 to strip AI `Co-authored-by:` trailers from
-two commits. If `origin` still shows the old SHAs (`4e4d420`, `b7867ae`,
-`800a2fb`), the force-with-lease publication block in `CURRENT_STATE.md` has not
-been run yet — run it before basing new work on this repository.
+Two metadata-only history operations ran on 2026-08-29: AI `Co-authored-by:`
+trailers were stripped, then the commit identity email was normalized. If
+`origin` still shows `47ff889` / `f7d5f87` / tag `3cff396`, the force-with-lease
+publication block in `CURRENT_STATE.md` has not been run yet — run it before
+basing new work on this repository.
 
-**Authoring rule, permanent.** AI assistants must never create commits using
-their own name/email. All commits use `Hakan Dundar <hakandundar@gmail.com>` as
-author and committer, and no commit message may carry a `Co-authored-by:` or
-`Claude-Session:` trailer naming an assistant — GitHub reads those trailers as
-contributor claims and publishes them on the Contributors page. Full reasoning
-in `CLAUDE.md` §1a.
+**Authoring rule, permanent.** The canonical Git identity for this repository is
+`Hakan Dundar <hakan@dndr.net>`, set in repository-local config. AI assistants
+must never create commits under their own name or email, and no commit message
+may carry a `Co-authored-by:`, `Claude-Session:` or equivalent assistant
+trailer — GitHub reads those trailers as contributor claims and publishes them
+on the Contributors page. Full reasoning in `CLAUDE.md` §1a.
 
 ---
 

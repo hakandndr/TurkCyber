@@ -45,8 +45,10 @@ commits must use the owner's configured Git identity.**
 
 That means, concretely:
 
-- `user.name` / `user.email` for this repository are `Hakan Dundar
-  <hakandundar@gmail.com>`. Every commit and every tag uses them.
+- The repository-local `user.name` / `user.email` are
+  `Hakan Dundar <hakan@dndr.net>`. Every commit and every tag uses them.
+  `hakandundar@gmail.com` is retired for this repository — history was
+  normalized to the canonical address on 2026-08-29.
 - **No `Co-authored-by:` trailer naming an AI assistant.** This is not a
   cosmetic preference. GitHub parses that trailer and credits the named
   identity on the repository's public **Contributors** page and on individual

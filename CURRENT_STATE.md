@@ -21,48 +21,72 @@ GitHub Actions verification workflow is green at the final CI-fix commit.
 
 ## Repository
 
-|             |                                                          |
-| ----------- | -------------------------------------------------------- |
-| Remote      | `https://github.com/hakandndr/TurkCyber.git`             |
-| Default     | `main`                                                   |
-| `main`      | `374b9f7` — rewritten 2026-08-29, **not yet pushed**     |
-| Recovery    | `codex/recovery-2026-08-23` → `f7d5f87` — **not yet pushed** |
-| Tag         | `production-live-2026-08-24` → commit `89cf284` — **not yet pushed** |
-| Identity    | `Hakan Dundar <hakandundar@gmail.com>` (author, committer and tagger) |
+|          |                                                                                        |
+| -------- | -------------------------------------------------------------------------------------- |
+| Remote   | `https://github.com/hakandndr/TurkCyber.git`                                           |
+| Default  | `main`                                                                                 |
+| `main`   | `47c9955` — identity-normalized 2026-08-29, **not yet pushed**                         |
+| Recovery | `codex/recovery-2026-08-23` → `eb2c0dd` — **not yet pushed**                           |
+| Tag      | `production-live-2026-08-24` → object `15376b0`, commit `d23887b` — **not yet pushed** |
+| Identity | `Hakan Dundar <hakan@dndr.net>` (author, committer and tagger)                         |
+
+### Canonical Git identity
+
+**`Hakan Dundar <hakan@dndr.net>`.** Set in repository-local config
+(`git config --local`), used by every reachable commit and by the annotated
+tag's tagger field.
+
+`hakandundar@gmail.com` is **retired for this repository**. It was the previous
+commit identity and is normalized out of all history; it appears in PROCESS.md
+only where an entry describes the state before that change.
 
 ### Public commit attribution
 
-**Hakan Dundar only.** Every reachable commit carries that name and email as
-both author and committer, and no reachable commit message contains an
-AI `Co-authored-by:` or `Claude-Session:` trailer.
+**Hakan Dundar only, at the canonical address.** Every reachable commit carries
+that name and email as both author and committer, and no reachable commit
+message contains an AI `Co-authored-by:` or `Claude-Session:` trailer.
 
-Two commits used to carry `Co-Authored-By: Claude Opus 5`, which is what put
-"Claude" on the public Contributors page — author and committer fields were
-never wrong. History was rewritten on 2026-08-29 to remove those two trailer
-lines and nothing else; all 25 trees are byte-for-byte unchanged. See
-PROCESS.md for the full account, and CLAUDE.md §1a for the rule that keeps it
+Two history operations produced this state, both on 2026-08-29:
+
+1. **Trailer removal.** Two commits carried `Co-Authored-By: Claude Opus 5`,
+   which is what put "Claude" on the public Contributors page — the author and
+   committer fields were never wrong. Only those trailer lines were removed.
+2. **Email normalization.** Author and committer email moved from
+   `hakandundar@gmail.com` to `hakan@dndr.net` across all 26 commits and the
+   tagger field.
+
+Both were metadata-only. Every tree is byte-for-byte unchanged, and subjects,
+message bodies, order, author dates and committer dates are all preserved. See
+PROCESS.md for the full account and CLAUDE.md §1a for the rule that keeps it
 from recurring.
 
 ### Publication — outstanding
 
-`origin` still carries the pre-rewrite history. The desktop bridge has no
-GitHub credentials, so the owner must publish from Windows:
+`origin` still carries the pre-normalization history. The desktop bridge has no
+GitHub credentials, so the owner must publish from Windows. The lease values
+below are the exact SHAs `origin` currently holds, read live from
+`git ls-remote`:
 
 ```powershell
 cd D:\IT\turkcyber\turkcyber.com
-git push --force-with-lease origin main
-git push --force-with-lease origin codex/recovery-2026-08-23
-git push --force-with-lease=refs/tags/production-live-2026-08-24:922f808cdfea7b5cc45b4bba593d34c7eb602028 origin refs/tags/production-live-2026-08-24
+
+git push --force-with-lease=refs/heads/main:47ff8897b10116291d2f0209b595293a51b5ed56 origin main
+
+git push --force-with-lease=refs/heads/codex/recovery-2026-08-23:f7d5f87bf97e670fd6890d1f17d8ada5f6676e3b origin codex/recovery-2026-08-23
+
+git push --force-with-lease=refs/tags/production-live-2026-08-24:3cff396a3403c775874d818e34d9bbb5fce54788 origin refs/tags/production-live-2026-08-24
 ```
 
-Never `--force`. The leases above are the exact pre-rewrite targets, so a push
-is refused if anything else moved the refs in the meantime.
+Never `--force`. Each lease names the exact object `origin` is expected to hold,
+so a push is refused if anything else moved that ref in the meantime.
 
-Backup of the pre-rewrite history, should it ever be needed:
-`~/turkcyber-prerewrite-20260829-013854/turkcyber-all-refs.bundle` (verified
-complete), alongside a full old→new SHA map.
+Backups, should either operation ever need reversing:
 
-After pushing, GitHub's Contributors graph may keep showing the old entry for a
+- `~/turkcyber-preemail-20260829-030604/` — state before the email
+  normalization (bundle verified complete, plus a full old→new SHA map)
+- `~/turkcyber-prerewrite-20260829-013854/` — state before the trailer removal
+
+After pushing, GitHub's Contributors graph may keep showing a stale entry for a
 while — that is a cache refresh, not a failed rewrite. Confirm on individual
 commit pages instead. **Do not rewrite again to chase a stale graph.**
 

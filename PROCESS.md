@@ -1935,9 +1935,9 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01QDwH47eF6aC4547eUJk57Z
 ```
 
-| Old SHA   | Subject                                                        |
-| --------- | -------------------------------------------------------------- |
-| `12d65ee` | feat: initial TurkCyber platform                                |
+| Old SHA   | Subject                                                               |
+| --------- | --------------------------------------------------------------------- |
+| `12d65ee` | feat: initial TurkCyber platform                                      |
 | `987fa0b` | feat: TC brand, heritage, problem-first taxonomy, tools, contact form |
 
 GitHub parses `Co-authored-by:` and credits the named identity on the
@@ -1950,8 +1950,8 @@ contained them: `main`, `codex/recovery-2026-08-23`, and the annotated tag
 
 ### The conflict, and the decision
 
-The requested safety rules said *"preserve commit messages"* and *"change ONLY
-author/committer identity metadata."* The only effective fix edits commit
+The requested safety rules said _"preserve commit messages"_ and _"change ONLY
+author/committer identity metadata."_ The only effective fix edits commit
 messages. This was reported before any rewrite and the owner chose to strip the
 trailers.
 
@@ -2002,30 +2002,30 @@ available tool and its deprecation is not relevant to a message-only rewrite of
 
 ### SHA mapping summary
 
-| Ref                          | Old       | New       |
-| ---------------------------- | --------- | --------- |
-| `main`                       | `4e4d420` | `374b9f7` |
-| `codex/recovery-2026-08-23`  | `b7867ae` | `f7d5f87` |
+| Ref                                       | Old       | New       |
+| ----------------------------------------- | --------- | --------- |
+| `main`                                    | `4e4d420` | `374b9f7` |
+| `codex/recovery-2026-08-23`               | `b7867ae` | `f7d5f87` |
 | tag target (`production-live-2026-08-24`) | `800a2fb` | `89cf284` |
-| first trailer commit         | `12d65ee` | `7ea70a1` |
-| second trailer commit        | `987fa0b` | `e3cb7fd` |
+| first trailer commit                      | `12d65ee` | `7ea70a1` |
+| second trailer commit                     | `987fa0b` | `e3cb7fd` |
 
 All 25 commits received new SHAs, because the two edited commits are at the base
 of history.
 
 ### Verification (all performed, all green)
 
-| Check                                   | Result  |
-| --------------------------------------- | ------- |
-| Trees byte-for-byte identical            | 25 / 25 |
-| Commit subjects identical                | 25 / 25 |
-| Author and committer identity identical  | 25 / 25 |
-| Author dates identical                   | 25 / 25 |
-| `main` subject sequence / order          | identical |
-| Reachable commits (branches + tags)      | 25 (was 25) |
-| AI attribution lines reachable           | 0 |
-| Identity census                          | 25 × `Hakan Dundar <hakandundar@gmail.com>` |
-| Working tree                             | clean |
+| Check                                   | Result                                      |
+| --------------------------------------- | ------------------------------------------- |
+| Trees byte-for-byte identical           | 25 / 25                                     |
+| Commit subjects identical               | 25 / 25                                     |
+| Author and committer identity identical | 25 / 25                                     |
+| Author dates identical                  | 25 / 25                                     |
+| `main` subject sequence / order         | identical                                   |
+| Reachable commits (branches + tags)     | 25 (was 25)                                 |
+| AI attribution lines reachable          | 0                                           |
+| Identity census                         | 25 × `Hakan Dundar <hakandundar@gmail.com>` |
+| Working tree                            | clean                                       |
 
 ### Publication state
 
@@ -2042,3 +2042,124 @@ Pending — CI cannot run until the rewritten refs are published.
 Untouched. This change altered commit-message metadata only. No application
 code, documentation content, migration, asset, secret or runtime configuration
 was modified, and every tree hash is unchanged.
+
+---
+
+## 2026-08-29 (second entry) — Normalizing the commit identity email to hakan@dndr.net
+
+### What was requested
+
+Make the whole repository attribute commits to `Hakan Dundar
+<hakan@dndr.net>`, the canonical owner address, and make future commits use it
+too. Explicit authorization to rewrite author/committer identity metadata and
+force-push `main`, `codex/recovery-2026-08-23` and the
+`production-live-2026-08-24` tag — identity metadata only.
+
+### Pre-rewrite audit
+
+At the start, all 26 reachable commits and the tag's tagger were
+`Hakan Dundar <hakandundar@gmail.com>` on both the author and committer fields.
+The trailers removed in the earlier operation had **not** reappeared:
+`Co-Authored-By: Claude`, `Co-authored-by: Claude` and `Claude-Session:` all
+matched **0**. Published state matched local exactly — `main` `47ff889`,
+recovery `f7d5f87`, tag object `3cff396` → commit `89cf284`.
+
+### Backup
+
+`~/turkcyber-preemail-20260829-030604/`
+
+- `turkcyber-all-refs.bundle` — `git bundle verify`: _"records a complete
+  history"_
+- `refs-before.txt`, `commits-before.txt` (with author and committer dates),
+  `trees-before.txt`, `sha-map-old-to-new.txt`
+
+The earlier backup, `~/turkcyber-prerewrite-20260829-013854/`, is retained.
+
+### Method
+
+`git filter-branch -f --env-filter` over `-- --branches --tags`, rewriting
+`GIT_AUTHOR_EMAIL` and `GIT_COMMITTER_EMAIL` from `hakandundar@gmail.com` to
+`hakan@dndr.net` and pinning both names to `Hakan Dundar`. Messages, trees,
+order and both timestamps are untouched by construction.
+
+The annotated tag was recreated by hand — `filter-branch`'s `--tag-name-filter`
+does not survive this mount — preserving the tagger date `1787568547 -0700` and
+the message byte-for-byte, with the tagger email normalized.
+
+Repository-local config set to `user.name = Hakan Dundar`,
+`user.email = hakan@dndr.net`.
+
+### Errors encountered
+
+**The mount cannot reliably complete git ref updates.** The bridge denies
+`unlink`, so every git ref write leaves its `.lock` file behind, and the next
+operation on that ref fails with _"Unable to create '...lock': File exists."_
+This produced three distinct failures:
+
+1. `filter-branch` aborted after rewriting `codex/recovery-2026-08-23`,
+   leaving the repository **half-rewritten** — recovery converted, `main` and
+   the tag not. The abort was in the `refs/original` bookkeeping, not the
+   rewrite itself.
+2. `git update-ref -d refs/original/*` failed on `packed-refs.lock` for the
+   same reason, so the stale `refs/original` entries could not be deleted.
+3. A second `filter-branch -f` run then completed `main` and aborted again on
+   the same bookkeeping.
+
+Recovery from the half-rewritten state: clear every `.lock` by moving it into
+`_to_delete/stale-locks/` (moving works where deleting does not), then re-run.
+The `--env-filter` is idempotent, so re-running over the already-converted
+branch is a no-op that produces identical SHAs. Lock clearing is now a
+precondition of every git operation on this mount.
+
+`.git-rewrite/` scratch directories could not be deleted either and were moved
+to `_to_delete/`.
+
+### Integrity verification — 26 commits, all green
+
+| Check                              | Result    |
+| ---------------------------------- | --------- |
+| Trees byte-for-byte identical      | 26 / 26   |
+| Commit subjects identical          | 26 / 26   |
+| Full message bodies identical      | 26 / 26   |
+| Author name `Hakan Dundar`         | 26 / 26   |
+| Author email `hakan@dndr.net`      | 26 / 26   |
+| Committer name `Hakan Dundar`      | 26 / 26   |
+| Committer email `hakan@dndr.net`   | 26 / 26   |
+| Author dates preserved             | 26 / 26   |
+| Committer dates preserved          | 26 / 26   |
+| `main` subject order               | identical |
+| `git diff` old `main` → new `main` | empty     |
+| `hakandundar@gmail.com` reachable  | 0         |
+| AI attribution trailers reachable  | 0         |
+
+### SHA mapping
+
+| Ref                              | Old                                | New                                |
+| -------------------------------- | ---------------------------------- | ---------------------------------- |
+| `main`                           | `47ff889`                          | `47c9955`                          |
+| `codex/recovery-2026-08-23`      | `f7d5f87`                          | `eb2c0dd`                          |
+| tag `production-live-2026-08-24` | object `3cff396`, commit `89cf284` | object `15376b0`, commit `d23887b` |
+
+All 26 commits received new SHAs; the full map is in the backup directory.
+
+### Publication state
+
+**Not pushed.** The bridge VM has no GitHub credentials — no `gh`, no token, no
+credential helper, no SSH key, no `.netrc`. `git ls-remote` succeeds because
+the repository is public and reads are anonymous; `git push` fails with
+`could not read Username for 'https://github.com'`. No unsafe alternative was
+attempted and no token was requested. The exact force-with-lease commands, with
+lease values read live from `git ls-remote`, are in CURRENT_STATE.md.
+
+### CI / test result
+
+Not run in this environment: the mount's `node_modules` was installed by pnpm
+on Windows and its symlinks point at paths that do not resolve inside the
+bridge VM. The operation changed commit metadata only — every tree hash is
+identical to the state CI last passed on — so there is no functional delta to
+test, but the suite should still be run on Windows before publishing.
+
+### Staging / production state
+
+Untouched. No application source, infrastructure, Cloudflare, DNS, database,
+secret, deployment state or runtime configuration was modified.
