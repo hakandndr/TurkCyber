@@ -5,6 +5,28 @@ For the shortest current snapshot see `CURRENT_STATE.md`; for design rationale
 see `ARCHITECTURE.md`; for security boundaries see `SECURITY.md`; for history
 see the append-only `PROCESS.md`.
 
+## 0. Source control and authoring rule
+
+| Ref                              | SHA              |
+| -------------------------------- | ---------------- |
+| `main` (default)                 | `374b9f7`        |
+| `codex/recovery-2026-08-23`      | `f7d5f87`        |
+| tag `production-live-2026-08-24` | commit `89cf284` |
+
+History was rewritten on 2026-08-29 to strip AI `Co-authored-by:` trailers from
+two commits. If `origin` still shows the old SHAs (`4e4d420`, `b7867ae`,
+`800a2fb`), the force-with-lease publication block in `CURRENT_STATE.md` has not
+been run yet — run it before basing new work on this repository.
+
+**Authoring rule, permanent.** AI assistants must never create commits using
+their own name/email. All commits use `Hakan Dundar <hakandundar@gmail.com>` as
+author and committer, and no commit message may carry a `Co-authored-by:` or
+`Claude-Session:` trailer naming an assistant — GitHub reads those trailers as
+contributor claims and publishes them on the Contributors page. Full reasoning
+in `CLAUDE.md` §1a.
+
+---
+
 ## 1. Product
 
 TurkCyber is a Turkish-language digital-security publication operated as a DNDR

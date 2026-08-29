@@ -19,29 +19,52 @@ the public-history audit is clean. The public GitHub repository is populated,
 `main` is authoritative and both preserved branches have upstream tracking. The
 GitHub Actions verification workflow is green at the final CI-fix commit.
 
-## Repository and Git
+## Repository
 
-| Item                                            | Current value                                                      |
-| ----------------------------------------------- | ------------------------------------------------------------------ |
-| Repository                                      | `D:\IT\turkcyber\turkcyber.com`                                    |
-| Current branch                                  | `main`                                                             |
-| Published main before this documentation update | `796ec43cfdb3479ee40ba6805c12559553728e00`                         |
-| Final HEAD                                      | documentation-only commit containing this authoritative snapshot   |
-| Rewritten live source commit                    | `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`                         |
-| Local recovery branch                           | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
-| Remote recovery branch                          | `b7867ae6722d567f7ef90e85c62bbd7d2d970278`                         |
-| Remote                                          | `https://github.com/hakandndr/TurkCyber.git`                       |
-| Default branch                                  | `main`                                                             |
-| Tracking                                        | `main` → `origin/main`; recovery → matching `origin` branch        |
-| Release tag                                     | `production-live-2026-08-24` → live source `800a2fba…`             |
-| Tag object                                      | `922f808cdfea7b5cc45b4bba593d34c7eb602028`                         |
-| Working tree                                    | clean after the final documentation commit                         |
-| Push/deploy relationship                        | GitHub CI scans/checks only; pushing does not deploy either Worker |
-| GitHub Actions verification                     | run `32720269328`: all required steps passed                       |
+|             |                                                          |
+| ----------- | -------------------------------------------------------- |
+| Remote      | `https://github.com/hakandndr/TurkCyber.git`             |
+| Default     | `main`                                                   |
+| `main`      | `374b9f7` — rewritten 2026-08-29, **not yet pushed**     |
+| Recovery    | `codex/recovery-2026-08-23` → `f7d5f87` — **not yet pushed** |
+| Tag         | `production-live-2026-08-24` → commit `89cf284` — **not yet pushed** |
+| Identity    | `Hakan Dundar <hakandundar@gmail.com>` (author, committer and tagger) |
 
-The committed history now reproduces the live source state. Recovery snapshots
-remain external to the repository; ignored `.env.*` and `.dev.vars` files remain
-owner-local and untracked.
+### Public commit attribution
+
+**Hakan Dundar only.** Every reachable commit carries that name and email as
+both author and committer, and no reachable commit message contains an
+AI `Co-authored-by:` or `Claude-Session:` trailer.
+
+Two commits used to carry `Co-Authored-By: Claude Opus 5`, which is what put
+"Claude" on the public Contributors page — author and committer fields were
+never wrong. History was rewritten on 2026-08-29 to remove those two trailer
+lines and nothing else; all 25 trees are byte-for-byte unchanged. See
+PROCESS.md for the full account, and CLAUDE.md §1a for the rule that keeps it
+from recurring.
+
+### Publication — outstanding
+
+`origin` still carries the pre-rewrite history. The desktop bridge has no
+GitHub credentials, so the owner must publish from Windows:
+
+```powershell
+cd D:\IT\turkcyber\turkcyber.com
+git push --force-with-lease origin main
+git push --force-with-lease origin codex/recovery-2026-08-23
+git push --force-with-lease=refs/tags/production-live-2026-08-24:922f808cdfea7b5cc45b4bba593d34c7eb602028 origin refs/tags/production-live-2026-08-24
+```
+
+Never `--force`. The leases above are the exact pre-rewrite targets, so a push
+is refused if anything else moved the refs in the meantime.
+
+Backup of the pre-rewrite history, should it ever be needed:
+`~/turkcyber-prerewrite-20260829-013854/turkcyber-all-refs.bundle` (verified
+complete), alongside a full old→new SHA map.
+
+After pushing, GitHub's Contributors graph may keep showing the old entry for a
+while — that is a cache refresh, not a failed rewrite. Confirm on individual
+commit pages instead. **Do not rewrite again to chase a stale graph.**
 
 ## Live environments
 

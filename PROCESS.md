@@ -1910,3 +1910,135 @@ and Node runtimes did not include a YAML parser package. No package was installe
 or dependency changed for that purpose. GitHub accepted the workflow syntax and
 executed the complete job, providing the authoritative clean-environment YAML and
 behavioral validation.
+
+---
+
+## 2026-08-29 — Removing the AI contributor from public GitHub attribution
+
+### What was requested
+
+The public repository showed `Contributors 1 — @claude / Claude`. The project is
+authored by Hakan Dundar; an AI assistant must not remain a contributor
+identity in public history. The request assumed the cause was Claude-authored
+or Claude-committed commits and asked for an author/committer rewrite.
+
+### Why the attribution existed — the request's premise was wrong
+
+Inspection of every reachable ref found **zero commits authored or committed by
+Claude**. All 25 commits, and the annotated tag's tagger, were already
+`Hakan Dundar <hakandundar@gmail.com>` on both the author and committer fields.
+
+The cause was a **commit-message trailer**, in exactly two commits:
+
+```
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01QDwH47eF6aC4547eUJk57Z
+```
+
+| Old SHA   | Subject                                                        |
+| --------- | -------------------------------------------------------------- |
+| `12d65ee` | feat: initial TurkCyber platform                                |
+| `987fa0b` | feat: TC brand, heritage, problem-first taxonomy, tools, contact form |
+
+GitHub parses `Co-authored-by:` and credits the named identity on the
+Contributors page and on commit pages. An author/committer rewrite — the
+operation actually requested — would have changed nothing.
+
+Both commits are the first and second in history, so all three published refs
+contained them: `main`, `codex/recovery-2026-08-23`, and the annotated tag
+`production-live-2026-08-24`.
+
+### The conflict, and the decision
+
+The requested safety rules said *"preserve commit messages"* and *"change ONLY
+author/committer identity metadata."* The only effective fix edits commit
+messages. This was reported before any rewrite and the owner chose to strip the
+trailers.
+
+### Method
+
+`git filter-branch --msg-filter` over `-- --branches --tags`, with a Python
+filter that drops only lines beginning `Co-Authored-By: Claude`,
+`Co-authored-by: Claude` or `Claude-Session:`. Everything else in each message
+passes through untouched. `filter-branch` preserves author and committer
+identity and both timestamps by default, so nothing else was touched.
+
+`git-filter-repo` is not installed on this machine; `filter-branch` is the
+available tool and its deprecation is not relevant to a message-only rewrite of
+25 commits.
+
+### Errors encountered
+
+1. **The annotated tag was not rewritten.** `--tag-name-filter cat` left
+   `production-live-2026-08-24` pointing at the old `800a2fb`, which kept the
+   entire pre-rewrite history reachable — the reachable commit count read 44
+   instead of 25 and the trailers were still findable through the tag. The tag
+   was recreated by hand against the rewritten commit, preserving the original
+   tagger identity, tagger date (`1787568547 -0700`) and message byte-for-byte.
+2. **Stale `.lock` files blocked the retag.** `filter-branch` left
+   `.git/HEAD.lock` and `.git/refs/tags/production-live-2026-08-24.lock`, which
+   the bridge cannot unlink (the mount denies `unlink`). Moved to
+   `_to_delete/stale-locks/` rather than deleted.
+3. **A first tree-integrity check reported a false failure** — it compared 25
+   pre-rewrite trees against the 44 commits reachable while the tag still
+   pointed at old history. Re-run correctly after the retag.
+4. **One `Claude` match remains in `main` and is correct**: a commit message
+   that mentions the filename `CLAUDE.md`. Not attribution.
+5. **The push could not be performed from this environment.** The desktop
+   bridge VM has no GitHub credentials — no `gh`, no token, no credential
+   helper, no SSH key, no `.netrc`. `git ls-remote` succeeds because the
+   repository is public and reads are anonymous; `git push` fails with
+   `could not read Username for 'https://github.com'`. Publication must be run
+   by the owner on Windows.
+
+### Backup
+
+`~/turkcyber-prerewrite-20260829-013854/`
+
+- `turkcyber-all-refs.bundle` — `git bundle create --all`, verified by
+  `git bundle verify` as recording a complete history
+- `refs-before.txt`, `commits-before.txt`, `trees-before.txt`
+- `sha-map-old-to-new.txt` — all 25 old→new mappings
+
+### SHA mapping summary
+
+| Ref                          | Old       | New       |
+| ---------------------------- | --------- | --------- |
+| `main`                       | `4e4d420` | `374b9f7` |
+| `codex/recovery-2026-08-23`  | `b7867ae` | `f7d5f87` |
+| tag target (`production-live-2026-08-24`) | `800a2fb` | `89cf284` |
+| first trailer commit         | `12d65ee` | `7ea70a1` |
+| second trailer commit        | `987fa0b` | `e3cb7fd` |
+
+All 25 commits received new SHAs, because the two edited commits are at the base
+of history.
+
+### Verification (all performed, all green)
+
+| Check                                   | Result  |
+| --------------------------------------- | ------- |
+| Trees byte-for-byte identical            | 25 / 25 |
+| Commit subjects identical                | 25 / 25 |
+| Author and committer identity identical  | 25 / 25 |
+| Author dates identical                   | 25 / 25 |
+| `main` subject sequence / order          | identical |
+| Reachable commits (branches + tags)      | 25 (was 25) |
+| AI attribution lines reachable           | 0 |
+| Identity census                          | 25 × `Hakan Dundar <hakandundar@gmail.com>` |
+| Working tree                             | clean |
+
+### Publication state
+
+**Not yet pushed.** The rewrite exists locally on
+`D:\IT\turkcyber\turkcyber.com` only; `origin` still carries the old history.
+The owner must run the force-with-lease block in CURRENT_STATE.md from Windows.
+
+### CI result
+
+Pending — CI cannot run until the rewritten refs are published.
+
+### Staging / production state
+
+Untouched. This change altered commit-message metadata only. No application
+code, documentation content, migration, asset, secret or runtime configuration
+was modified, and every tree hash is unchanged.

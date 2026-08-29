@@ -38,6 +38,34 @@ run was red before it was green, both facts belong in the entry.
 
 ---
 
+## 1a. Commit identity (permanent, non-negotiable)
+
+**AI assistants must never create commits using their own name/email. All
+commits must use the owner's configured Git identity.**
+
+That means, concretely:
+
+- `user.name` / `user.email` for this repository are `Hakan Dundar
+  <hakandundar@gmail.com>`. Every commit and every tag uses them.
+- **No `Co-authored-by:` trailer naming an AI assistant.** This is not a
+  cosmetic preference. GitHub parses that trailer and credits the named
+  identity on the repository's public **Contributors** page and on individual
+  commit pages — so a trailer is, in GitHub's eyes, a contributor claim, even
+  when the author and committer fields are entirely the owner's.
+- No `Claude-Session:`, `Generated-with:` or similar assistant trailers.
+- No assistant identity in a tagger field.
+
+This rule exists because it was violated. Two commits carried
+`Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`, which put "Claude" on
+the public Contributors page of a repository authored by one person. Author and
+committer metadata were correct on all 25 commits; the trailer alone caused it.
+Removing it required rewriting published history — see PROCESS.md, 2026-08-29.
+
+If an assistant's default convention is to append such a trailer, that
+convention is overridden here. Check `git log -1 --format=%B` before pushing.
+
+---
+
 ## 2. Language split
 
 | Surface                                                      | Language    |
