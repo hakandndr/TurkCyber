@@ -82,8 +82,18 @@ Integration terms (DNDR `docs/CONTROL-PLANE.md`, decision A45): the
 integration is additive; this application remains authoritative for its own
 data; the existing Boss and the existing analytics stay operational through
 dual-write and parity; there is no production cutover without measured parity;
-every production step is separately approved. Nothing of the integration
-itself has been built or deployed.
+every production step is separately approved.
+
+**Staging dual-write — code-complete, not deployed (2026-10-01).** The
+analytics beacon now additionally forwards each stored `visitor_events` row to
+DNDR's collector over a Service Binding, in staging only
+(`worker/lib/dndr-forward.ts`, `wrangler.jsonc` `env.staging.services`). The
+existing write, `/boss/analytics`, comments and moderation are unchanged; the
+DNDR event id is the source row id; a DNDR failure cannot affect the row or
+the response. Production has no binding and the code refuses to forward
+outside staging. Nothing was deployed and no binding exists in Cloudflare
+yet: the target Worker `dndr-collector-staging` is not deployed. No
+retention change.
 
 ## Repository
 

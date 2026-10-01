@@ -712,3 +712,30 @@ control plane. The cross-property rules live in the DNDR repository
 - **Rollback is per property**: §22 plus the recorded Worker versions and Time
   Travel bookmarks of the baseline. Rolling back TurkCyber never requires
   touching DNDR or another property.
+
+**Staging dual-write — prepared, not deployed (2026-10-01).**
+
+- Code: `worker/lib/dndr-forward.ts`, called from `worker/routes/collect.ts`
+  after the `visitor_events` insert. Tests: `tests/dndr-forward.test.ts`.
+- Identity: the DNDR producer is `prd_turkcyber_staging_binding`, carried as
+  the binding's `props.producerId`; DNDR reads it from the binding, never from
+  this code. The forwarded hostname is the one this Worker was invoked on.
+  The event id is `visitor_events:<row id>`, the source's own identity.
+- Failure isolation: forwarding runs after the source row is stored, inside
+  `waitUntil`, retries a failed call once with the same id, and never throws.
+  Logs carry the event id and outcome only (`dndr-forward: accepted
+visitor_events:42`), never an address.
+- Enablement: binding present AND `ENVIRONMENT` in
+  `DNDR_FORWARD_ENVIRONMENTS` (`staging`). Enabling production is a reviewed
+  code and configuration change with the owner's approval, after staging
+  parity.
+- Provider requirement for the staging rollout (DNDR
+  `docs/PRODUCTION-PROVISIONING.md` §12l): `dndr-collector-staging` must be
+  deployed first; then this Worker is deployed with
+  `npx wrangler@4 deploy --env staging` — the binding's `props` field needs
+  Wrangler 4 and this repository pins Wrangler 3 (upgrade it as its own change,
+  or use Wrangler 4 for that deploy).
+- Rollback: `npx wrangler rollback a854e11b-df2c-422b-a009-adf93cc72949 --env staging`
+  removes the dual-write; or DNDR disables `prd_turkcyber_staging_binding`,
+  which stops DNDR accepting without any change here. The source analytics
+  never depend on DNDR.

@@ -203,6 +203,16 @@ time, never from `id`.
 Device/browser parsing is intentionally simple and the raw user agent is kept
 for private operational analysis.
 
+**DNDR dual-write (staging only, prepared).** After the `visitor_events` row
+is stored, `worker/lib/dndr-forward.ts` sends the same observation to the DNDR
+collector through the `DNDR_COLLECTOR` Service Binding. It is a secondary
+write: it runs in the same `waitUntil` after the source write, only for a row
+that was stored, keyed on that row's id (`visitor_events:<id>`) so a retry is
+idempotent in DNDR, and every failure is caught. It is enabled only where the
+binding exists and `ENVIRONMENT` is listed in `DNDR_FORWARD_ENVIRONMENTS`
+(staging). `visitor_events` stays the authority and `/boss/analytics` reads
+only it.
+
 ## 11. Legacy analytics import
 
 The one-time production source was `D:\analytics.log`:

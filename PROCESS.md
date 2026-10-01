@@ -2418,3 +2418,50 @@ Hostinger and analytics data. Nothing was deployed; no retention action.
 
 **Next.** DNDR integration waits for the owner's approval of the Phase 1A
 scope, which runs in the DNDR repository locally and on staging first.
+
+## 2026-10-01 — DNDR staging dual-write prepared (not deployed)
+
+**Requested.** As part of the DNDR Phase 1B macro task: make TurkCyber
+code-complete for a staging dual-write to the DNDR collector, keeping its own
+analytics, Boss and analytics panel fully operational and authoritative, with
+no production change, no provider change and no retention change.
+
+**Built.**
+
+- `worker/lib/dndr-forward.ts`: enablement (`DNDR_COLLECTOR` binding present
+  and `ENVIRONMENT` in `DNDR_FORWARD_ENVIRONMENTS = ['staging']`), the event
+  id `visitor_events:<id>`, `insertedRowId()` reading D1's `last_row_id`, and
+  `forwardToDndr()` (one retry on a failed call with the same id; never
+  throws; logs id and outcome only).
+- `worker/routes/collect.ts`: the `visitor_events` insert is unchanged; its
+  promise now resolves to the D1 result (or `null` on failure), and a second
+  step forwards only a stored row. Both stay inside `ctx.waitUntil`.
+- `worker/lib/env.ts`: the optional `DNDR_COLLECTOR` binding type.
+- `wrangler.jsonc`: `env.staging.services` binds `DNDR_COLLECTOR` to
+  `dndr-collector-staging`, entrypoint `ProducerApi`, with
+  `props.producerId = prd_turkcyber_staging_binding`. Production and the top
+  level are unchanged.
+- `tests/dndr-forward.test.ts` (9 tests): the source write is byte-for-byte
+  the same with or without DNDR; forwarding is additive and staging-only; a
+  failed or absent source row is never forwarded; collector errors, refusals
+  and exceptions never change the response or the row; the retry keeps the
+  id; no address is logged; the configuration binds in staging only.
+
+**Choices.** The source row id is reused as the DNDR event id rather than a new
+UUID column: it needs no migration, it is stable across retries, and it gives
+DNDR an exact 1:1 parity key. The trade-off: ids are unique only while the
+staging analytics database lives; rebuilding that database would need a new
+producer id in DNDR.
+
+**Unknown.** Whether the runtime delivers the binding's `props` to the
+collector; the Wrangler 4 schema declares it, this repository pins Wrangler 3
+(3.114.17), whose schema does not. Verified only at the staging rollout.
+
+**Checks.** `pnpm scan:secrets`, `pnpm lint`, `pnpm check`, `pnpm test`
+(224/224, 9 new) and `pnpm build` pass.
+
+**Not changed.** Production configuration, Boss, comments, moderation,
+retention, D1, KV, routes, DNS, mail. Nothing deployed; no binding created.
+
+**Next.** The DNDR staging rollout (DNDR `docs/PRODUCTION-PROVISIONING.md`
+§12l), each provider step separately approved.
