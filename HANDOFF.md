@@ -7,17 +7,41 @@ see the append-only `PROCESS.md`.
 
 ## 0. Source control and authoring rule
 
-| Ref                              | SHA                                |
-| -------------------------------- | ---------------------------------- |
-| `main` (default)                 | `47c9955`                          |
-| `codex/recovery-2026-08-23`      | `eb2c0dd`                          |
-| tag `production-live-2026-08-24` | object `15376b0`, commit `d23887b` |
+`main` is authoritative and normally tracks `origin/main`. The table below
+records the last verified published baselines (2026-10-01, via
+`git ls-remote origin`) — it is not a claim about your local state right now.
+**No force-push is pending or authorized.**
 
-Two metadata-only history operations ran on 2026-08-29: AI `Co-authored-by:`
-trailers were stripped, then the commit identity email was normalized. If
-`origin` still shows `47ff889` / `f7d5f87` / tag `3cff396`, the force-with-lease
-publication block in `CURRENT_STATE.md` has not been run yet — run it before
-basing new work on this repository.
+| Ref                              | SHA                                | State                                    |
+| -------------------------------- | ---------------------------------- | ---------------------------------------- |
+| `main` (default)                 | `491f06b`                          | published baseline; tracks `origin/main` |
+| `codex/recovery-2026-08-23`      | `eb2c0dd`                          | published                                |
+| tag `production-live-2026-08-24` | object `15376b0`, commit `d23887b` | published                                |
+
+Start new work from local `main`. To find out whether a documentation commit
+is awaiting publication, ask Git rather than this document:
+
+```bash
+git status -sb
+git rev-list --left-right --count origin/main...main
+```
+
+A non-zero right-hand count is normal after a docs change and is resolved by a
+plain fast-forward, `git push origin main`. Never force-push.
+
+Three metadata-only history rewrites are in this repository's past — an archive
+removal before the first public push, then on 2026-08-29 an AI
+`Co-authored-by:` trailer strip and a commit-email normalization. **All of them
+are published and done.** Any force-with-lease command you find in an older
+document or in a historical `PROCESS.md` entry is spent: do not run it.
+
+**Known cosmetic issue — GitHub Contributors graph.** As of 2026-10-01 the
+repository's Contributors page still lists `@claude` alongside `@hakandndr`,
+more than a month after the trailer removal was published. Reachable history is
+verified clean (27 commits, one identity, zero AI trailers) and the REST
+contributors list agrees; only the statistics endpoint that backs the graph is
+stale. This is escalated to GitHub Support for a statistics rebuild — see
+`CURRENT_STATE.md`. **Do not rewrite history again to try to fix the graph.**
 
 **Authoring rule, permanent.** The canonical Git identity for this repository is
 `Hakan Dundar <hakan@dndr.net>`, set in repository-local config. AI assistants
@@ -110,11 +134,11 @@ git clone https://github.com/hakandndr/TurkCyber.git
 repository is `D:\IT\turkcyber\turkcyber.com` and should normally be on `main`
 tracking `origin/main`.
 
-Rewritten live implementation commit:
-`800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`
-(`chore(release): record live production routing`). The rewritten recovery proof
-before the archive-removal documentation is
-`0a11ce94464b1a968fea4ad315da137e5feb0ac3`.
+The live implementation commit is `d23887b`
+(`chore(release): record live production routing`), and the recovery proof
+before the archive-removal documentation is `ae076d0`
+(`docs: record final recovery proof`). Both are current, published values
+verified 2026-10-01.
 
 The deployed post-launch source has been recovered into coherent commits and the
 working tree is clean after finalization. A fresh checkout of this branch therefore
@@ -122,28 +146,39 @@ contains the brand masters/outputs, migrations, moderation and notification runt
 legacy importer, live route configuration, tests and current documentation needed to
 reproduce the live source state.
 
-The preserved recovery milestone is `codex/recovery-2026-08-23` at
-`b7867ae6722d567f7ef90e85c62bbd7d2d970278`, tracking the same-named remote
-branch. It records the clean rewrite proof and pre-public sanitation entry; ongoing
-documentation after GitHub publication belongs only on `main`.
+The preserved recovery milestone is `codex/recovery-2026-08-23` at `eb2c0dd`,
+published and tracking the same-named remote branch. It records the clean
+rewrite proof and pre-public sanitation entry, and it is an ancestor of `main`;
+ongoing documentation after GitHub publication belongs only on `main`.
 
 The first push attempt was stopped before any remote write because historical
 `turkcyber-pass2.tar.gz` contained a nested working copy. The unpublished history
 was then rewritten only to remove that path. All reachable commits are now free of
 the archive, nested `.git` paths and tracked `.env.development`; the source trees
-and logical commit sequence were preserved. The pre-rewrite graph is recoverable
-from the verified external bundle under the Codex visualization snapshot area.
+and logical commit sequence were preserved.
 
-The annotated `production-live-2026-08-24` tag identifies the exact deployed
-source commit `800a2fba80adb0b313ffca2f6f0e39ab081e6ac2`. It intentionally
-precedes later documentation-only commits.
+Two further metadata-only rewrites followed on 2026-08-29 (AI trailer removal,
+then commit-email normalization), and all three are published. Every SHA in this
+section is therefore a post-rewrite value. Pre-rewrite graphs remain recoverable
+from the owner-local backups `~/turkcyber-prerewrite-20260829-013854/` and
+`~/turkcyber-preemail-20260829-030604/` (bundle-verified, with a full old→new
+SHA map), and from the external bundle under the Codex visualization snapshot
+area. **Historical, for archaeology only** — the obsolete heads these rewrites
+replaced were `800a2fb` (live implementation), `0a11ce9` (recovery proof),
+`b7867ae` (recovery branch) and `796ec43` (CI-fix commit). None of those is a
+current ref; do not check any of them out as current state.
+
+The annotated `production-live-2026-08-24` tag (object `15376b0`) identifies the
+exact deployed source commit `d23887b`. It intentionally precedes later
+documentation-only commits.
 
 The only workflow in `.github/workflows/ci.yml` runs dependency installation,
 secret scanning, typechecks, lint/format checks, tests, builds and private/draft
 route guards. pnpm's authoritative version is the `packageManager` field in
-`package.json`; the workflow must not declare a competing version. GitHub Actions
-run `32720269328` passed every step at commit `796ec43cfdb3479ee40ba6805c12559553728e00`.
-The workflow contains no Wrangler or deployment step. Pushing Git does not deploy
+`package.json`; the workflow must not declare a competing version. The workflow
+is green at the published baseline `491f06b` (GitHub Actions `CI`, conclusion
+`success`), verified 2026-10-01. The workflow contains no Wrangler or deployment
+step. Pushing Git does not deploy
 staging or production; Cloudflare operations remain separate, explicitly
 authorized actions.
 

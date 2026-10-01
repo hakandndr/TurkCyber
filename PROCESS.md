@@ -2163,3 +2163,172 @@ test, but the suite should still be run on Windows before publishing.
 
 Untouched. No application source, infrastructure, Cloudflare, DNS, database,
 secret, deployment state or runtime configuration was modified.
+
+---
+
+## 2026-09-30 — Published state confirmed; GitHub Contributors graph stale, escalated to Support
+
+A verification-and-reconciliation pass. **No history was rewritten.** No commit
+was amended, no ref was force-pushed, no tag was altered, and nothing in
+production, staging, Cloudflare, DNS, data or secrets was touched.
+
+### The August publication completed
+
+The two 2026-08-29 metadata-only rewrites — AI trailer removal, then
+commit-email normalization — were published by the owner from Windows with
+`git push --force-with-lease`. The entries above, written before that push,
+correctly said "not pushed" at the time they were written; that is no longer
+the state.
+
+Verified 2026-10-01 against `git ls-remote origin`, local and remote agreeing
+on every ref:
+
+| Ref                                | Object                                     |
+| ---------------------------------- | ------------------------------------------ |
+| `main` / `origin/main`             | `491f06bfbc303f9fb385de6a5d09b2516314a2f8` |
+| `codex/recovery-2026-08-23`        | `eb2c0ddc214a7f4a63e4133184ca19b7f0fa68c9` |
+| `production-live-2026-08-24` (tag) | `15376b00c599d70fc033a65e2b10fecb5ac9412d` |
+| tag target commit                  | `d23887b568b807e674cd4312095040a0b2268681` |
+
+`git status -sb` reads `## main...origin/main` with nothing ahead or behind.
+
+### CI result
+
+GitHub Actions workflow `CI` at `491f06b`: **completed, conclusion
+`success`** (run created 2026-08-29T04:19:19Z). The preceding run at the
+pre-normalization head `47ff889` had failed, which is what the final
+documentation commit's CI fix addressed.
+
+### Canonical identity and trailer audit
+
+Across the publishable refs (branches + tags, 27 reachable commits):
+
+| Check                                    | Result                               |
+| ---------------------------------------- | ------------------------------------ |
+| Identity census (author \| committer)    | 27 × `Hakan Dundar <hakan@dndr.net>` |
+| `noreply@anthropic.com`                  | 0                                    |
+| `Co-Authored-By: Claude`                 | 0                                    |
+| `Co-authored-by: Claude`                 | 0                                    |
+| `Claude-Session:`                        | 0                                    |
+| `git interpret-trailers --parse`, all 27 | no trailers of any kind              |
+
+A full-`--all` audit does still report 2 commits with the trailer and 25 at the
+retired gmail address. Those are reachable **only** from
+`refs/original/refs/heads/main`, `refs/original/refs/heads/codex/recovery-2026-08-23`
+and `refs/original/refs/tags/production-live-2026-08-24` — the local
+`filter-branch` backup refs on the owner's machine, which were never pushed and
+cannot be. They could not be deleted at the time because the desktop bridge
+mount denies `unlink` and `packed-refs.lock` could not be removed; they are
+harmless, and removing them is an optional local cleanup from Windows, not a
+history operation.
+
+Three occurrences of the string "Claude" do appear in published commit message
+bodies. All three are the filename `CLAUDE.md` in prose. **Documentation prose
+describing the historical trailer is not contributor attribution** and must not
+be treated as such.
+
+### The Contributors graph is still wrong
+
+On 2026-09-30, more than a month after publication, the repository's
+Contributors page still displayed:
+
+```
+Contributors 2
+  @hakandndr / Hakan Dundar
+  @claude    / Claude
+```
+
+Three independent observations, taken 2026-10-01:
+
+1. **Local reachable history is clean** — the table above.
+2. **The REST contributors list agrees with local history.**
+   `GET /repos/hakandndr/TurkCyber/contributors?anon=1` returns exactly one
+   entry: `hakandndr`, type `User`, 27 contributions. No `claude`.
+3. **The REST contributor statistics endpoint is empty.**
+   `GET /repos/hakandndr/TurkCyber/stats/contributors` returns an empty body on
+   repeated requests. That endpoint backs the Contributors graph UI, so an
+   empty/unbuilt statistics cache is exactly consistent with a graph that never
+   recomputed after the force-push.
+
+So the commit data is right, the simple contributors list is right, and the
+statistics layer that feeds the graph is the one stale component.
+
+### Why no further rewrite
+
+GitHub's documented troubleshooting is that contributor data refreshes within
+roughly 24 hours of rewritten history being pushed, and that the repository
+owner should contact Support if it remains incorrect after that period. More
+than a month has elapsed, so this is now stale GitHub contributor data, not an
+incomplete rewrite.
+
+**No further history rewrite is authorized or recommended.** Another rewrite
+would change all 27 SHAs, invalidate the published branch refs and the
+`production-live-2026-08-24` release tag, break every existing commit link, and
+still not touch the statistics cache that is actually stale. CLAUDE.md §1a now
+carries this as a standing operational guard.
+
+### Exact next action
+
+Open a GitHub Support ticket requesting a Contributors graph / contributor
+statistics rebuild for `hakandndr/TurkCyber`. Draft:
+
+```text
+Subject: Contributors graph still shows a removed co-author after history rewrite
+
+Repository:   https://github.com/hakandndr/TurkCyber
+Contributors: https://github.com/hakandndr/TurkCyber/graphs/contributors
+
+The Contributors page for this repository lists two contributors, @hakandndr
+and @claude. @claude should no longer appear.
+
+Cause: two early commits carried a "Co-Authored-By: Claude ..." trailer in
+their commit messages. The author and committer fields were always mine; only
+the trailers named an assistant, and GitHub credited them as a contributor.
+
+Remediation already completed: those trailer lines were removed from all
+reachable history, and author/committer identity was normalized to
+Hakan Dundar <hakan@dndr.net>. The rewritten refs were published with
+git push --force-with-lease on 2026-08-29:
+
+  refs/heads/main                        491f06bfbc303f9fb385de6a5d09b2516314a2f8
+  refs/heads/codex/recovery-2026-08-23   eb2c0ddc214a7f4a63e4133184ca19b7f0fa68c9
+  refs/tags/production-live-2026-08-24   15376b00c599d70fc033a65e2b10fecb5ac9412d
+
+Current reachable history is 27 commits, all authored and committed by
+Hakan Dundar <hakan@dndr.net>, with zero Co-authored-by / Claude-Session /
+noreply@anthropic.com trailers. Individual commit pages show no co-author.
+
+The REST API agrees: /repos/hakandndr/TurkCyber/contributors returns only
+hakandndr (27 contributions). However
+/repos/hakandndr/TurkCyber/stats/contributors returns an empty body, which
+suggests the contributor statistics cache behind the Contributors graph never
+rebuilt after the force-push.
+
+Per GitHub's guidance that contributor data refreshes within about 24 hours of
+a rewrite and to contact Support if it remains incorrect, and as more than one
+month has now passed: please rebuild/refresh the contributor statistics for
+this repository so the Contributors graph reflects the current history.
+
+I am the repository owner. Thank you.
+```
+
+### Documentation reconciled in this pass
+
+- `CURRENT_STATE.md` — repository table replaced with verified published SHAs;
+  the "Publication — outstanding" section and its force-with-lease block
+  removed and replaced with "Publication — complete" plus a
+  "GitHub Contributors graph — stale display" section.
+- `HANDOFF.md` §0 — stale SHAs replaced; the instruction to run the August
+  force-with-lease publication removed; the Contributors-graph issue and the
+  no-rewrite rule recorded for a zero-context engineer.
+- `CLAUDE.md` §1a — standing operational guard added: a stale Contributors
+  graph is never a reason for another rewrite.
+- `README.md`, `ARCHITECTURE.md`, `PRODUCTION_CUTOVER.md` — audited, no
+  source-control or attribution statements, unchanged. `SECURITY.md` §20's
+  sentence on the sanitized public history remains accurate, unchanged.
+
+### Verification run for this pass
+
+`pnpm check` 0 errors / 0 warnings / 0 hints (66 files) · `pnpm lint` eslint and
+`prettier --check .` clean · `pnpm test` 215 passed in 9 files · `pnpm build` 57
+pages · `pnpm scan:secrets` clean · `git diff --check` clean.

@@ -1,8 +1,9 @@
 # Current state
 
-Authoritative snapshot of TurkCyber as observed on **2026-08-24 04:10 PDT**
-(11:10 UTC). Repository and live runtime checks supersede earlier planning
-documents and historical `PROCESS.md` entries.
+Authoritative snapshot of TurkCyber. Live runtime values were observed on
+**2026-08-24 04:10 PDT** (11:10 UTC); the source-control section was
+re-verified on **2026-10-01 04:16 UTC**. Repository and live runtime checks
+supersede earlier planning documents and historical `PROCESS.md` entries.
 
 ## Headline
 
@@ -13,22 +14,30 @@ comments, moderation, analytics, Turnstile and Resend notifications are active.
 The deployed post-launch brand, runtime, migration, notification, importer and
 routing source is represented by coherent local commits. Before the first public
 push, a narrowly authorized rewrite removed the retired
-`turkcyber-pass2.tar.gz` transfer archive from every reachable commit. The
-rewritten source trees are byte-identical to their pre-rewrite counterparts and
-the public-history audit is clean. The public GitHub repository is populated,
-`main` is authoritative and both preserved branches have upstream tracking. The
-GitHub Actions verification workflow is green at the final CI-fix commit.
+`turkcyber-pass2.tar.gz` transfer archive from every reachable commit. Two
+further metadata-only rewrites followed on 2026-08-29 (AI trailer removal, then
+commit-email normalization) and **were published successfully**. All rewritten
+source trees are byte-identical to their pre-rewrite counterparts and the
+public-history audit is clean. `main` is authoritative and normally tracks
+`origin/main`; the recovery branch and release tag are both published. The
+GitHub Actions CI workflow is green at the published baseline.
 
 ## Repository
 
-|          |                                                                                        |
-| -------- | -------------------------------------------------------------------------------------- |
-| Remote   | `https://github.com/hakandndr/TurkCyber.git`                                           |
-| Default  | `main`                                                                                 |
-| `main`   | `47c9955` — identity-normalized 2026-08-29, **not yet pushed**                         |
-| Recovery | `codex/recovery-2026-08-23` → `eb2c0dd` — **not yet pushed**                           |
-| Tag      | `production-live-2026-08-24` → object `15376b0`, commit `d23887b` — **not yet pushed** |
-| Identity | `Hakan Dundar <hakan@dndr.net>` (author, committer and tagger)                         |
+Published baselines verified 2026-10-01 against `git ls-remote origin`. These
+are the last verified published values, not a claim about the local working
+state at the moment you read this — see "Determining publication state" below.
+
+|           |                                                                               |
+| --------- | ----------------------------------------------------------------------------- |
+| Remote    | `https://github.com/hakandndr/TurkCyber.git`                                  |
+| Default   | `main`                                                                        |
+| `main`    | authoritative; last verified published baseline `491f06b`                     |
+| Recovery  | `codex/recovery-2026-08-23` → `eb2c0dd` = `origin/...` — published            |
+| Tag       | `production-live-2026-08-24` → object `15376b0`, commit `d23887b` — published |
+| Identity  | `Hakan Dundar <hakan@dndr.net>` (author, committer and tagger)                |
+| Reachable | 27 commits, all at the canonical identity                                     |
+| CI        | green at baseline `491f06b` (GitHub Actions `CI`, conclusion `success`)       |
 
 ### Canonical Git identity
 
@@ -60,35 +69,81 @@ message bodies, order, author dates and committer dates are all preserved. See
 PROCESS.md for the full account and CLAUDE.md §1a for the rule that keeps it
 from recurring.
 
-### Publication — outstanding
+### Publication — complete
 
-`origin` still carries the pre-normalization history. The desktop bridge has no
-GitHub credentials, so the owner must publish from Windows. The lease values
-below are the exact SHAs `origin` currently holds, read live from
-`git ls-remote`:
+The 2026-08-29 force-with-lease publication was carried out by the owner and
+succeeded. `origin` no longer carries any pre-normalization history, and the
+old force-with-lease instruction block that used to live here has been removed
+so it cannot be run again by mistake.
 
-```powershell
-cd D:\IT\turkcyber\turkcyber.com
+No history operation and no force-push is pending or authorized. The last
+verified published baseline before this documentation change was `491f06b`,
+and CI is green there.
 
-git push --force-with-lease=refs/heads/main:47ff8897b10116291d2f0209b595293a51b5ed56 origin main
+#### Determining publication state
 
-git push --force-with-lease=refs/heads/codex/recovery-2026-08-23:f7d5f87bf97e670fd6890d1f17d8ada5f6676e3b origin codex/recovery-2026-08-23
+This document does not record a live ahead/behind count, because any such
+number is false the moment a push happens. Check it at read time:
 
-git push --force-with-lease=refs/tags/production-live-2026-08-24:3cff396a3403c775874d818e34d9bbb5fce54788 origin refs/tags/production-live-2026-08-24
+```bash
+git status -sb
+git rev-list --left-right --count origin/main...main
 ```
 
-Never `--force`. Each lease names the exact object `origin` is expected to hold,
-so a push is refused if anything else moved that ref in the meantime.
+A non-zero right-hand count means a documentation commit is awaiting
+publication. Normal documentation publication is a plain fast-forward:
 
-Backups, should either operation ever need reversing:
+```bash
+git push origin main
+```
+
+No force, no lease. If a push is ever refused, re-read the remote with
+`git ls-remote origin` and find out why before reaching for any flag.
+
+Backups from the two rewrites are retained on the owner's machine, should
+either ever need reversing:
 
 - `~/turkcyber-preemail-20260829-030604/` — state before the email
   normalization (bundle verified complete, plus a full old→new SHA map)
 - `~/turkcyber-prerewrite-20260829-013854/` — state before the trailer removal
 
-After pushing, GitHub's Contributors graph may keep showing a stale entry for a
-while — that is a cache refresh, not a failed rewrite. Confirm on individual
-commit pages instead. **Do not rewrite again to chase a stale graph.**
+### GitHub Contributors graph — stale display
+
+**Observed 2026-10-01: the repository's Contributors page still shows two
+contributors, `@hakandndr` and `@claude`.** This has persisted for more than a
+month after the rewrite was published on 2026-08-29.
+
+This is a GitHub statistics-cache problem, not a Git problem. The evidence:
+
+- Reachable history (branches + tags) contains **27 commits, zero** with an
+  AI `Co-authored-by:`, `Claude-Session:` or `noreply@anthropic.com` trailer,
+  and **zero** commits authored or committed by anyone but
+  `Hakan Dundar <hakan@dndr.net>`.
+- The GitHub REST contributors list
+  (`/repos/hakandndr/TurkCyber/contributors`) returns exactly one contributor:
+  `hakandndr`, 27 contributions. It agrees with local history.
+- The GitHub REST contributor **statistics** endpoint
+  (`/repos/hakandndr/TurkCyber/stats/contributors`) returns an **empty body**
+  on repeated requests. That endpoint is what backs the Contributors graph UI,
+  so an empty statistics cache is consistent with a graph that never rebuilt
+  after the force-push.
+- The only place a Claude trailer is still reachable is `refs/original/*` —
+  the local `filter-branch` backup refs on the owner's machine. They were
+  never pushed and cannot appear on GitHub.
+
+GitHub's own guidance is that contributor data refreshes within roughly 24
+hours of a history rewrite, and that the repository owner should contact
+GitHub Support if it is still wrong after that. More than a month has elapsed.
+
+**Official next action: a GitHub Support request asking for a contributor
+statistics / Contributors graph rebuild.** The draft text is in PROCESS.md
+under the 2026-09-30 entry.
+
+**DO NOT REWRITE HISTORY AGAIN solely to chase the Contributors UI.** The
+history is already correct; another rewrite would change every SHA, invalidate
+the published refs and the release tag, and would not touch the cache that is
+actually stale. Verify attribution on individual commit pages, not on the
+graph.
 
 ## Live environments
 

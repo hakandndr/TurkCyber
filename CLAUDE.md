@@ -66,6 +66,15 @@ Removing it required rewriting published history — see PROCESS.md, 2026-08-29.
 If an assistant's default convention is to append such a trailer, that
 convention is overridden here. Check `git log -1 --format=%B` before pushing.
 
+**Operational guard — do not re-rewrite to chase the Contributors graph.** If
+reachable history has already been verified free of AI attribution but GitHub's
+Contributors graph still shows an assistant more than 24 hours after a rewrite,
+the history is right and GitHub's statistics cache is stale. Do **not** perform
+another rewrite: it changes every SHA, invalidates the published refs and the
+release tag, and does not touch the cache that is actually wrong. Verify on
+individual commit pages and escalate to GitHub Support for a contributor
+statistics rebuild. Recorded 2026-09-30, when exactly this happened.
+
 ---
 
 ## 2. Language split
