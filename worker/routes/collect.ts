@@ -5,12 +5,23 @@
  * become a broken image on a visitor's page, so the database write is wrapped,
  * swallowed, and deferred with ctx.waitUntil so the response does not wait on
  * it.
+ *
+ * The visitor_events write is the authority and is unchanged. Where the DNDR
+ * collector binding is configured (staging), the stored row is additionally
+ * forwarded to DNDR after it has been written — see lib/dndr-forward.ts. That
+ * second write can fail in any way without affecting the row or the response.
  */
 import type { Env } from '../lib/env';
 import { sanitizeField } from '../lib/sanitize';
 import { normalizeReferrer } from '../lib/referrer';
 import { detectBrowser, detectDevice } from '../lib/ua';
 import { DEFAULT_TIMEZONE, localDate } from '../lib/time';
+import {
+  dndrForwardingEnabled,
+  forwardToDndr,
+  insertedRowId,
+  producerEventId,
+} from '../lib/dndr-forward';
 
 /** 1x1 transparent GIF. */
 const GIF = Uint8Array.from([
@@ -106,9 +117,35 @@ export async function handleCollect(
       .run()
       .catch((error: unknown) => {
         console.error('collect: write failed', error);
+        return null;
       });
 
-    ctx.waitUntil(write);
+    // Additive DNDR dual-write: only for a row that was actually stored, keyed
+    // on that row's id, and never able to reject this promise chain.
+    const forward = write.then(async (result) => {
+      if (result === null || !dndrForwardingEnabled(env)) return;
+      const rowId = insertedRowId(result);
+      if (rowId === null) {
+        console.log('dndr-forward: skipped (no source row id)');
+        return;
+      }
+      await forwardToDndr(env, {
+        producerEventId: producerEventId(rowId),
+        // The hostname this Worker was invoked on, not the beacon's own claim.
+        hostname: url.hostname,
+        path: row.path,
+        referrer: referrerRaw,
+        ip: row.ip,
+        userAgent,
+        country: row.country,
+        region: sanitizeField(cf?.region ?? ''),
+        regionCode: sanitizeField(cf?.regionCode ?? ''),
+        city: row.city,
+        asn: row.asn,
+      });
+    });
+
+    ctx.waitUntil(forward.catch(() => undefined));
     return pixel('ok');
   } catch (error) {
     console.error('collect: unexpected failure', error);

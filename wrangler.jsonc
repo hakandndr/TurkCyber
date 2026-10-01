@@ -70,6 +70,21 @@
         },
       ],
       "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "fdc6c7f6db5e45638f59629b253c66ad" }],
+      // DNDR Analytics V2 dual-write (worker/lib/dndr-forward.ts), staging only.
+      // PREPARED, NOT ACTIVE: the target Worker dndr-collector-staging is not
+      // deployed yet, and this binding takes effect only with the next
+      // approved staging deploy. `props.producerId` is TurkCyber's producer in
+      // DNDR's staging registry; DNDR reads it from the binding, so this
+      // Worker's code cannot choose another identity. `props` needs Wrangler 4
+      // to deploy (HANDOFF.md §25). Production declares no such binding.
+      "services": [
+        {
+          "binding": "DNDR_COLLECTOR",
+          "service": "dndr-collector-staging",
+          "entrypoint": "ProducerApi",
+          "props": { "producerId": "prd_turkcyber_staging_binding" },
+        },
+      ],
     },
 
     // Production is defined but deliberately NOT routed. Adding the routes

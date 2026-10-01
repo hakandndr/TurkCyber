@@ -1,3 +1,5 @@
+import type { DndrCollector } from './dndr-forward';
+
 /** Bindings and secrets available to the Worker. */
 export interface Env {
   /** Static Astro build output. */
@@ -28,4 +30,10 @@ export interface Env {
 
   /** Resend send-only API key for private comment moderation notifications. */
   RESEND_API_KEY?: string;
+
+  /**
+   * DNDR collector Service Binding (staging only). Present only where
+   * wrangler.jsonc declares it; see worker/lib/dndr-forward.ts.
+   */
+  DNDR_COLLECTOR?: DndrCollector;
 }
