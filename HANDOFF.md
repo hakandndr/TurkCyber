@@ -119,7 +119,8 @@ responses from `ASSETS`.
 - Worker: `turkcyber-staging`
 - route: `turkcyber-staging.dndr.net/*`
 - active version at this handoff:
-  `a854e11b-df2c-422b-a009-adf93cc72949` (100%)
+  `df4418f5-b842-42b0-92cb-99665507bcd6` (100%, deployed 2026-10-01 with the
+  DNDR dual-write; previous `a854e11b-df2c-422b-a009-adf93cc72949`)
 - all responses carry `X-Robots-Tag: noindex, nofollow`
 
 Production changes, route changes and DNS changes require explicit owner
@@ -713,7 +714,22 @@ control plane. The cross-property rules live in the DNDR repository
   Travel bookmarks of the baseline. Rolling back TurkCyber never requires
   touching DNDR or another property.
 
-**Staging dual-write — prepared, not deployed (2026-10-01).**
+**Staging dual-write — live on staging since 2026-10-01** (version
+`df4418f5-b842-42b0-92cb-99665507bcd6`; DNDR
+`docs/PRODUCTION-PROVISIONING.md` §12m). Two things every staging deploy of
+this Worker must now do:
+
+- **Build with the staging Turnstile site key.** `pnpm build` alone produces
+  pages without a Turnstile widget (no tracked file holds the key), and
+  deploying that would break staging comment verification. The key is public
+  (it is in the staging HTML): set `PUBLIC_TURNSTILE_SITE_KEY` to the staging
+  site key in the shell for the build, never in a tracked file, and check the
+  built page carries the same `data-sitekey` as the live staging page.
+- **Deploy with Wrangler 4** (the binding's `props` field), and with any
+  `CLOUDFLARE_API_TOKEN` lacking Workers and D1 permissions unset so the OAuth
+  login is used.
+
+The original notes follow.
 
 - Code: `worker/lib/dndr-forward.ts`, called from `worker/routes/collect.ts`
   after the `visitor_events` insert. Tests: `tests/dndr-forward.test.ts`.

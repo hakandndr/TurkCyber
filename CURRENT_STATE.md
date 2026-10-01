@@ -84,15 +84,27 @@ data; the existing Boss and the existing analytics stay operational through
 dual-write and parity; there is no production cutover without measured parity;
 every production step is separately approved.
 
-**Staging dual-write — code-complete, not deployed (2026-10-01).** The
-analytics beacon now additionally forwards each stored `visitor_events` row to
-DNDR's collector over a Service Binding, in staging only
-(`worker/lib/dndr-forward.ts`, `wrangler.jsonc` `env.staging.services`). The
-existing write, `/boss/analytics`, comments and moderation are unchanged; the
-DNDR event id is the source row id; a DNDR failure cannot affect the row or
-the response. Production has no binding and the code refuses to forward
-outside staging. Nothing was deployed and no binding exists in Cloudflare
-yet: the target Worker `dndr-collector-staging` is not deployed. No
+**Staging dual-write — live on staging since 2026-10-01T10:29:44Z.** The
+analytics beacon forwards each stored `visitor_events` row to DNDR's
+collector over the `DNDR_COLLECTOR` Service Binding
+(`dndr-collector-staging#ProducerApi`, `props.producerId =
+prd_turkcyber_staging_binding`), in staging only (`worker/lib/dndr-forward.ts`).
+Verified on staging the same day:
+
+- staging Worker `df4418f5-b842-42b0-92cb-99665507bcd6` (was `a854e11b…`),
+  deployed with Wrangler 4.112.0; a fresh staging snapshot (versions,
+  bookmarks, both staging database exports) was taken first;
+- every forwarded event arrived in DNDR with the binding's producer and
+  `producer_event_id = visitor_events:<id>`; seven controlled pilot page views
+  (rows 53–59) matched one-to-one — exact parity: missing 0, unexpected 0,
+  duplicates 0, disagreements 0;
+- `visitor_events` is still written first and unchanged; with DNDR's producer
+  disabled, a visit was stored here (row 60) and refused only by DNDR; the
+  visitor always received the pixel;
+- public pages answer 200, the comments API answers, `/boss` answers its login
+  page; the signed-in Boss and analytics panel are left to the owner's check.
+
+Production has no binding and the code refuses to forward outside staging. No
 retention change.
 
 ## Repository
@@ -240,13 +252,15 @@ graph.
 | -------------- | ---------------------------------------------- |
 | Status         | healthy, HTTP 200                              |
 | Worker         | `turkcyber-staging`                            |
-| Active version | `a854e11b-df2c-422b-a009-adf93cc72949` at 100% |
+| Active version | `df4418f5-b842-42b0-92cb-99665507bcd6` at 100% |
 | Host/route     | `turkcyber-staging.dndr.net/*`                 |
 | Indexing       | `X-Robots-Tag: noindex, nofollow`              |
 | HSTS           | absent, intentionally                          |
 
 Staging and production use distinct Turnstile public keys and separate Worker
-secrets/resources.
+secrets/resources. Staging was redeployed on 2026-10-01T10:29:44Z (previous
+version `a854e11b-df2c-422b-a009-adf93cc72949`) with the DNDR dual-write and
+the `DNDR_COLLECTOR` Service Binding; see "DNDR integration safety baseline".
 
 ## Runtime architecture
 

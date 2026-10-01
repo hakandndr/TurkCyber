@@ -2465,3 +2465,36 @@ retention, D1, KV, routes, DNS, mail. Nothing deployed; no binding created.
 
 **Next.** The DNDR staging rollout (DNDR `docs/PRODUCTION-PROVISIONING.md`
 §12l), each provider step separately approved.
+
+## 2026-10-01 — Staging dual-write deployed and verified
+
+**Requested.** As part of the DNDR Phase 1C staging rollout (owner-approved,
+staging only): deploy the dual-write to staging, prove the Service Binding
+identity at runtime, run a controlled pilot with exact parity, and record it.
+
+**Done.** Fresh staging snapshot first (`D:\IT\_backups\dndr-control-plane\turkcyber.com\20261001T1024Z_phase1c-staging\`:
+version `a854e11b…`, bookmarks for both staging databases, both exports loaded
+and counted — 52 `visitor_events`, 1 comment — and hashed). No migration was
+pending on either staging database. Dry-run with Wrangler 4.112.0 showed only
+staging resources plus `DNDR_COLLECTOR → dndr-collector-staging#ProducerApi`;
+deployed as `df4418f5-b842-42b0-92cb-99665507bcd6` at 10:29:44Z, after
+DNDR's collector. Results:
+
+- source rows 53–59 (seven controlled visits to public pages) and 61 reached
+  DNDR with `producer_id = prd_turkcyber_staging_binding` and
+  `producer_event_id = visitor_events:<id>`: the binding `props` work;
+- exact parity over the pilot: 7/7, all discrepancy counts zero;
+- DNDR producer disabled for a reversible test: row 60 stored here, pixel
+  served, DNDR refused (`producer_disabled`); restored afterwards;
+- public pages 200, comments API 200, `/boss` login page 401 (unchanged).
+
+**Problem found and avoided.** A plain `pnpm build` has no Turnstile site key,
+while the live staging pages do; deploying it would have removed Turnstile from
+staging comment forms. The build was redone with the public staging site key,
+read from the live staging page, as a shell variable only, and the built key
+was compared with the live one before deploying. Recorded in `HANDOFF.md` §25.
+
+**Not done.** No production change; no retention action; the signed-in Boss
+and analytics panel were not opened (no stored password is used for that).
+
+**Next.** Owner browser check; DNDR's parity rerun after real staging traffic.
