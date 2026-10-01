@@ -2385,3 +2385,36 @@ which record past events and are not rewritten.
 
 **Next.** Push `main` (fast-forward), then retire the remote recovery branch.
 Retention review of old analytics rows stays deferred to the owner.
+
+## 2026-10-01 — Local ref cleanup completed; DNDR integration baseline recorded
+
+**Requested.** Finish the local repository hygiene that was deliberately left
+open — the `filter-branch` backup refs — and record the DNDR integration safety
+baseline in the canonical documents. No Phase 1A implementation.
+
+**Local refs.** The previous entry kept `refs/original/*` (three refs: the old
+`main`, the old release-tag target and the old recovery branch). They are pure
+rewrite backups, used by no script, hook or configuration — only the documents
+mentioned them. Their values were matched against the safety baseline: the
+archive hash was recomputed and matched the recorded SHA-256, the bundled
+`refs/original` bundle matched its recorded checksum, `git bundle verify`
+passed, and its three heads equal the three local refs exactly. The refs were
+then deleted locally with `git update-ref -d` against their expected values,
+and two empty ref directories were removed. Remaining refs: `main`, the
+remote-tracking refs, and the tag `production-live-2026-08-24`. Local tool
+checkpoint refs remain absent; the remote has only `main` and the tag. No
+remote ref was touched, and no history was rewritten.
+
+**Documents.** `CURRENT_STATE.md` gains a dated "DNDR integration safety
+baseline" section (archive path, SHA-256, pre-cleanup Git SHA `bcbc46b`,
+current `main` `cc97f34`, Worker versions, four validated D1 exports, legacy
+analytics 1,668 and ledger 1,668, no retention cleanup) and its ref statements
+now say the backup refs are gone. `HANDOFF.md` gains §25 with the integration
+rules as they apply here and a §23 item. Earlier `PROCESS.md` entries are left
+as written; their tool and vendor references are historical record.
+
+**Not changed.** Application code, Workers, routes, D1, KV, DNS, mail, Access,
+Hostinger and analytics data. Nothing was deployed; no retention action.
+
+**Next.** DNDR integration waits for the owner's approval of the Phase 1A
+scope, which runs in the DNDR repository locally and on staging first.

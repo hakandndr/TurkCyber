@@ -1,8 +1,10 @@
 # Current state
 
 Authoritative snapshot of TurkCyber. Live runtime values were observed on
-**2026-08-24 04:10 PDT** (11:10 UTC); the source-control section was
-re-verified on **2026-10-01 04:16 UTC**. Repository and live runtime checks
+**2026-08-24 04:10 PDT** (11:10 UTC); the Worker versions and analytics
+counts were re-read for the DNDR integration safety baseline on
+**2026-10-01 07:01 UTC**, and the source-control section was re-verified the
+same day after the local ref cleanup. Repository and live runtime checks
 supersede earlier planning documents and historical `PROCESS.md` entries.
 
 ## Headline
@@ -38,11 +40,50 @@ change:
   PNGs carry the new fingerprint in their `TurkCyberIdentity` text chunk, again
   with identical pixels. Source filenames are recorded neutrally;
 - the former recovery branch was retired (its head is an ancestor of `main`);
-  local tool checkpoint refs were removed; `refs/original/*` is kept.
+  local tool checkpoint refs were removed. The local `filter-branch` backup
+  refs (`refs/original/*`) were removed in a follow-up the same day, after
+  their three ref values were matched against the separately verified
+  `refs/original` bundle in the safety baseline. The repository now has only
+  `main`, its remote-tracking refs and the release tag.
 
 The derived public PNGs differ from the deployed ones only in that metadata
 chunk; production keeps serving the previous bytes until the next deploy.
 Analytics retention was not touched.
+
+## DNDR integration safety baseline — 2026-10-01
+
+TurkCyber is the first property after `dndr.net` to be prepared for the DNDR
+control plane. Before any integration change, a validated safety baseline was
+captured at **2026-10-01T07:01Z**:
+
+- owner-held archive
+  `D:\IT\_backups\dndr-control-plane\turkcyber.com\20261001T0701Z_phase1a-baseline.7z`,
+  SHA-256 `1E7592AF29052EABB031284E7672784B6C1850750EC48CD90496F2E2AD40C686`,
+  validation passed; intentionally unencrypted by owner decision, never
+  committed or published;
+- Git at baseline: `main` = `origin/main` =
+  `bcbc46be940aa2a4ed9b5ab1e03341b3456abd86` (pre-cleanup), plus a separately
+  verified bundle of `refs/original/*`; the hygiene commit `cc97f34` followed
+  and is the current published `main`;
+- Workers at baseline: `turkcyber-production`
+  `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3`, `turkcyber-staging`
+  `a854e11b-df2c-422b-a009-adf93cc72949` — the same versions as the
+  2026-08-24 snapshot below;
+- all four D1 databases (application and analytics, production and staging)
+  were exported as-is, with schema hashes, Time Travel bookmarks and zero
+  pending migrations, and validated by reconciliation against live counts;
+- analytics at baseline: `legacy_analytics_log` rows **1,668**, import ledger
+  **1,668**.
+
+**No 90-day retention cleanup was performed**, before, during or after the
+baseline. Retention cleanup remains owner-controlled and deferred.
+
+Integration terms (DNDR `docs/CONTROL-PLANE.md`, decision A45): the
+integration is additive; this application remains authoritative for its own
+data; the existing Boss and the existing analytics stay operational through
+dual-write and parity; there is no production cutover without measured parity;
+every production step is separately approved. Nothing of the integration
+itself has been built or deployed.
 
 ## Repository
 
@@ -54,7 +95,7 @@ state at the moment you read this — see "Determining publication state" below.
 | --------- | ------------------------------------------------------------------------------ |
 | Remote    | `https://github.com/hakandndr/TurkCyber.git`                                   |
 | Default   | `main`                                                                         |
-| `main`    | authoritative; last verified published baseline `491f06b`                      |
+| `main`    | authoritative; last verified published baseline `cc97f34`                      |
 | Recovery  | former recovery branch (head `eb2c0dd`) retired 2026-10-01; ancestor of `main` |
 | Tag       | `production-live-2026-08-24` → object `15376b0`, commit `d23887b` — published  |
 | Identity  | `Hakan Dundar <hakan@dndr.net>` (author, committer and tagger)                 |
@@ -149,9 +190,10 @@ This is a GitHub statistics-cache problem, not a Git problem. The evidence:
   on repeated requests. That endpoint is what backs the Contributors graph UI,
   so an empty statistics cache is consistent with a graph that never rebuilt
   after the force-push.
-- The only place such a trailer is still reachable is `refs/original/*` —
-  the local `filter-branch` backup refs on the owner's machine. They were
-  never pushed and cannot appear on GitHub.
+- No ref in the repository reaches such a trailer any more. The local
+  `filter-branch` backup refs (`refs/original/*`) that did were never pushed
+  and were removed locally on 2026-10-01; their state is preserved only in the
+  owner's offline safety-baseline bundle.
 
 GitHub's own guidance is that contributor data refreshes within roughly 24
 hours of a history rewrite, and that the repository owner should contact

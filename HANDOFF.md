@@ -610,7 +610,9 @@ path.
 1. work from clean `main` tracking `origin/main`;
 2. confirm Search Console sitemap submission if not already done;
 3. continue moderation and manual retention operations;
-4. keep the production-live tag as an immutable milestone.
+4. keep the production-live tag as an immutable milestone;
+5. DNDR control-plane integration: follow §25; nothing starts there without
+   the owner's approval of its scope.
 
 Deferred, each as its own isolated task:
 
@@ -684,3 +686,29 @@ divergent copy. Do not create transfer archives, `.tar.gz` or `.zip` files,
 alternate repository copies or stale-lock collections unless explicitly asked.
 Never claim verification unless a real command completed successfully on this
 tree; otherwise say that verification is pending on the owner's machine.
+
+## 25. DNDR control-plane integration
+
+TurkCyber will report to, and later be managed through, the private DNDR
+control plane. The cross-property rules live in the DNDR repository
+(`docs/CONTROL-PLANE.md`, decision A45); what they mean here:
+
+- **Baseline first.** A validated safety baseline was captured at
+  2026-10-01T07:01Z (`CURRENT_STATE.md`, "DNDR integration safety baseline").
+  Capture a fresh one before any later integration step that changes
+  production.
+- **This application stays authoritative** for its content, comments,
+  moderation and analytics. DNDR reads, mirrors or calls; it never becomes the
+  only copy.
+- **Additive only.** The existing `/boss/*` console and `ANALYTICS_DB` keep
+  working throughout. Analytics to DNDR is a dual-write beside the existing
+  path, never a replacement, until parity is measured and the owner approves a
+  cutover.
+- **No production cutover without parity**, and every production deploy,
+  migration, binding or route change is a separately approved action.
+- **Retention is not part of integration.** The 90-day check stays manual,
+  owner-controlled and deferred (§17); no integration step deletes or filters
+  analytics rows, and the legacy import stays a documented exception.
+- **Rollback is per property**: §22 plus the recorded Worker versions and Time
+  Travel bookmarks of the baseline. Rolling back TurkCyber never requires
+  touching DNDR or another property.
