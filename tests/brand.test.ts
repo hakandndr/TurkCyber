@@ -46,7 +46,7 @@ describe('owner visual master pack', () => {
     expect(identity.metadata.fingerprint).toBe(masterFingerprint());
   });
 
-  it('records the exact supplied filenames and assigned roles', () => {
+  it('records the supplied master order and assigned roles', () => {
     expect(identity.masters.emblem.sourceFilename).toContain('(1).png');
     expect(identity.masters.lockup.sourceFilename).toContain('(2).png');
     expect(identity.masters.presentation.sourceFilename).toContain('(3).png');

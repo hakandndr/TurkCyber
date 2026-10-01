@@ -15,12 +15,34 @@ The deployed post-launch brand, runtime, migration, notification, importer and
 routing source is represented by coherent local commits. Before the first public
 push, a narrowly authorized rewrite removed the retired
 `turkcyber-pass2.tar.gz` transfer archive from every reachable commit. Two
-further metadata-only rewrites followed on 2026-08-29 (AI trailer removal, then
-commit-email normalization) and **were published successfully**. All rewritten
-source trees are byte-identical to their pre-rewrite counterparts and the
-public-history audit is clean. `main` is authoritative and normally tracks
-`origin/main`; the recovery branch and release tag are both published. The
-GitHub Actions CI workflow is green at the published baseline.
+further metadata-only rewrites followed on 2026-08-29 (co-author trailer
+removal, then commit-email normalization) and **were published successfully**.
+All rewritten source trees are byte-identical to their pre-rewrite counterparts
+and the public-history audit is clean. `main` is authoritative and normally
+tracks `origin/main`; the release tag is published, and the former recovery
+branch was retired on 2026-10-01. The GitHub Actions CI workflow is green at
+the published baseline.
+
+## Repository hygiene — 2026-10-01
+
+A validated local safety baseline of the repository, its Workers and its four
+D1 databases was captured before this change. The repository was then cleaned
+of tool-specific artifacts, with no application, runtime, provider or data
+change:
+
+- the former tool-specific working-rules file was retired; its project rules
+  now live in `HANDOFF.md` §24, §21 and §23 and `ARCHITECTURE.md` §4 and §10;
+- the four owner master PNGs no longer carry an embedded content-credential
+  chunk. Their decoded pixels are identical, so `src/brand/identity.json`
+  records new byte hashes and a new aggregate fingerprint, and the six derived
+  PNGs carry the new fingerprint in their `TurkCyberIdentity` text chunk, again
+  with identical pixels. Source filenames are recorded neutrally;
+- the former recovery branch was retired (its head is an ancestor of `main`);
+  local tool checkpoint refs were removed; `refs/original/*` is kept.
+
+The derived public PNGs differ from the deployed ones only in that metadata
+chunk; production keeps serving the previous bytes until the next deploy.
+Analytics retention was not touched.
 
 ## Repository
 
@@ -28,16 +50,16 @@ Published baselines verified 2026-10-01 against `git ls-remote origin`. These
 are the last verified published values, not a claim about the local working
 state at the moment you read this — see "Determining publication state" below.
 
-|           |                                                                               |
-| --------- | ----------------------------------------------------------------------------- |
-| Remote    | `https://github.com/hakandndr/TurkCyber.git`                                  |
-| Default   | `main`                                                                        |
-| `main`    | authoritative; last verified published baseline `491f06b`                     |
-| Recovery  | `codex/recovery-2026-08-23` → `eb2c0dd` = `origin/...` — published            |
-| Tag       | `production-live-2026-08-24` → object `15376b0`, commit `d23887b` — published |
-| Identity  | `Hakan Dundar <hakan@dndr.net>` (author, committer and tagger)                |
-| Reachable | 27 commits, all at the canonical identity                                     |
-| CI        | green at baseline `491f06b` (GitHub Actions `CI`, conclusion `success`)       |
+|           |                                                                                |
+| --------- | ------------------------------------------------------------------------------ |
+| Remote    | `https://github.com/hakandndr/TurkCyber.git`                                   |
+| Default   | `main`                                                                         |
+| `main`    | authoritative; last verified published baseline `491f06b`                      |
+| Recovery  | former recovery branch (head `eb2c0dd`) retired 2026-10-01; ancestor of `main` |
+| Tag       | `production-live-2026-08-24` → object `15376b0`, commit `d23887b` — published  |
+| Identity  | `Hakan Dundar <hakan@dndr.net>` (author, committer and tagger)                 |
+| Reachable | 27 commits, all at the canonical identity                                      |
+| CI        | green at baseline `491f06b` (GitHub Actions `CI`, conclusion `success`)        |
 
 ### Canonical Git identity
 
@@ -53,21 +75,22 @@ only where an entry describes the state before that change.
 
 **Hakan Dundar only, at the canonical address.** Every reachable commit carries
 that name and email as both author and committer, and no reachable commit
-message contains an AI `Co-authored-by:` or `Claude-Session:` trailer.
+message contains a co-author, session or generator trailer.
 
 Two history operations produced this state, both on 2026-08-29:
 
-1. **Trailer removal.** Two commits carried `Co-Authored-By: Claude Opus 5`,
-   which is what put "Claude" on the public Contributors page — the author and
-   committer fields were never wrong. Only those trailer lines were removed.
+1. **Trailer removal.** Two commits carried a third-party co-author trailer,
+   which is what put a second identity on the public Contributors page — the
+   author and committer fields were never wrong. Only those trailer lines were
+   removed.
 2. **Email normalization.** Author and committer email moved from
    `hakandundar@gmail.com` to `hakan@dndr.net` across all 26 commits and the
    tagger field.
 
 Both were metadata-only. Every tree is byte-for-byte unchanged, and subjects,
 message bodies, order, author dates and committer dates are all preserved. See
-PROCESS.md for the full account and CLAUDE.md §1a for the rule that keeps it
-from recurring.
+PROCESS.md for the full account and the authoring rule in HANDOFF.md §0 that
+keeps it from recurring.
 
 ### Publication — complete
 
@@ -110,15 +133,14 @@ either ever need reversing:
 ### GitHub Contributors graph — stale display
 
 **Observed 2026-10-01: the repository's Contributors page still shows two
-contributors, `@hakandndr` and `@claude`.** This has persisted for more than a
-month after the rewrite was published on 2026-08-29.
+contributors, `@hakandndr` and a non-owner identity.** This has persisted for
+more than a month after the rewrite was published on 2026-08-29.
 
 This is a GitHub statistics-cache problem, not a Git problem. The evidence:
 
-- Reachable history (branches + tags) contains **27 commits, zero** with an
-  AI `Co-authored-by:`, `Claude-Session:` or `noreply@anthropic.com` trailer,
-  and **zero** commits authored or committed by anyone but
-  `Hakan Dundar <hakan@dndr.net>`.
+- Reachable history (branches + tags) contains **zero** commits with a
+  co-author, session or generator trailer, and **zero** commits authored or
+  committed by anyone but `Hakan Dundar <hakan@dndr.net>`.
 - The GitHub REST contributors list
   (`/repos/hakandndr/TurkCyber/contributors`) returns exactly one contributor:
   `hakandndr`, 27 contributions. It agrees with local history.
@@ -127,7 +149,7 @@ This is a GitHub statistics-cache problem, not a Git problem. The evidence:
   on repeated requests. That endpoint is what backs the Contributors graph UI,
   so an empty statistics cache is consistent with a graph that never rebuilt
   after the force-push.
-- The only place a Claude trailer is still reachable is `refs/original/*` —
+- The only place such a trailer is still reachable is `refs/original/*` —
   the local `filter-branch` backup refs on the owner's machine. They were
   never pushed and cannot appear on GitHub.
 

@@ -149,7 +149,7 @@ duplicate volatile operational state here.
 | [SECURITY.md](SECURITY.md)                     | threat model, privacy boundaries and secret handling   |
 | [PROCESS.md](PROCESS.md)                       | append-only recovery and release history               |
 | [PRODUCTION_CUTOVER.md](PRODUCTION_CUTOVER.md) | historical cutover runbook and current rollback record |
-| [CLAUDE.md](CLAUDE.md)                         | permanent repository working rules                     |
 
-Read `CLAUDE.md`, `CURRENT_STATE.md` and `HANDOFF.md` before making a meaningful
-change. Every such change must reconcile those documents with reality.
+Read `CURRENT_STATE.md` and `HANDOFF.md` — including its repository working
+rules (§24) — before making a meaningful change. Every such change must
+reconcile those documents with reality.

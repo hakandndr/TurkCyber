@@ -77,7 +77,11 @@ build. There is no CMS, database editor or runtime authoring path.
 
 Publishing is explicit: `status: published` is required for production,
 sitemap, RSS and search-index inclusion. `SHOW_UNPUBLISHED` is an opt-in local
-gate that defaults closed. The test harness owns a clean `.test-dist/` build so
+gate that defaults closed. It used to read `import.meta.env.DEV`, which an
+ambient `NODE_ENV` can flip: `NODE_ENV=test astro build` once produced a
+production build containing draft content. Do not reintroduce that pattern;
+`tests/content.test.ts` guards against it. `SHOW_UNPUBLISHED=true` lives in
+`.env.development`, which Astro loads for `astro dev` and not for `astro build`. The test harness owns a clean `.test-dist/` build so
 ignored developer env files and stale `dist/` output cannot change assertions.
 
 Categories are defined once in `src/config/site.ts`; the schema, category pages,
@@ -194,6 +198,8 @@ beacon into a broken resource.
 
 Worker events store UTC `occurred_at` and an application-computed
 `local_date` in `ANALYTICS_TIMEZONE`. SQLite is not asked to guess DST offsets.
+The boss stream's `seq` and `day_seq` are derived with `ROW_NUMBER()` at read
+time, never from `id`.
 Device/browser parsing is intentionally simple and the raw user agent is kept
 for private operational analysis.
 

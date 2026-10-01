@@ -2332,3 +2332,56 @@ I am the repository owner. Thank you.
 `pnpm check` 0 errors / 0 warnings / 0 hints (66 files) · `pnpm lint` eslint and
 `prettier --check .` clean · `pnpm test` 215 passed in 9 files · `pnpm build` 57
 pages · `pnpm scan:secrets` clean · `git diff --check` clean.
+
+## 2026-10-01 — Repository hygiene: tool-specific artifacts removed
+
+**Requested.** Remove tool-specific repository artifacts and attribution from
+the current tree and the active repository surface, without rewriting history,
+without force-pushing and without changing application behaviour.
+
+**Precondition.** A local safety baseline was captured and validated first:
+Git bundles (including `refs/original/*`), Worker versions, migration states,
+Time Travel bookmarks and full exports of all four D1 databases, as they
+existed. No analytics row was filtered, deleted or modified; retention remains
+a separate, owner-controlled operation.
+
+**Changes.**
+
+- The tool-specific working-rules file was retired. Its project rules were
+  re-homed: documentation reconciliation, commit identity, language, content
+  rules (heritage wording, `uiVerifiedAt`, browser-only tools, no categorical
+  link-safety claim, the 90-day wording and the legacy-import exception) and
+  working-copy rules in `HANDOFF.md` §24; deferred work in §23; `BOT_SQL` and
+  the CI secret-scan rule in §21; the draft-gate history in `ARCHITECTURE.md`
+  §4; the `ROW_NUMBER()` sequence invariant in §10. Session-behaviour
+  instructions specific to one tool were dropped. `README.md` and one source
+  comment now point at `HANDOFF.md`.
+- `CURRENT_STATE.md` and `HANDOFF.md` describe the 2026-08-29 trailer removal
+  and the Contributors-graph issue in neutral terms; the facts are unchanged.
+- Brand masters: the embedded content-credential (`caBX`) chunk was removed
+  from the four owner master PNGs. IHDR and IDAT bytes are untouched and the
+  decoded RGBA pixels hash identically before and after. Master byte hashes and
+  the aggregate fingerprint in `src/brand/identity.json` were updated; the six
+  derived PNGs had only their `TurkCyberIdentity` text chunk updated to the new
+  fingerprint (pixels identical, hashes updated). Source filenames are recorded
+  neutrally; `tests/brand.test.ts` describes the check accurately.
+- Git surface: the former recovery branch (head `eb2c0dd`, an ancestor of
+  `main`) is retired locally and on the remote; local tool checkpoint refs were
+  deleted; `refs/original/*` is kept.
+- Ignored local remnants: a transfer tarball whose every file is in Git or
+  identical in the working tree, and empty stale lock files, were deleted. The
+  rewrite map files were archived to the owner's local backup root before
+  removal. Unrelated ignored files were left alone.
+
+**Not changed.** Application code paths, Workers, routes, D1, KV, DNS, mail,
+Access and analytics data. Nothing was deployed. No history was rewritten and
+nothing was force-pushed.
+
+**Verification.** See the commit for this entry: `pnpm check`, `pnpm lint`,
+`pnpm test`, `pnpm build`, `pnpm scan:secrets` and `git diff --check`, plus a
+case-insensitive scan of the tracked tree for tool and vendor attribution.
+Remaining matches are confined to earlier, append-only `PROCESS.md` entries,
+which record past events and are not rewritten.
+
+**Next.** Push `main` (fast-forward), then retire the remote recovery branch.
+Retention review of old analytics rows stays deferred to the owner.

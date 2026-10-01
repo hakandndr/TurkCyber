@@ -15,8 +15,11 @@ records the last verified published baselines (2026-10-01, via
 | Ref                              | SHA                                | State                                    |
 | -------------------------------- | ---------------------------------- | ---------------------------------------- |
 | `main` (default)                 | `491f06b`                          | published baseline; tracks `origin/main` |
-| `codex/recovery-2026-08-23`      | `eb2c0dd`                          | published                                |
 | tag `production-live-2026-08-24` | object `15376b0`, commit `d23887b` | published                                |
+
+The former recovery branch (head `eb2c0dd`) was retired on 2026-10-01. Its head
+is an ancestor of `main`, so no commit was lost, and it is also preserved in the
+owner's 2026-10-01 local safety baseline.
 
 Start new work from local `main`. To find out whether a documentation commit
 is awaiting publication, ask Git rather than this document:
@@ -30,25 +33,26 @@ A non-zero right-hand count is normal after a docs change and is resolved by a
 plain fast-forward, `git push origin main`. Never force-push.
 
 Three metadata-only history rewrites are in this repository's past — an archive
-removal before the first public push, then on 2026-08-29 an AI
-`Co-authored-by:` trailer strip and a commit-email normalization. **All of them
+removal before the first public push, then on 2026-08-29 a removal of
+third-party co-author trailers and a commit-email normalization. **All of them
 are published and done.** Any force-with-lease command you find in an older
 document or in a historical `PROCESS.md` entry is spent: do not run it.
 
 **Known cosmetic issue — GitHub Contributors graph.** As of 2026-10-01 the
-repository's Contributors page still lists `@claude` alongside `@hakandndr`,
-more than a month after the trailer removal was published. Reachable history is
-verified clean (27 commits, one identity, zero AI trailers) and the REST
-contributors list agrees; only the statistics endpoint that backs the graph is
-stale. This is escalated to GitHub Support for a statistics rebuild — see
+repository's Contributors page still lists a second, non-owner identity
+alongside `@hakandndr`, more than a month after the trailer removal was
+published. Reachable history is verified clean (one identity, zero co-author or
+session trailers) and the REST contributors list agrees; only the statistics
+endpoint that backs the graph is stale. This is escalated to GitHub Support for a statistics rebuild — see
 `CURRENT_STATE.md`. **Do not rewrite history again to try to fix the graph.**
 
 **Authoring rule, permanent.** The canonical Git identity for this repository is
-`Hakan Dundar <hakan@dndr.net>`, set in repository-local config. AI assistants
-must never create commits under their own name or email, and no commit message
-may carry a `Co-authored-by:`, `Claude-Session:` or equivalent assistant
-trailer — GitHub reads those trailers as contributor claims and publishes them
-on the Contributors page. Full reasoning in `CLAUDE.md` §1a.
+`Hakan Dundar <hakan@dndr.net>`, set in repository-local config. Every commit,
+tag and tagger field uses it. No tool or third party may author, commit or tag
+under its own name or email, and no commit message may carry a co-author,
+session or generator trailer — GitHub reads co-author trailers as contributor
+claims and publishes them on the Contributors page. Check
+`git log -1 --format=%B` before pushing. The full working rules are in §24.
 
 ---
 
@@ -146,10 +150,10 @@ contains the brand masters/outputs, migrations, moderation and notification runt
 legacy importer, live route configuration, tests and current documentation needed to
 reproduce the live source state.
 
-The preserved recovery milestone is `codex/recovery-2026-08-23` at `eb2c0dd`,
-published and tracking the same-named remote branch. It records the clean
-rewrite proof and pre-public sanitation entry, and it is an ancestor of `main`;
-ongoing documentation after GitHub publication belongs only on `main`.
+The recovery milestone branch (head `eb2c0dd`, the clean rewrite proof and
+pre-public sanitation entry) was retired on 2026-10-01: its head is an ancestor
+of `main`, and the branch is preserved in the owner's local safety baseline.
+All ongoing work belongs only on `main`.
 
 The first push attempt was stopped before any remote write because historical
 `turkcyber-pass2.tar.gz` contained a nested working copy. The unpublished history
@@ -162,8 +166,7 @@ then commit-email normalization), and all three are published. Every SHA in this
 section is therefore a post-rewrite value. Pre-rewrite graphs remain recoverable
 from the owner-local backups `~/turkcyber-prerewrite-20260829-013854/` and
 `~/turkcyber-preemail-20260829-030604/` (bundle-verified, with a full old→new
-SHA map), and from the external bundle under the Codex visualization snapshot
-area. **Historical, for archaeology only** — the obsolete heads these rewrites
+SHA map), and from an external bundle in a local tool snapshot directory. **Historical, for archaeology only** — the obsolete heads these rewrites
 replaced were `800a2fb` (live implementation), `0a11ce9` (recovery proof),
 `b7867ae` (recovery branch) and `796ec43` (CI-fix commit). None of those is a
 current ref; do not check any of them out as current state.
@@ -248,8 +251,9 @@ without deciding to provision a development environment.
 
 ### pnpm execution note
 
-The installed pnpm store can occasionally differ from the Codex runtime pnpm
-store and trigger a non-interactive modules-directory replacement prompt. Do
+The installed pnpm store can occasionally differ from a pnpm store used by
+another runtime and trigger a non-interactive modules-directory replacement
+prompt. Do
 not purge `node_modules` during recovery. Use the existing project binaries in
 `node_modules/.bin` when necessary, or run pnpm from the owner's normal shell.
 
@@ -571,7 +575,8 @@ do not create a competing mark.
 - keep Worker-first asset handling while the Worker owns headers;
 - never add `unsafe-inline` to `script-src`;
 - keep Formspree permissions endpoint-specific;
-- bind every request-derived SQL value;
+- bind every request-derived SQL value; the only interpolated SQL is
+  `BOT_SQL`, built from a compile-time constant;
 - escape every database value rendered in boss;
 - keep Turnstile fail-closed and rate limits KV-backed;
 - keep the public comment column allowlist explicit;
@@ -579,7 +584,8 @@ do not create a competing mark.
 - keep session idle/absolute semantics and cookie flags;
 - migrations are append-only;
 - database timestamps remain UTC; convert only at presentation;
-- production route/DNS/mail changes require explicit owner authorization.
+- production route/DNS/mail changes require explicit owner authorization;
+- `pnpm scan:secrets` runs first in CI: the repository is public.
 
 See `SECURITY.md` for the full threat model.
 
@@ -604,4 +610,77 @@ path.
 1. work from clean `main` tracking `origin/main`;
 2. confirm Search Console sitemap submission if not already done;
 3. continue moderation and manual retention operations;
-4. keep the recovery branch and production-live tag as immutable milestones.
+4. keep the production-live tag as an immutable milestone.
+
+Deferred, each as its own isolated task:
+
+- the Astro 7 migration, never mixed with visual or content changes;
+- self-hosting the webfonts (removes the Google Fonts third-party request);
+- per-article OG images;
+- optional owner refinements to the visual master pack; integration keeps
+  consuming owner assets rather than inventing replacement geometry.
+
+## 24. Repository working rules
+
+These rules apply to every engineering session, whoever performs it.
+
+**Documentation reconciliation.** Every meaningful change — behaviour, schema,
+routes, content structure, security posture, build or test commands — must
+reconcile three files in the same change. A typo fix is not meaningful; a new
+field, route, migration or dependency is.
+
+| File               | What it is                        | How to update it                                       |
+| ------------------ | --------------------------------- | ------------------------------------------------------ |
+| `PROCESS.md`       | append-only history               | append a dated entry; never edit or delete an old one  |
+| `CURRENT_STATE.md` | the latest authoritative snapshot | replace the stale parts; it describes now, not history |
+| `HANDOFF.md`       | zero-context continuation         | update whatever a new engineer would now be misled by  |
+
+Each `PROCESS.md` entry records honestly: what was requested, files changed,
+schema or migration changes, commands run and their actual results, every error
+encountered (including ones later fixed), failed approaches and why they failed,
+unresolved issues, Git state, staging and production state, and the exact next
+recommended action. A history that omits a failed approach makes the next
+person repeat it. Reconcile documentation once, near task completion, not after
+every intermediate experiment.
+
+**Commit identity.** See the authoring rule in §0. A stale Contributors graph
+is fixed by GitHub, not by another history rewrite: if reachable history is
+verified clean and the graph is still wrong more than 24 hours after a rewrite,
+verify on individual commit pages and ask GitHub Support for a statistics
+rebuild.
+
+**Language.** Public site content is Turkish. Code, identifiers, schema,
+comments and technical documentation are English. Owner-facing reports are
+Turkish. Never introduce Turkish identifiers, table names or code comments
+because the site language is Turkish.
+
+**Content rules** (in addition to §1):
+
+- the domain dates from 2005 but the site was dormant for years: never claim
+  uninterrupted publication since 2005; use the approved `HERITAGE` wordings in
+  `src/config/site.ts` rather than writing new ones;
+- guides that depend on a third-party interface carry `uiVerifiedAt`, which
+  renders a visible "checked on" line; a missing real fact gets a visibly
+  bracketed placeholder, never an invented one;
+- interactive tools run entirely in the browser; answers are never transmitted,
+  stored or sent to analytics; no tool asks for a real password, and no tool
+  reports fabricated precision — a checklist result is a band and an ordered
+  list, never a percentage score;
+- no page may claim that clicking a link is categorically safe;
+  `/teknik/link-tiklamak-tek-basina-ne-yapar/` states the real preconditions and
+  a test asserts the absolute claim never returns;
+- `/gizlilik/` commits to keeping visitor records for at most 90 days. That is a
+  commitment kept by hand through `/boss/system/` (§17), never presented as a
+  legal requirement; tests assert both halves. If the retention mechanism or its
+  scope (`visitor_events` in `ANALYTICS_DB` only) ever changes, `/gizlilik/`
+  changes in the same commit. The one-time legacy import is a
+  documented historical exception and must not be silently purged, filtered or
+  reinterpreted by routine retention work;
+- the owner visual master pack is the brand source of truth (§20).
+
+**Working copy.** `D:\IT\turkcyber\turkcyber.com` is the only source of truth;
+confirm a change exists there before reporting it, and never maintain a second
+divergent copy. Do not create transfer archives, `.tar.gz` or `.zip` files,
+alternate repository copies or stale-lock collections unless explicitly asked.
+Never claim verification unless a real command completed successfully on this
+tree; otherwise say that verification is pending on the owner's machine.
