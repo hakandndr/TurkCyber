@@ -3,7 +3,8 @@
 This is the zero-context operations handbook for the live TurkCyber service.
 For the shortest current snapshot see `CURRENT_STATE.md`; for design rationale
 see `ARCHITECTURE.md`; for security boundaries see `SECURITY.md`; for history
-see the append-only `PROCESS.md`.
+see the append-only `PROCESS.md` (its one in-place change: tool and product names
+replaced by generic placeholders on 2026-10-02, noted at its top).
 
 ## 0. Source control and authoring rule
 

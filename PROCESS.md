@@ -1,5 +1,11 @@
 # Process journal
 
+> _Edited 2026-10-02 (owner rule: no tool, model, vendor or session name in a current
+> tracked file). Tool and product names, an assistant account handle, trailer strings, a
+> session URL, a branch prefix and local tool paths were replaced by generic placeholders
+> such as `<assistant>` and `<tool>`; nothing else changed. The exact strings remain in this
+> file's Git history, which is not rewritten._
+
 Append-only. Each entry records what was done, what was decided and what remains.
 Never rewrite an earlier entry; add a correcting one.
 
@@ -220,7 +226,7 @@ The test run owns its build.
 - **`/gizlilik/`** — already disclosed Formspree processing accurately; no
   change was needed, and none was made.
 
-### Execution policy added to CLAUDE.md §9
+### Execution policy added to the former instruction file, §9
 
 Permanent rule: stop a command that makes no progress in ~90–120 s, try at most
 two materially different execution methods, never claim verification without a
@@ -453,7 +459,7 @@ Myths (4): `bankam-arayip-dogrulama-kodu-ister-mi`, `iphone-virus-almaz`,
    established in one command, not ten.
 
 6. **The command classifier became unavailable again**, mid-pass, exactly as it
-   did during the previous task. Per CLAUDE.md §9 no time was spent retrying it;
+   did during the previous task. Per that file's §9 no time was spent retrying it;
    documentation work continued over the bridge while it was down.
 
 ### Failed approaches
@@ -467,7 +473,7 @@ Myths (4): `bankam-arayip-dogrulama-kodu-ister-mi`, `iphone-virus-almaz`,
   Replaced by embedding the real outlines.
 - **Running the toolchain on the mounted tree from the bridge VM.** See error 5.
 
-### A deliberate exception to CLAUDE.md §9
+### A deliberate exception to the instruction file's §9
 
 §9 forbids creating transfer archives and alternate repository copies. One was
 created here, knowingly, and the reasoning belongs on the record.
@@ -697,7 +703,7 @@ unrelated local changes were never committed wholesale.
 
 Before source modification, an external forensic snapshot was created at:
 
-`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-forensic-snapshot-2026-08-23-015156`
+`C:\Users\Hakan\<tool data folder>\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-forensic-snapshot-2026-08-23-015156`
 
 It contains:
 
@@ -710,7 +716,7 @@ It contains:
 - `MANIFEST.txt`
 - `SHA256SUMS.txt`
 
-Recovery continued on `codex/recovery-2026-08-23`. The dirty tree was not
+Recovery continued on `<tool>/recovery-2026-08-23`. The dirty tree was not
 committed wholesale. Approved work was isolated into these commits:
 
 - `41b5e05 feat(nav): group content navigation and add the content hub`
@@ -940,7 +946,7 @@ includes both PDT and PST dates.
 
 ### Current repository and operational state
 
-- Branch: `codex/recovery-2026-08-23`
+- Branch: `<tool>/recovery-2026-08-23`
 - HEAD: `bdd520513dea2dbf6f48fea2f8a2457f48cf563e`
 - No upstream is configured and the recovery commits have not been pushed.
 - The working tree still contains deliberately preserved, uncommitted work. This
@@ -971,7 +977,7 @@ The final documentation-only tree was verified on 2026-08-24:
 Two environment/tooling failures occurred before the green run and changed no
 project files:
 
-1. `pnpm check` aborted because the Codex pnpm store wanted to replace the existing
+1. `pnpm check` aborted because the tool's pnpm store wanted to replace the existing
    modules directory in a non-TTY process. No purge was accepted or attempted.
 2. The first direct `astro check` could not create Astro telemetry configuration
    under the sandboxed roaming profile. Re-running the same pinned local binary with
@@ -1454,7 +1460,7 @@ The starting `HEAD` did not reproduce the live service and the working tree mixe
 ### Forensic capture
 
 Before touching the index, the branch was
-`codex/recovery-2026-08-23` at
+`<tool>/recovery-2026-08-23` at
 `bdd520513dea2dbf6f48fea2f8a2457f48cf563e`. There were no staged paths, no
 `index.lock`, and no merge, rebase, cherry-pick, revert or bisect operation in
 progress. The branch was nine commits ahead of local `main`, had no upstream and
@@ -1462,7 +1468,7 @@ had not been pushed.
 
 The external snapshot is:
 
-`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-git-finalization-snapshot-2026-08-24-025513`
+`C:\Users\Hakan\<tool data folder>\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-git-finalization-snapshot-2026-08-24-025513`
 
 It contains the original status/stat/name-status reports, cached-stat report,
 untracked path list, Git/deployment state report, an `untracked/` copy preserving
@@ -1579,7 +1585,7 @@ Git task. Production remains on
 
 ### Exact next action
 
-Review `git log --oneline main..codex/recovery-2026-08-23` and the clean final
+Review `git log --oneline main..<tool>/recovery-2026-08-23` and the clean final
 status. Push or merge only after explicit owner authorization; neither action is part
 of this finalization.
 
@@ -1621,12 +1627,12 @@ scoped rewrite of the still-unpublished local history.
 
 The original forensic snapshot remains intact:
 
-`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-git-finalization-snapshot-2026-08-24-025513`
+`C:\Users\Hakan\<tool data folder>\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-git-finalization-snapshot-2026-08-24-025513`
 
 Before rewriting, an additional all-refs Git bundle and text state record were
 created at:
 
-`C:\Users\Hakan\.codex\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-pre-public-history-rewrite-2026-08-24-033727`
+`C:\Users\Hakan\<tool data folder>\visualizations\2026\08\23\01a02dc0-4414-7e21-9c52-076d4e3c8f8d\turkcyber-pre-public-history-rewrite-2026-08-24-033727`
 
 `pre-rewrite-all-refs.bundle` passed `git bundle verify`, is 5,936,731 bytes,
 and has SHA-256
@@ -1717,7 +1723,7 @@ present while every assertion passed.
 
 1. The first push attempt was rejected before any network write because the
    historical archive would have become public. Publication correctly stopped.
-2. `git filter-branch` warned that three internal Codex refs were trees rather
+2. `git filter-branch` warned that three internal tool refs were trees rather
    than commits and did not rewrite them. They point to archive-free trees.
 3. The first read of the detached worktree failed Git's dubious-ownership guard.
    No global configuration was changed; subsequent read/write commands used a
@@ -1761,7 +1767,7 @@ recovery branch was clean, 16 commits ahead of local `main` and not divergent.
 The final path audit again found zero transfer archives, nested `.git` paths or
 tracked `.env.development`, and the current secret scan was clean.
 
-`codex/recovery-2026-08-23` was pushed first with upstream tracking. Local and
+`<tool>/recovery-2026-08-23` was pushed first with upstream tracking. Local and
 remote both resolved exactly to:
 
 `b7867ae6722d567f7ef90e85c62bbd7d2d970278`
@@ -1851,7 +1857,7 @@ already passed Astro check, Worker TypeScript, ESLint, Prettier, 215/215 tests,
 ### Final source-control architecture
 
 - `main` is the GitHub default and authoritative ongoing branch.
-- `codex/recovery-2026-08-23` is preserved at `b7867ae…` as a recovery milestone.
+- `<tool>/recovery-2026-08-23` is preserved at `b7867ae…` as a recovery milestone.
 - `production-live-2026-08-24` points to exact live source `800a2fba…`.
 - the final documentation reconciliation following this entry exists only on
   `main`; the recovery branch is not moved.
@@ -1917,22 +1923,22 @@ behavioral validation.
 
 ### What was requested
 
-The public repository showed `Contributors 1 — @claude / Claude`. The project is
+The public repository showed `Contributors 1 — @<assistant account> / <assistant>`. The project is
 authored by Hakan Dundar; an AI assistant must not remain a contributor
-identity in public history. The request assumed the cause was Claude-authored
-or Claude-committed commits and asked for an author/committer rewrite.
+identity in public history. The request assumed the cause was assistant-authored
+or assistant-committed commits and asked for an author/committer rewrite.
 
 ### Why the attribution existed — the request's premise was wrong
 
 Inspection of every reachable ref found **zero commits authored or committed by
-Claude**. All 25 commits, and the annotated tag's tagger, were already
+the assistant**. All 25 commits, and the annotated tag's tagger, were already
 `Hakan Dundar <hakandundar@gmail.com>` on both the author and committer fields.
 
 The cause was a **commit-message trailer**, in exactly two commits:
 
 ```
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01QDwH47eF6aC4547eUJk57Z
+Co-Authored-By: <assistant model> <noreply@<vendor domain>>
+<Assistant>-Session: <session URL, removed>
 ```
 
 | Old SHA   | Subject                                                               |
@@ -1945,7 +1951,7 @@ Contributors page and on commit pages. An author/committer rewrite — the
 operation actually requested — would have changed nothing.
 
 Both commits are the first and second in history, so all three published refs
-contained them: `main`, `codex/recovery-2026-08-23`, and the annotated tag
+contained them: `main`, `<tool>/recovery-2026-08-23`, and the annotated tag
 `production-live-2026-08-24`.
 
 ### The conflict, and the decision
@@ -1958,8 +1964,8 @@ trailers.
 ### Method
 
 `git filter-branch --msg-filter` over `-- --branches --tags`, with a Python
-filter that drops only lines beginning `Co-Authored-By: Claude`,
-`Co-authored-by: Claude` or `Claude-Session:`. Everything else in each message
+filter that drops only lines beginning `Co-Authored-By: <assistant>`,
+`Co-authored-by: <assistant>` or `<Assistant>-Session:`. Everything else in each message
 passes through untouched. `filter-branch` preserves author and committer
 identity and both timestamps by default, so nothing else was touched.
 
@@ -1982,8 +1988,8 @@ available tool and its deprecation is not relevant to a message-only rewrite of
 3. **A first tree-integrity check reported a false failure** — it compared 25
    pre-rewrite trees against the 44 commits reachable while the tag still
    pointed at old history. Re-run correctly after the retag.
-4. **One `Claude` match remains in `main` and is correct**: a commit message
-   that mentions the filename `CLAUDE.md`. Not attribution.
+4. **One match of the assistant's name remains in `main` and is correct**: a commit message
+   that mentions the former instruction file by its filename. Not attribution.
 5. **The push could not be performed from this environment.** The desktop
    bridge VM has no GitHub credentials — no `gh`, no token, no credential
    helper, no SSH key, no `.netrc`. `git ls-remote` succeeds because the
@@ -2005,7 +2011,7 @@ available tool and its deprecation is not relevant to a message-only rewrite of
 | Ref                                       | Old       | New       |
 | ----------------------------------------- | --------- | --------- |
 | `main`                                    | `4e4d420` | `374b9f7` |
-| `codex/recovery-2026-08-23`               | `b7867ae` | `f7d5f87` |
+| `<tool>/recovery-2026-08-23`              | `b7867ae` | `f7d5f87` |
 | tag target (`production-live-2026-08-24`) | `800a2fb` | `89cf284` |
 | first trailer commit                      | `12d65ee` | `7ea70a1` |
 | second trailer commit                     | `987fa0b` | `e3cb7fd` |
@@ -2052,7 +2058,7 @@ was modified, and every tree hash is unchanged.
 Make the whole repository attribute commits to `Hakan Dundar
 <hakan@dndr.net>`, the canonical owner address, and make future commits use it
 too. Explicit authorization to rewrite author/committer identity metadata and
-force-push `main`, `codex/recovery-2026-08-23` and the
+force-push `main`, `<tool>/recovery-2026-08-23` and the
 `production-live-2026-08-24` tag — identity metadata only.
 
 ### Pre-rewrite audit
@@ -2060,7 +2066,7 @@ force-push `main`, `codex/recovery-2026-08-23` and the
 At the start, all 26 reachable commits and the tag's tagger were
 `Hakan Dundar <hakandundar@gmail.com>` on both the author and committer fields.
 The trailers removed in the earlier operation had **not** reappeared:
-`Co-Authored-By: Claude`, `Co-authored-by: Claude` and `Claude-Session:` all
+`Co-Authored-By: <assistant>`, `Co-authored-by: <assistant>` and `<Assistant>-Session:` all
 matched **0**. Published state matched local exactly — `main` `47ff889`,
 recovery `f7d5f87`, tag object `3cff396` → commit `89cf284`.
 
@@ -2096,7 +2102,7 @@ Repository-local config set to `user.name = Hakan Dundar`,
 operation on that ref fails with _"Unable to create '...lock': File exists."_
 This produced three distinct failures:
 
-1. `filter-branch` aborted after rewriting `codex/recovery-2026-08-23`,
+1. `filter-branch` aborted after rewriting `<tool>/recovery-2026-08-23`,
    leaving the repository **half-rewritten** — recovery converted, `main` and
    the tag not. The abort was in the `refs/original` bookkeeping, not the
    rewrite itself.
@@ -2137,7 +2143,7 @@ to `_to_delete/`.
 | Ref                              | Old                                | New                                |
 | -------------------------------- | ---------------------------------- | ---------------------------------- |
 | `main`                           | `47ff889`                          | `47c9955`                          |
-| `codex/recovery-2026-08-23`      | `f7d5f87`                          | `eb2c0dd`                          |
+| `<tool>/recovery-2026-08-23`     | `f7d5f87`                          | `eb2c0dd`                          |
 | tag `production-live-2026-08-24` | object `3cff396`, commit `89cf284` | object `15376b0`, commit `d23887b` |
 
 All 26 commits received new SHAs; the full map is in the backup directory.
@@ -2186,7 +2192,7 @@ on every ref:
 | Ref                                | Object                                     |
 | ---------------------------------- | ------------------------------------------ |
 | `main` / `origin/main`             | `491f06bfbc303f9fb385de6a5d09b2516314a2f8` |
-| `codex/recovery-2026-08-23`        | `eb2c0ddc214a7f4a63e4133184ca19b7f0fa68c9` |
+| `<tool>/recovery-2026-08-23`       | `eb2c0ddc214a7f4a63e4133184ca19b7f0fa68c9` |
 | `production-live-2026-08-24` (tag) | `15376b00c599d70fc033a65e2b10fecb5ac9412d` |
 | tag target commit                  | `d23887b568b807e674cd4312095040a0b2268681` |
 
@@ -2206,15 +2212,15 @@ Across the publishable refs (branches + tags, 27 reachable commits):
 | Check                                    | Result                               |
 | ---------------------------------------- | ------------------------------------ |
 | Identity census (author \| committer)    | 27 × `Hakan Dundar <hakan@dndr.net>` |
-| `noreply@anthropic.com`                  | 0                                    |
-| `Co-Authored-By: Claude`                 | 0                                    |
-| `Co-authored-by: Claude`                 | 0                                    |
-| `Claude-Session:`                        | 0                                    |
+| vendor noreply address                   | 0                                    |
+| `Co-Authored-By: <assistant>`            | 0                                    |
+| `Co-authored-by: <assistant>`            | 0                                    |
+| `<Assistant>-Session:`                   | 0                                    |
 | `git interpret-trailers --parse`, all 27 | no trailers of any kind              |
 
 A full-`--all` audit does still report 2 commits with the trailer and 25 at the
 retired gmail address. Those are reachable **only** from
-`refs/original/refs/heads/main`, `refs/original/refs/heads/codex/recovery-2026-08-23`
+`refs/original/refs/heads/main`, `refs/original/refs/heads/<tool>/recovery-2026-08-23`
 and `refs/original/refs/tags/production-live-2026-08-24` — the local
 `filter-branch` backup refs on the owner's machine, which were never pushed and
 cannot be. They could not be deleted at the time because the desktop bridge
@@ -2222,8 +2228,8 @@ mount denies `unlink` and `packed-refs.lock` could not be removed; they are
 harmless, and removing them is an optional local cleanup from Windows, not a
 history operation.
 
-Three occurrences of the string "Claude" do appear in published commit message
-bodies. All three are the filename `CLAUDE.md` in prose. **Documentation prose
+Three occurrences of the assistant's name do appear in published commit message
+bodies. All three are the former instruction file's filename in prose. **Documentation prose
 describing the historical trailer is not contributor attribution** and must not
 be treated as such.
 
@@ -2235,7 +2241,7 @@ Contributors page still displayed:
 ```
 Contributors 2
   @hakandndr / Hakan Dundar
-  @claude    / Claude
+  @<assistant account> / <assistant>
 ```
 
 Three independent observations, taken 2026-10-01:
@@ -2243,7 +2249,7 @@ Three independent observations, taken 2026-10-01:
 1. **Local reachable history is clean** — the table above.
 2. **The REST contributors list agrees with local history.**
    `GET /repos/hakandndr/TurkCyber/contributors?anon=1` returns exactly one
-   entry: `hakandndr`, type `User`, 27 contributions. No `claude`.
+   entry: `hakandndr`, type `User`, 27 contributions. No assistant account.
 3. **The REST contributor statistics endpoint is empty.**
    `GET /repos/hakandndr/TurkCyber/stats/contributors` returns an empty body on
    repeated requests. That endpoint backs the Contributors graph UI, so an
@@ -2264,7 +2270,7 @@ incomplete rewrite.
 **No further history rewrite is authorized or recommended.** Another rewrite
 would change all 27 SHAs, invalidate the published branch refs and the
 `production-live-2026-08-24` release tag, break every existing commit link, and
-still not touch the statistics cache that is actually stale. CLAUDE.md §1a now
+still not touch the statistics cache that is actually stale. The former instruction file's §1a now
 carries this as a standing operational guard.
 
 ### Exact next action
@@ -2279,9 +2285,9 @@ Repository:   https://github.com/hakandndr/TurkCyber
 Contributors: https://github.com/hakandndr/TurkCyber/graphs/contributors
 
 The Contributors page for this repository lists two contributors, @hakandndr
-and @claude. @claude should no longer appear.
+and @<assistant account>. That account should no longer appear.
 
-Cause: two early commits carried a "Co-Authored-By: Claude ..." trailer in
+Cause: two early commits carried a "Co-Authored-By: <assistant> ..." trailer in
 their commit messages. The author and committer fields were always mine; only
 the trailers named an assistant, and GitHub credited them as a contributor.
 
@@ -2291,12 +2297,12 @@ Hakan Dundar <hakan@dndr.net>. The rewritten refs were published with
 git push --force-with-lease on 2026-08-29:
 
   refs/heads/main                        491f06bfbc303f9fb385de6a5d09b2516314a2f8
-  refs/heads/codex/recovery-2026-08-23   eb2c0ddc214a7f4a63e4133184ca19b7f0fa68c9
+  refs/heads/<tool>/recovery-2026-08-23   eb2c0ddc214a7f4a63e4133184ca19b7f0fa68c9
   refs/tags/production-live-2026-08-24   15376b00c599d70fc033a65e2b10fecb5ac9412d
 
 Current reachable history is 27 commits, all authored and committed by
-Hakan Dundar <hakan@dndr.net>, with zero Co-authored-by / Claude-Session /
-noreply@anthropic.com trailers. Individual commit pages show no co-author.
+Hakan Dundar <hakan@dndr.net>, with zero Co-authored-by / <assistant>-Session /
+vendor noreply-address trailers. Individual commit pages show no co-author.
 
 The REST API agrees: /repos/hakandndr/TurkCyber/contributors returns only
 hakandndr (27 contributions). However
@@ -2321,7 +2327,7 @@ I am the repository owner. Thank you.
 - `HANDOFF.md` §0 — stale SHAs replaced; the instruction to run the August
   force-with-lease publication removed; the Contributors-graph issue and the
   no-rewrite rule recorded for a zero-context engineer.
-- `CLAUDE.md` §1a — standing operational guard added: a stale Contributors
+- the former instruction file, §1a — standing operational guard added: a stale Contributors
   graph is never a reason for another rewrite.
 - `README.md`, `ARCHITECTURE.md`, `PRODUCTION_CUTOVER.md` — audited, no
   source-control or attribution statements, unchanged. `SECURITY.md` §20's
