@@ -3,8 +3,9 @@
 > _Edited 2026-10-02 (owner rule: no tool, model, vendor or session name in a current
 > tracked file). Tool and product names, an assistant account handle, trailer strings, a
 > session URL, a branch prefix and local tool paths were replaced by generic placeholders
-> such as `<assistant>` and `<tool>`; nothing else changed. The exact strings remain in this
-> file's Git history, which is not rewritten._
+> such as `<assistant>` and `<tool>`, and one phrase crediting automated image generation was
+> reworded; nothing else changed. The exact strings remain in this file's Git history, which is
+> not rewritten._
 
 Append-only. Each entry records what was done, what was decided and what remains.
 Never rewrite an earlier entry; add a correcting one.
@@ -929,7 +930,7 @@ includes both PDT and PST dates.
 
 - A synthetic authentication request is not a browser-flow test. Login changes must
   be verified through the visible form, redirects and session cookie lifecycle.
-- AI-generated logo variations repeatedly diverged from owner intent. The owner
+- Automatically generated logo variations repeatedly diverged from owner intent. The owner
   visual master pack is now canonical; generators may crop, scale and pad but may
   not redraw it.
 - A flat SVG reconstruction lost the approved metallic treatment. Primary brand
