@@ -117,8 +117,8 @@
         },
       ],
       "kv_namespaces": [{ "binding": "THROTTLE_KV", "id": "5e366c357bb24886b7de2502a55e7bcc" }],
-      // Prepared, not deployed: production DNDR copy, blocked by B4 (the
-      // published 90-day retention promise must cover the DNDR copy first).
+      // Production DNDR copy (DNDR decision A72): an additive, best-effort copy
+      // of each stored page view; ANALYTICS_DB stays the authority.
       "services": [
         {
           "binding": "DNDR_COLLECTOR",

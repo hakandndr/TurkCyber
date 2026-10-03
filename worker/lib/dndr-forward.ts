@@ -18,9 +18,8 @@
  * - Every failure is caught and logged as a status (no address, no secret);
  *   nothing it does can fail the request or touch the source row.
  * - It is enabled only where the binding exists AND the environment is one
- *   listed in DNDR_FORWARD_ENVIRONMENTS. Production is listed on this
- *   prepared branch only; it is not deployed until the published retention
- *   promise and the DNDR copy agree (DNDR blocker B4).
+ *   listed in DNDR_FORWARD_ENVIRONMENTS: staging and, since 2026-10-04,
+ *   production (DNDR decision A72).
  * - It sends no DNDR identity of its own choosing: the producer id is the
  *   binding's `props.producerId`, set in wrangler.jsonc and read by DNDR; the
  *   hostname is the one this Worker was invoked on, never the beacon's
