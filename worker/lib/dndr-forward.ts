@@ -18,7 +18,9 @@
  * - Every failure is caught and logged as a status (no address, no secret);
  *   nothing it does can fail the request or touch the source row.
  * - It is enabled only where the binding exists AND the environment is one
- *   listed in DNDR_FORWARD_ENVIRONMENTS. Production has neither today.
+ *   listed in DNDR_FORWARD_ENVIRONMENTS. Production is listed on this
+ *   prepared branch only; it is not deployed until the published retention
+ *   promise and the DNDR copy agree (DNDR blocker B4).
  * - It sends no DNDR identity of its own choosing: the producer id is the
  *   binding's `props.producerId`, set in wrangler.jsonc and read by DNDR; the
  *   hostname is the one this Worker was invoked on, never the beacon's
@@ -27,7 +29,7 @@
 import type { Env } from './env';
 
 /** Environments where the dual-write may run. Adding one is a reviewed change. */
-export const DNDR_FORWARD_ENVIRONMENTS: readonly string[] = ['staging'];
+export const DNDR_FORWARD_ENVIRONMENTS: readonly string[] = ['staging', 'production'];
 
 /** One extra attempt when the binding call itself fails; same event id. */
 export const DNDR_FORWARD_ATTEMPTS = 2;
