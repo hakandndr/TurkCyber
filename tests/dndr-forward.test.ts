@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Env } from '../worker/lib/env';
 import {
   DNDR_FORWARD_ATTEMPTS,
+  DNDR_FORWARD_ENVIRONMENTS,
   dndrForwardingEnabled,
   forwardToDndr,
   insertedRowId,
@@ -112,8 +113,20 @@ describe('DNDR forwarding is additive and staging-only', () => {
     expect(Object.keys(dndr.calls[0]!)).not.toContain('siteId');
   });
 
-  it('does nothing in production or development, even with a binding', async () => {
-    for (const environment of ['production', 'development', undefined]) {
+  it('forwards in production with the production binding', async () => {
+    const dndr = collector();
+    const db = fakeDb();
+    await collect({
+      ...stagingEnv({ DNDR_COLLECTOR: dndr, ANALYTICS_DB: db as never }),
+      ENVIRONMENT: 'production',
+    } as Env);
+    expect(db.calls).toHaveLength(1);
+    expect(dndr.calls).toHaveLength(1);
+    expect(DNDR_FORWARD_ENVIRONMENTS).toEqual(['staging', 'production']);
+  });
+
+  it('does nothing in development or an unknown environment, even with a binding', async () => {
+    for (const environment of ['development', 'Production', 'preview', undefined]) {
       const dndr = collector();
       const db = fakeDb();
       await collect({
@@ -253,7 +266,7 @@ describe('configuration', () => {
     env: Record<string, { services?: Array<Record<string, unknown>> }>;
   };
 
-  it('binds the DNDR collector in staging only, with its producer id as binding props', () => {
+  it('binds each environment to its own collector, with its producer id as binding props', () => {
     expect(parsed.env.staging!.services).toEqual([
       {
         binding: 'DNDR_COLLECTOR',
@@ -263,7 +276,17 @@ describe('configuration', () => {
       },
     ]);
     expect(parsed.services).toBeUndefined();
-    expect(parsed.env.production!.services).toBeUndefined();
-    expect(config).not.toMatch(/dndr-collector"|dndr-collector-production/);
+    expect(parsed.env.production!.services).toEqual([
+      {
+        binding: 'DNDR_COLLECTOR',
+        service: 'dndr-collector',
+        entrypoint: 'ProducerApi',
+        props: { producerId: 'prd_turkcyber_binding' },
+      },
+    ]);
+    expect(JSON.stringify(parsed.env.production!.services)).not.toMatch(/staging/);
+    expect(JSON.stringify(parsed.env.staging!.services)).not.toMatch(
+      /"dndr-collector"|prd_turkcyber_binding/,
+    );
   });
 });
