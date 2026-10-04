@@ -2505,3 +2505,21 @@ was compared with the live one before deploying. Recorded in `HANDOFF.md` §25.
 and analytics panel were not opened (no stored password is used for that).
 
 **Next.** Owner browser check; DNDR's parity rerun after real staging traffic.
+
+## 2026-10-04 — DNDR Analytics production copy (DNDR decision A72)
+
+**Done.** A release branch from the deployed commit `d23887b` took only the
+forwarder (`1121306`) and its production enablement, then a comment update
+(`cf7c2bd`). Gates: check, lint, 225 of 225 tests, build, secret scan. The
+build's HTML, sitemap, RSS and search index differed from live only by the
+order of equal-date items; those files were pinned to the live bytes, so the
+deploy changed the Worker and nothing a visitor sees. The first deploy used
+the repository's Wrangler 3, which uploaded the binding without its `props`:
+three page views (rows 1750–1752, one of them an unparameterized request of
+mine) were stored here and refused by DNDR. Redeployed with Wrangler 4 as the
+DNDR section of HANDOFF.md already required; row 1753 then reached DNDR once.
+`main` now carries the same Worker code (fast-forward to the prepared branch
+plus the comment update).
+
+**Not done.** No change to `ANALYTICS_DB`, the Boss, the public pages, the
+privacy page or retention.

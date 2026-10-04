@@ -25,6 +25,31 @@ tracks `origin/main`; the release tag is published, and the former recovery
 branch was retired on 2026-10-01. The GitHub Actions CI workflow is green at
 the published baseline.
 
+## DNDR Analytics production — 2026-10-04
+
+- **Production Worker** `turkcyber-production`
+  `01fae4db-dcd1-4e49-ba39-1a3569c21aa2` (deployed 2026-10-03 23:58 UTC with
+  Wrangler 4; previous `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3`). Built from
+  branch `release/dndr-production-2026-10` (`cf7c2bd`): the deployed
+  `d23887b` plus the DNDR forwarder and its production enablement only. Every
+  public file (102 plus the 404 page) is byte-identical to before the deploy;
+  the static files were pinned to the previously live bytes because two
+  local builds order equal-date cards differently.
+- **What changed:** after a page view is stored in `ANALYTICS_DB`, the Worker
+  also sends a copy to DNDR Analytics through the `DNDR_COLLECTOR` Service
+  Binding (`dndr-collector#ProducerApi`, `props.producerId =
+prd_turkcyber_binding`), in `waitUntil`, best effort. `ANALYTICS_DB` and the
+  Boss stay the authority; nothing here depends on DNDR.
+- **Native start in DNDR:** 2026-10-03T23:59:10.829Z (row 1753). Rows 1750–1752
+  were refused by DNDR before the Wrangler 4 redeploy (the first deploy used
+  the pinned Wrangler 3, which drops the binding's `props`).
+- **History:** DNDR imported this database's page views once (83 worker rows;
+  the 1,668 earlier-log rows have no page and are kept in DNDR's ledger as
+  such). Nothing here was changed or deleted.
+- **Rollback:** `npx wrangler@4 rollback c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3 --env production`,
+  or DNDR disables `prd_turkcyber_binding` (no change here).
+- **Baseline:** `D:\IT\_backups\dndr-control-plane\turkcyber.com\20261003T2347Z_production-baseline`.
+
 ## Repository hygiene — 2026-10-01
 
 A validated local safety baseline of the repository, its Workers and its four

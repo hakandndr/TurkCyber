@@ -111,7 +111,8 @@ responses from `ASSETS`.
 - Worker: `turkcyber-production`
 - routes: `turkcyber.com/*`, `www.turkcyber.com/*`
 - active version at this handoff:
-  `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3` (100%)
+  `01fae4db-dcd1-4e49-ba39-1a3569c21aa2` (100%, 2026-10-03, with the DNDR
+  production copy; previous `c9976d7b-c7fd-4fa1-930a-0f9e5ec021e3`)
 - status: live and HTTP 200
 
 ### Staging
@@ -690,6 +691,11 @@ Never claim verification unless a real command completed successfully on this
 tree; otherwise say that verification is pending on the owner's machine.
 
 ## 25. DNDR control-plane integration
+
+**Production (2026-10-04):** live — see `CURRENT_STATE.md`, "DNDR Analytics
+production". Deploy with Wrangler 4 (`npx wrangler@4 deploy --env production`):
+the pinned Wrangler 3 drops the binding's `props`, and DNDR then refuses every
+copy as `producer_unknown` (fail-safe; this site is unaffected).
 
 TurkCyber will report to, and later be managed through, the private DNDR
 control plane. The cross-property rules live in the DNDR repository
