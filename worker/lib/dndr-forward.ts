@@ -57,6 +57,14 @@ export interface DndrResult {
 /** The ProducerApi entrypoint of dndr-collector, as this Worker sees it. */
 export interface DndrCollector {
   recordPage(event: DndrPageEvent): Promise<DndrResult>;
+  recordActivity?(
+    event: DndrPageEvent & {
+      eventType: 'OUTBOUND_CLICK';
+      occurredAt: string;
+      outboundHost: string;
+      outboundUrl: string;
+    },
+  ): Promise<DndrResult>;
 }
 
 export function dndrForwardingEnabled(env: Env): boolean {

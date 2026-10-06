@@ -1,5 +1,13 @@
 # Current state
 
+## Verified outbound release — 2026-10-06
+
+Production Worker `turkcyber-production` is `b82a646f-8fb3-4888-b646-99e8039403e6`; rollback `01fae4db-dcd1-4e49-ba39-1a3569c21aa2`. The same-origin `POST /__analytics/outbound` validates the request and records one immutable source `outbound_events` row before best-effort Service Binding forwarding. Only binding props assign `prd_turkcyber_binding`. Analytics migration `0002_outbound_events.sql` adds this separate table; all 1,758 pre-existing `visitor_events` rows were preserved. APP_DB, PAGE collection, Boss queries, public source assets and retention are unchanged. The browser component is added at response time.
+
+A controlled automated activation and same-ID replay returned 204 twice, stored one local row and one central OUTBOUND_CLICK, with central PAGE 90 before/after and source PAGE 1,758 before/after. Queries/fragments are absent from the destination. `pnpm check`, `pnpm lint`, `pnpm test` (228 passed), `pnpm build` and `pnpm scan:secrets` passed; production dry-run and provider version readback passed. Anonymous Boss remains 401; authenticated visual acceptance was not repeated.
+
+Historical: the dated releases below remain their own checkpoints. Planned: no retention or panel replacement. Unknown: current Workers Builds trigger readback requires permission unavailable to the current CLI session; no zero-trigger claim follows from that. Re-read provider state before the next mutation.
+
 Authoritative snapshot of TurkCyber. Live runtime values were observed on
 **2026-08-24 04:10 PDT** (11:10 UTC); the Worker versions and analytics
 counts were re-read for the DNDR integration safety baseline on

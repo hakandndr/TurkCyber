@@ -2523,3 +2523,7 @@ plus the comment update).
 
 **Not done.** No change to `ANALYTICS_DB`, the Boss, the public pages, the
 privacy page or retention.
+
+## 2026-10-06 — Add source-first outbound capture
+
+Owner-authorized scoped engineering and production release. Added the trusted same-origin component, separate analytics migration and three boundary/failure/privacy tests. Full gates passed (228 tests). Production `b82a646f-8fb3-4888-b646-99e8039403e6`, previous `01fae4db-dcd1-4e49-ba39-1a3569c21aa2`; D1 bookmark `000000a3-00000000-000050fc-a779606360b0ddac155fa8da25c36ca1`. One controlled source/central event with idempotent replay preserved PAGE and all old rows. The source panel remains protected with 401. No public editorial, APP_DB, retention, secret or mail change. Current build-trigger API permission is unavailable; provider state must be compared after push.

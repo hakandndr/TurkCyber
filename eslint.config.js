@@ -16,6 +16,26 @@ export default [
     ],
   },
   js.configs.recommended,
+  {
+    files: ['worker/outbound/*.js'],
+    languageOptions: {
+      globals: {
+        URL: 'readonly',
+        Response: 'readonly',
+        TextDecoder: 'readonly',
+        Uint8Array: 'readonly',
+        HTMLRewriter: 'readonly',
+        crypto: 'readonly',
+        document: 'readonly',
+        location: 'readonly',
+        navigator: 'readonly',
+        fetch: 'readonly',
+        Blob: 'readonly',
+      },
+    },
+    rules: { '@typescript-eslint/no-unused-vars': ['error', { caughtErrors: 'none' }] },
+  },
+
   ...tseslint.configs.recommended,
   ...astro.configs.recommended,
 

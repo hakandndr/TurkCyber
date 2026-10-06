@@ -331,3 +331,7 @@ route rollback. Every production routing action needs owner authorization.
 - no analytics import into APP_DB;
 - no logo animation, boot overlay or artificial navigation delay;
 - no shield/lock/gamer/cyberpunk identity layer.
+
+## Outbound source authority — 2026-10-06
+
+The source owns a separate `outbound_events` table with event identity as its primary key. The first accepted record owns path, timestamp, canonical destination and private request metadata. A retry reads that stored record; central delivery never replaces it. Browser payloads contain only UUID/path/destination. Actual hostname, visitor context and binding identity come from the trusted Worker. Destination queries/fragments and credentials are excluded. Local failure suppresses the central copy; central failure leaves the source row intact. The telemetry response schedules work and is not a durable-write acknowledgement. PAGE and existing Boss calculations are unchanged.

@@ -1,5 +1,11 @@
 # TurkCyber operational handoff
 
+## Current continuation — 2026-10-06
+
+Outbound is released; see CURRENT_STATE's latest section. Reuse the existing Service Binding identity and source-first `outbound_events` store. Normal PAGE continues through `/collect` and `visitor_events`. Before a release run check, lint, test, build and secret scan; deploy with a version of Wrangler supporting binding props, after fresh rollback capture. No database history or source Boss migration is part of this feature.
+
+The current CLI cannot read Workers Builds triggers (403). Treat a push as a possible production mutation and compare live deployment afterwards. Earlier branch/release tables are dated historical baselines.
+
 This is the zero-context operations handbook for the live TurkCyber service.
 For the shortest current snapshot see `CURRENT_STATE.md`; for design rationale
 see `ARCHITECTURE.md`; for security boundaries see `SECURITY.md`; for history

@@ -12,6 +12,13 @@
  */
 import type { Env } from './lib/env';
 import { handleCollect } from './routes/collect';
+import { detectBrowser, detectDevice } from './lib/ua';
+import {
+  handleOutbound,
+  injectOutbound,
+  outboundScriptResponse,
+} from './outbound/outbound-source.js';
+const OUTBOUND_ALIASES = ['turkcyber.com', 'www.turkcyber.com'];
 import { handleComments } from './routes/comments';
 import { handleBoss } from './routes/boss';
 
@@ -48,6 +55,23 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    if (env.ENVIRONMENT === 'production' && path === '/__analytics/outbound.js')
+      return withSecurityHeaders(outboundScriptResponse(), env);
+    if (env.ENVIRONMENT === 'production' && path === '/__analytics/outbound')
+      return withSecurityHeaders(
+        await handleOutbound(request, env, ctx, {
+          aliases: OUTBOUND_ALIASES,
+          db: env.ANALYTICS_DB,
+          local: true,
+          acceptsPath: (value) => !/^\/(boss|api|__analytics|collect)(?:\/|$)/.test(value),
+          profile: (request) => ({
+            browser: detectBrowser(request.headers.get('user-agent') || ''),
+            device: detectDevice(request.headers.get('user-agent') || ''),
+          }),
+        }),
+        env,
+      );
+
     if (path === '/collect' || path === '/collect/') {
       return handleCollect(request, env, ctx);
     }
@@ -62,7 +86,12 @@ export default {
 
     // Anything else is the static site.
     const response = await env.ASSETS.fetch(request);
-    return withSecurityHeaders(response, env);
+    return withSecurityHeaders(
+      env.ENVIRONMENT === 'production' && request.method === 'GET'
+        ? injectOutbound(response, OUTBOUND_ALIASES)
+        : response,
+      env,
+    );
   },
 } satisfies ExportedHandler<Env>;
 
