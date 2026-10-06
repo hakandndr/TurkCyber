@@ -1,6 +1,12 @@
 # TurkCyber operational handoff
 
-## Current continuation — 2026-10-06
+## Current standalone outbound release — 2026-10-06
+
+Verified production: ab2718a1-7250-4db1-9fd2-07363923e1a9 at 100%; immediate pre-correction rollback b82a646f-8fb3-4888-b646-99e8039403e6 retains the standalone-script defect and is a public-delivery recovery baseline, not proof of outbound collection. check, lint, 228 tests, build and secret scan and production dry-run passed. No new migration or binding change; public assets and existing source authority are preserved.
+
+The browser component is now literal standalone source. Serializing a function after bundling introduced an unavailable __name helper: endpoint-only acceptance had missed actual browser execution. The corrected deployed script is byte-identical to the shared component and was executed twice in a browser fixture with exactly one listener set, one normalized external request, internal-alias exclusion and uninterrupted navigation during network failure. Trusted binding identity, PAGE writers, source panels and historical records are preserved. Earlier checkpoints below are historical; no retention or business-data change was planned. Current build-trigger settings remain unknown; capture fresh rollback and compare the active deployment after any push.
+
+## Historical checkpoint continuation — 2026-10-06
 
 Outbound is released; see CURRENT_STATE's latest section. Reuse the existing Service Binding identity and source-first `outbound_events` store. Normal PAGE continues through `/collect` and `visitor_events`. Before a release run check, lint, test, build and secret scan; deploy with a version of Wrangler supporting binding props, after fresh rollback capture. No database history or source Boss migration is part of this feature.
 

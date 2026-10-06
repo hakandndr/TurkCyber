@@ -1,6 +1,12 @@
 # Current state
 
-## Verified outbound release — 2026-10-06
+## Verified standalone outbound correction — 2026-10-06
+
+Verified production: ab2718a1-7250-4db1-9fd2-07363923e1a9 at 100%; immediate pre-correction rollback b82a646f-8fb3-4888-b646-99e8039403e6 retains the standalone-script defect and is a public-delivery recovery baseline, not proof of outbound collection. check, lint, 228 tests, build and secret scan and production dry-run passed. No new migration or binding change; public assets and existing source authority are preserved.
+
+The browser component is now literal standalone source. Serializing a function after bundling introduced an unavailable __name helper: endpoint-only acceptance had missed actual browser execution. The corrected deployed script is byte-identical to the shared component and was executed twice in a browser fixture with exactly one listener set, one normalized external request, internal-alias exclusion and uninterrupted navigation during network failure. Trusted binding identity, PAGE writers, source panels and historical records are preserved. Earlier checkpoints below are historical; no retention or business-data change was planned. Current build-trigger settings remain unknown; capture fresh rollback and compare the active deployment after any push.
+
+## Historical checkpoint outbound release — 2026-10-06
 
 Production Worker `turkcyber-production` is `b82a646f-8fb3-4888-b646-99e8039403e6`; rollback `01fae4db-dcd1-4e49-ba39-1a3569c21aa2`. The same-origin `POST /__analytics/outbound` validates the request and records one immutable source `outbound_events` row before best-effort Service Binding forwarding. Only binding props assign `prd_turkcyber_binding`. Analytics migration `0002_outbound_events.sql` adds this separate table; all 1,758 pre-existing `visitor_events` rows were preserved. APP_DB, PAGE collection, Boss queries, public source assets and retention are unchanged. The browser component is added at response time.
 
